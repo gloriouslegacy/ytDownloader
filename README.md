@@ -1,4 +1,4 @@
-# ytDownloader WPF 프로그램
+# ytDownloader
 
 ## 📌 개요
 
