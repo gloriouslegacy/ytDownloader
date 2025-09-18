@@ -1,104 +1,115 @@
-﻿using System;
+﻿using Microsoft.Win32;
+using System;
+using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Windows;
-using System.Windows.Controls;
+using ytDownloader.Properties;
 
-// URL 붙여넣기시 다중 URL 적용 안됨. 수정 필요. 다음라인 입력시 가능
-
-namespace YouTubeDownloaderGUI
+namespace ytDownloader
 {
     public partial class MainWindow : Window
     {
-        private string ytDlpPath;
-        private string ffmpegPath;
-
-        // 기본 저장 경로: 사용자 다운로드 폴더
-        private readonly string defaultDownloadPath =
-            Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), "Downloads");
-
-        // 설정 저장 파일
-        private readonly string configPath =
-            Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "config.txt");
-
-        private bool stopRequested = false;
+        private readonly string toolsPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "tools");
+        private readonly string ytdlpPath;
+        private readonly string ffmpegPath;
 
         public MainWindow()
         {
+            ytdlpPath = Path.Combine(toolsPath, "yt-dlp.exe");
+            ffmpegPath = Path.Combine(toolsPath, "ffmpeg.exe");
+
             InitializeComponent();
+            LoadSettings();
 
-            // tools 폴더 경로
-            string toolPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "tools");
-            ytDlpPath = Path.Combine(toolPath, "yt-dlp.exe");
-            ffmpegPath = Path.Combine(toolPath, "ffmpeg.exe");
-
-            this.Loaded += Window_Loaded;
+            UpdateYtDlp(); // 실행 시 자동 업데이트
         }
 
-        private async void Window_Loaded(object sender, RoutedEventArgs e)
+        private void UpdateYtDlp()
         {
-            // 저장된 경로 불러오기
-            if (File.Exists(configPath))
+            if (!File.Exists(ytdlpPath))
             {
-                string savedPath = File.ReadAllText(configPath).Trim();
-                if (!string.IsNullOrEmpty(savedPath) && Directory.Exists(savedPath))
+                AppendOutput("❌ yt-dlp.exe가 tools 폴더에 없습니다.");
+                return;
+            }
+
+            Task.Run(() =>
+            {
+                try
                 {
-                    txtSavePath.Text = savedPath;
+                    AppendOutput("⏳ yt-dlp 업데이트 확인 중...");
+                    ProcessStartInfo psi = new ProcessStartInfo
+                    {
+                        FileName = ytdlpPath,
+                        Arguments = "-U",
+                        RedirectStandardError = true,
+                        RedirectStandardOutput = true,
+                        UseShellExecute = false,
+                        CreateNoWindow = true,
+                        StandardOutputEncoding = Encoding.UTF8,
+                        StandardErrorEncoding = Encoding.UTF8
+                    };
+
+                    using (Process proc = new Process())
+                    {
+                        proc.StartInfo = psi;
+                        proc.OutputDataReceived += (s, ev) => { if (!string.IsNullOrEmpty(ev.Data)) AppendOutput(ev.Data); };
+                        proc.ErrorDataReceived += (s, ev) => { if (!string.IsNullOrEmpty(ev.Data)) AppendOutput(ev.Data); };
+
+                        proc.Start();
+                        proc.BeginOutputReadLine();
+                        proc.BeginErrorReadLine();
+                        proc.WaitForExit();
+                    }
+
+                    AppendOutput("✅ yt-dlp 업데이트 확인 완료");
                 }
-                else
+                catch (Exception ex)
                 {
-                    txtSavePath.Text = defaultDownloadPath;
+                    AppendOutput("❌ 업데이트 오류: " + ex.Message);
                 }
-            }
-            else
-            {
-                txtSavePath.Text = defaultDownloadPath;
-            }
-
-            // yt-dlp 자동 업데이트
-            if (File.Exists(ytDlpPath))
-            {
-                AppendLog("🔄 yt-dlp 최신 버전 확인 중...");
-                await RunProcessAsync(ytDlpPath, "-U");
-            }
-            else
-            {
-                AppendLog("⚠️ yt-dlp.exe가 tools 폴더에 없습니다. 자동 업데이트를 건너뜁니다.");
-            }
+            });
         }
 
-        private void btnBrowse_Click(object sender, RoutedEventArgs e)
+        private void LoadSettings()
         {
-            var dialog = new System.Windows.Forms.FolderBrowserDialog();
-            if (dialog.ShowDialog() == System.Windows.Forms.DialogResult.OK)
+            if (string.IsNullOrWhiteSpace(Settings.Default.SavePath))
             {
-                txtSavePath.Text = dialog.SelectedPath;
-                File.WriteAllText(configPath, txtSavePath.Text.Trim()); // ✅ 변경 시 저장
+                Settings.Default.SavePath = Path.Combine(
+                    Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), "Downloads"
+                );
+                Settings.Default.Save();
             }
+
+            txtSavePath.Text = Settings.Default.SavePath;
+            ChkSingleVideo.IsChecked = Settings.Default.SingleVideoOnly;
+            SubtitleCheckBox.IsChecked = Settings.Default.DownloadSubtitle;
+            SubtitleLangComboBox.Text = Settings.Default.SubtitleLang;
+            SubtitleFormatComboBox.Text = Settings.Default.SubtitleFormat;
+            ChkWriteThumbnail.IsChecked = Settings.Default.SaveThumbnail;
+            ChkStructuredFolders.IsChecked = Settings.Default.UseStructuredFolder;
+            comboFormat.SelectedIndex = Settings.Default.Format;
+            txtMaxDownloads.Text = Settings.Default.MaxDownloads.ToString();
         }
 
-        private void btnPaste_Click(object sender, RoutedEventArgs e)
+        private void SaveSettings()
         {
-            txtUrls.Text = Clipboard.GetText();
+            Settings.Default.SavePath = txtSavePath.Text;
+            Settings.Default.SingleVideoOnly = ChkSingleVideo.IsChecked ?? false;
+            Settings.Default.DownloadSubtitle = SubtitleCheckBox.IsChecked ?? false;
+            Settings.Default.SubtitleLang = SubtitleLangComboBox.Text;
+            Settings.Default.SubtitleFormat = SubtitleFormatComboBox.Text;
+            Settings.Default.SaveThumbnail = ChkWriteThumbnail.IsChecked ?? false;
+            Settings.Default.UseStructuredFolder = ChkStructuredFolders.IsChecked ?? false;
+            Settings.Default.Format = comboFormat.SelectedIndex;
+            Settings.Default.MaxDownloads = int.TryParse(txtMaxDownloads.Text, out int n) ? n : 5;
+            Settings.Default.Save();
         }
 
-        private void btnUrlsClear_Click(object sender, RoutedEventArgs e)
-        {
-            txtUrls.Clear();
-        }
-
-        private void btnOpenFolder_Click(object sender, RoutedEventArgs e)
-        {
-            if (Directory.Exists(txtSavePath.Text))
-            {
-                Process.Start("explorer.exe", txtSavePath.Text);
-            }
-        }
-
-        // 로그 출력
-        private void AppendLog(string message)
+        private void AppendOutput(string message)
         {
             Dispatcher.Invoke(() =>
             {
@@ -107,274 +118,174 @@ namespace YouTubeDownloaderGUI
             });
         }
 
-        // yt-dlp 실행 공통 함수
-        private async Task RunProcessAsync(string exePath, string arguments)
+        private void StartDownload(string url, bool isChannelMode = false)
         {
-            try
+            if (!File.Exists(ytdlpPath) || !File.Exists(ffmpegPath))
             {
-                var process = new Process
+                AppendOutput("❌ tools 폴더에 yt-dlp.exe 또는 ffmpeg.exe가 없습니다.");
+                return;
+            }
+
+            string savePath = txtSavePath.Text;
+            if (string.IsNullOrWhiteSpace(savePath))
+            {
+                AppendOutput("❌ 저장 경로가 비어 있습니다.");
+                return;
+            }
+
+            Directory.CreateDirectory(savePath);
+
+            StringBuilder args = new StringBuilder();
+            args.Append($"-o \"{Path.Combine(savePath, "%(title)s.%(ext)s")}\" ");
+
+            if (comboFormat.SelectedIndex == 0)
+                args.Append("-f bestvideo+bestaudio ");
+            else
+                args.Append("--extract-audio --audio-format mp3 --audio-quality 0 ");
+
+            if (ChkSingleVideo.IsChecked == true)
+                args.Append("--no-playlist ");
+
+            if (SubtitleCheckBox.IsChecked == true)
+                args.Append($"--write-sub --sub-lang {SubtitleLangComboBox.Text} --sub-format {SubtitleFormatComboBox.Text} ");
+
+            if (ChkWriteThumbnail.IsChecked == true)
+                args.Append("--write-thumbnail ");
+
+            if (ChkStructuredFolders.IsChecked == true)
+                args.Append($"-o \"{Path.Combine(savePath, "%(uploader)s/%(playlist)s/%(title)s.%(ext)s")}\" ");
+
+            if (isChannelMode)
+            {
+                int max = int.TryParse(txtMaxDownloads.Text, out int n) ? n : 5;
+                args.Append($"--max-downloads {max} ");
+            }
+
+            args.Append("--windows-filenames ");
+            args.Append($"\"{url}\"");
+
+            Dispatcher.Invoke(() =>
+            {
+                progressBar.Value = 0;
+                txtSpeed.Text = "-";
+                txtEta.Text = "-";
+            });
+
+            Task.Run(() =>
+            {
+                try
                 {
-                    StartInfo = new ProcessStartInfo
+                    ProcessStartInfo psi = new ProcessStartInfo
                     {
-                        FileName = exePath,
-                        Arguments = arguments,
-                        RedirectStandardOutput = true,
+                        FileName = ytdlpPath,
+                        Arguments = args.ToString(),
                         RedirectStandardError = true,
+                        RedirectStandardOutput = true,
                         UseShellExecute = false,
                         CreateNoWindow = true,
                         StandardOutputEncoding = Encoding.UTF8,
                         StandardErrorEncoding = Encoding.UTF8
-                    },
-                    EnableRaisingEvents = true
-                };
+                    };
 
-                process.OutputDataReceived += (s, e) =>
-                {
-                    if (!string.IsNullOrEmpty(e.Data))
+                    using (Process proc = new Process())
                     {
-                        ParseYtDlpOutput(e.Data);
-                        AppendLog(e.Data);
-                    }
-                };
-
-                process.ErrorDataReceived += (s, e) =>
-                {
-                    if (!string.IsNullOrEmpty(e.Data))
-                    {
-                        AppendLog("ERROR: " + e.Data);
-                    }
-                };
-
-                process.Start();
-                process.BeginOutputReadLine();
-                process.BeginErrorReadLine();
-
-                await process.WaitForExitAsync();
-            }
-            catch (Exception ex)
-            {
-                AppendLog("FATAL: " + ex.Message);
-            }
-        }
-
-        // yt-dlp 출력 파싱 (진행률/속도/ETA)
-        private void ParseYtDlpOutput(string line)
-        {
-            if (line.Contains("[download]"))
-            {
-                try
-                {
-                    var parts = line.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
-                    foreach (var part in parts)
-                    {
-                        if (part.EndsWith("%"))
+                        proc.StartInfo = psi;
+                        proc.OutputDataReceived += (s, e) =>
                         {
-                            if (double.TryParse(part.Replace("%", ""), out double progress))
+                            if (!string.IsNullOrEmpty(e.Data))
                             {
-                                Dispatcher.Invoke(() => progressBar.Value = progress);
+                                AppendOutput(e.Data);
+
+                                var match = Regex.Match(e.Data, @"(\d+(?:\.\d+)?)%.*?of.*?at\s+([0-9.]+\w+/s).*?ETA\s+([\d:]+)");
+                                if (match.Success)
+                                {
+                                    double percent = double.Parse(match.Groups[1].Value);
+                                    string speed = match.Groups[2].Value;
+                                    string eta = match.Groups[3].Value;
+
+                                    Dispatcher.Invoke(() =>
+                                    {
+                                        progressBar.Value = percent;
+                                        txtSpeed.Text = speed;
+                                        txtEta.Text = eta;
+                                    });
+                                }
                             }
-                        }
-                        else if (part.EndsWith("iB/s") || part.EndsWith("KiB/s") || part.EndsWith("MiB/s"))
-                        {
-                            Dispatcher.Invoke(() => txtSpeed.Text = "속도: " + part);
-                        }
-                        else if (part.StartsWith("ETA"))
-                        {
-                            Dispatcher.Invoke(() => txtEta.Text = part);
-                        }
+                        };
+                        proc.ErrorDataReceived += (s, e) => { if (!string.IsNullOrEmpty(e.Data)) AppendOutput(e.Data); };
+
+                        proc.Start();
+                        proc.BeginOutputReadLine();
+                        proc.BeginErrorReadLine();
+                        proc.WaitForExit();
                     }
+
+                    AppendOutput("✅ 다운로드 완료");
+                    Dispatcher.Invoke(() =>
+                    {
+                        progressBar.Value = 100;
+                        txtSpeed.Text = "-";
+                        txtEta.Text = "완료 ✅";
+                    });
                 }
-                catch { }
-            }
+                catch (Exception ex)
+                {
+                    AppendOutput("❌ 오류: " + ex.Message);
+                }
+            });
         }
 
-        // 일반 다운로드
-        private async void btnDownload_Click(object sender, RoutedEventArgs e)
+        private void btnDownload_Click(object sender, RoutedEventArgs e)
         {
-            stopRequested = false;
-
-            if (!File.Exists(ytDlpPath))
-            {
-                MessageBox.Show("yt-dlp.exe가 tools 폴더에 없습니다.");
-                return;
-            }
-            if (!File.Exists(ffmpegPath))
-            {
-                MessageBox.Show("ffmpeg.exe가 tools 폴더에 없습니다.");
-                return;
-            }
-
-            string[] urls = txtUrls.Text.Split(new[] { '\n', '\r' }, StringSplitOptions.RemoveEmptyEntries);
-            if (urls.Length == 0)
-            {
-                MessageBox.Show("URL을 입력하세요.");
-                return;
-            }
-
-            string saveBase = txtSavePath.Text.Trim();
-            if (string.IsNullOrEmpty(saveBase)) saveBase = defaultDownloadPath;
-            if (!Directory.Exists(saveBase)) Directory.CreateDirectory(saveBase);
-
-            foreach (string url in urls)
-            {
-                string args;
-
-                if (comboFormat.SelectedIndex == 0) // Video (MP4)
-                {
-                    args = $"-f \"bv*+ba/best\" --merge-output-format mp4 " +
-                           $"--ffmpeg-location \"{Path.GetDirectoryName(ffmpegPath)}\" " +
-                           $"--windows-filenames -o \"{Path.Combine(saveBase, "%(title)s.%(ext)s")}\" " +
-                           $"--newline \"{url.Trim()}\"";
-                }
-                else // Music (MP3)
-                {
-                    args = $"--extract-audio --audio-format mp3 " +
-                           $"--ffmpeg-location \"{Path.GetDirectoryName(ffmpegPath)}\" " +
-                           $"--windows-filenames -o \"{Path.Combine(saveBase, "%(title)s.%(ext)s")}\" " +
-                           $"--newline \"{url.Trim()}\"";
-                }
-
-                if (ChkSingleVideo.IsChecked == true)
-                    args += " --no-playlist";
-
-                if (SubtitleCheckBox.IsChecked == true)
-                {
-                    string lang = (SubtitleLangComboBox.SelectedItem as ComboBoxItem)?.Content?.ToString() ?? "ko";
-                    string fmt = (SubtitleFormatComboBox.SelectedItem as ComboBoxItem)?.Content?.ToString() ?? "srt";
-                    args += $" --write-subs --write-auto-subs --sub-langs {lang} --sub-format {fmt} --embed-subs";
-                }
-
-                if (ChkWriteThumbnail.IsChecked == true)
-                    args += " --write-thumbnail";
-
-                if (ChkStructuredFolders.IsChecked == true)
-                    args = args.Replace("%(title)s.%(ext)s", "%(uploader)s/%(playlist)s/%(title)s.%(ext)s");
-
-                AppendLog($"> 다운로드 시작: {url}");
-                await RunProcessAsync(ytDlpPath, args);
-            }
-
-            if (!stopRequested)
-            {
-                AppendLog("✅ 모든 다운로드가 완료되었습니다.");
-            }
-
-            progressBar.Value = 0;
-            txtSpeed.Text = "속도: -";
-            txtEta.Text = "ETA: -";
+            SaveSettings();
+            string[] urls = txtUrls.Text.Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries);
+            foreach (var url in urls)
+                StartDownload(url, false);
         }
 
-        // 자막 언어 불러오기
+        private void btnChannelDownload_Click(object sender, RoutedEventArgs e)
+        {
+            SaveSettings();
+            string[] urls = txtChannelUrl.Text.Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries);
+            foreach (var url in urls)
+                StartDownload(url, true);
+        }
+
+        private void btnPaste_Click(object sender, RoutedEventArgs e) => txtUrls.AppendText(Clipboard.ContainsText() ? Clipboard.GetText() + Environment.NewLine : "");
+        private void btnUrlsClear_Click(object sender, RoutedEventArgs e) => txtUrls.Clear();
+        private void btnChannelPaste_Click(object sender, RoutedEventArgs e) => txtChannelUrl.AppendText(Clipboard.ContainsText() ? Clipboard.GetText() + Environment.NewLine : "");
+        private void btnChannelClear_Click(object sender, RoutedEventArgs e) => txtChannelUrl.Clear();
+
+        private void btnBrowse_Click(object sender, RoutedEventArgs e)
+        {
+            using (var dialog = new System.Windows.Forms.FolderBrowserDialog())
+            {
+                if (dialog.ShowDialog() == System.Windows.Forms.DialogResult.OK)
+                {
+                    txtSavePath.Text = dialog.SelectedPath;
+                    SaveSettings();
+                }
+            }
+        }
+
+        private void btnOpenFolder_Click(object sender, RoutedEventArgs e)
+        {
+            if (Directory.Exists(txtSavePath.Text))
+                Process.Start("explorer.exe", txtSavePath.Text);
+        }
+
         private void BtnLoadSubtitleLang_Click(object sender, RoutedEventArgs e)
         {
-            string[] langs = { "ko", "en", "ja", "zh-Hans", "fr", "de", "es" };
-
             SubtitleLangComboBox.Items.Clear();
-            foreach (var lang in langs)
-            {
-                SubtitleLangComboBox.Items.Add(new ComboBoxItem { Content = lang });
-            }
-
-            if (SubtitleLangComboBox.Items.Count > 0)
-                SubtitleLangComboBox.SelectedIndex = 0;
-
-            AppendLog("✅ 자막 언어 목록을 불러왔습니다.");
+            SubtitleLangComboBox.Items.Add("ko");
+            SubtitleLangComboBox.Items.Add("en");
+            SubtitleLangComboBox.Items.Add("ja");
+            SubtitleLangComboBox.Items.Add("zh");
+            SubtitleLangComboBox.Items.Add("fr");
+            SubtitleLangComboBox.Items.Add("de");
+            SubtitleLangComboBox.SelectedIndex = 0;
         }
 
-        // 채널 URL TextBox 플레이스홀더
-        private void TxtChannelUrl_GotFocus(object sender, RoutedEventArgs e)
-        {
-            if (txtChannelUrl.Text == "채널 URL 입력")
-                txtChannelUrl.Text = "";
-        }
-
-        private void TxtChannelUrl_LostFocus(object sender, RoutedEventArgs e)
-        {
-            if (string.IsNullOrWhiteSpace(txtChannelUrl.Text))
-                txtChannelUrl.Text = "채널 URL 입력";
-        }
-
-        // 채널 구독 다운로드
-        private async void btnChannelDownload_Click(object sender, RoutedEventArgs e)
-        {
-            stopRequested = false;
-
-            string channelUrl = txtChannelUrl.Text.Trim();
-            if (string.IsNullOrEmpty(channelUrl) || channelUrl == "채널 URL 입력")
-            {
-                MessageBox.Show("채널 URL을 입력하세요.");
-                return;
-            }
-            if (!File.Exists(ytDlpPath))
-            {
-                MessageBox.Show("yt-dlp.exe가 tools 폴더에 없습니다.");
-                return;
-            }
-            if (!File.Exists(ffmpegPath))
-            {
-                MessageBox.Show("ffmpeg.exe가 tools 폴더에 없습니다.");
-                return;
-            }
-
-            string saveBase = txtSavePath.Text.Trim();
-            if (string.IsNullOrEmpty(saveBase)) saveBase = defaultDownloadPath;
-            if (!Directory.Exists(saveBase)) Directory.CreateDirectory(saveBase);
-
-            int maxDownloads = 5;
-            if (!int.TryParse(txtMaxDownloads.Text.Trim(), out maxDownloads) || maxDownloads <= 0)
-                maxDownloads = 5;
-
-            AppendLog($"> 채널 구독 다운로드 시작: {channelUrl} (최대 {maxDownloads}개)");
-
-            string args;
-
-            if (comboFormat.SelectedIndex == 0) // Video (MP4)
-            {
-                args = $"-f \"bv*+ba/best\" --merge-output-format mp4 " +
-                       $"--ffmpeg-location \"{Path.GetDirectoryName(ffmpegPath)}\" " +
-                       $"--windows-filenames " +
-                       $"--download-archive \"{Path.Combine(saveBase, "archive.txt")}\" " +
-                       $"--max-downloads {maxDownloads} " +
-                       $"-o \"{Path.Combine(saveBase, "%(uploader)s/%(title)s.%(ext)s")}\" " +
-                       $"--newline \"{channelUrl}\"";
-            }
-            else // Music (MP3)
-            {
-                args = $"--extract-audio --audio-format mp3 " +
-                       $"--ffmpeg-location \"{Path.GetDirectoryName(ffmpegPath)}\" " +
-                       $"--windows-filenames " +
-                       $"--download-archive \"{Path.Combine(saveBase, "archive.txt")}\" " +
-                       $"--max-downloads {maxDownloads} " +
-                       $"-o \"{Path.Combine(saveBase, "%(uploader)s/%(title)s.%(ext)s")}\" " +
-                       $"--newline \"{channelUrl}\"";
-            }
-
-            // 자막 옵션
-            if (SubtitleCheckBox.IsChecked == true)
-            {
-                string lang = (SubtitleLangComboBox.SelectedItem as ComboBoxItem)?.Content?.ToString() ?? "ko";
-                string fmt = (SubtitleFormatComboBox.SelectedItem as ComboBoxItem)?.Content?.ToString() ?? "srt";
-                args += $" --write-subs --write-auto-subs --sub-langs {lang} --sub-format {fmt} --embed-subs";
-            }
-
-            // 썸네일 옵션
-            if (ChkWriteThumbnail.IsChecked == true)
-                args += " --write-thumbnail";
-
-            // 구조화 폴더
-            if (ChkStructuredFolders.IsChecked == true)
-                args = args.Replace("%(title)s.%(ext)s", "%(playlist)s/%(title)s.%(ext)s");
-
-            await RunProcessAsync(ytDlpPath, args);
-
-            if (!stopRequested)
-            {
-                AppendLog("✅ 채널 구독 다운로드 완료.");
-            }
-
-            progressBar.Value = 0;
-            txtSpeed.Text = "속도: -";
-            txtEta.Text = "ETA: -";
-        }
+        private void Window_Closing(object sender, CancelEventArgs e) => SaveSettings();
     }
 }
