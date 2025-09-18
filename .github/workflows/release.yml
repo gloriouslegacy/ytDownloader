@@ -1,0 +1,101 @@
+name: Build and Release
+
+on:
+  push:
+    branches:
+      - main      # main 브랜치 push → Pre-release
+    tags:
+      - "v*"      # 태그 push (예: v1.0.0) → 정식 Release
+
+jobs:
+  build:
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v3
+        with:
+          dotnet-version: 8.0.x
+
+      # 📌 최신 릴리스 가져오기
+      - name: Get latest release
+        id: get_release
+        uses: actions/github-script@v6
+        with:
+          script: |
+            const { data: releases } = await github.rest.repos.listReleases({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              per_page: 1
+            });
+            if (releases.length === 0) {
+              return "0.1.0"; // 초기 버전
+            } else {
+              return releases[0].tag_name.split("-")[0]; // ex) "0.3.5" 추출
+            }
+
+      # 📌 버전 계산: 태그 vs main 구분
+      - name: Determine version
+        id: vars
+        run: |
+          if ("${{ github.ref }}" -like "refs/tags/*") {
+            # 태그 push → 정식 Release
+            $tag="${{ github.ref_name }}"
+            $version=$tag.TrimStart("v")
+          } else {
+            # main push → Pre-release (커밋 메시지 기반 증가 + 날짜)
+            $lastCommit = git log -1 --pretty=%B
+            echo "Last commit: $lastCommit"
+
+            $prev="${{ steps.get_release.outputs.result }}"
+            $parts=$prev.Split('.')
+            $major=[int]$parts[0]
+            $minor=[int]$parts[1]
+            $patch=[int]$parts[2]
+
+            if ($lastCommit -match "BREAKING") {
+              $major++
+              $minor=0
+              $patch=0
+            }
+            elseif ($lastCommit -match "^feat:") {
+              $minor++
+              $patch=0
+            }
+            else {
+              $patch++
+            }
+
+            $newVersion="$major.$minor.$patch"
+            $date=$(Get-Date -Format "yyyyMMdd")
+            $version="$newVersion-$date"
+          }
+          echo "version=$version" >> $env:GITHUB_OUTPUT
+
+      - name: Build (ytDownloader WPF)
+        run: dotnet publish ytDownloader/ytDownloader.csproj -c Release -r win-x64 --self-contained false -o publish/ytDownloader -p:Version=${{ steps.vars.outputs.version }} -p:AssemblyVersion=${{ steps.vars.outputs.version }}.0 -p:FileVersion=${{ steps.vars.outputs.version }}.0
+
+      - name: Build (Updater)
+        run: dotnet publish Updater/Updater.csproj -c Release -r win-x64 --self-contained false -o publish/Updater
+
+      - name: Prepare release package
+        run: |
+          mkdir dist
+          copy publish\\ytDownloader\\* dist\\
+          copy publish\\Updater\\Updater.exe dist\\
+          if exist dist\\tools rmdir /s /q dist\\tools
+          del dist\\*.pdb
+          powershell Compress-Archive -Path dist\\* -DestinationPath yt_downloader_${{ steps.vars.outputs.version }}.zip
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: ${{ steps.vars.outputs.version }}
+          name: Release ${{ steps.vars.outputs.version }}
+          files: yt_downloader_${{ steps.vars.outputs.version }}.zip
+          prerelease: ${{ github.ref != format('refs/tags/{0}', steps.vars.outputs.version) }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
