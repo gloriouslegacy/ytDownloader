@@ -6,6 +6,8 @@ using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 
+// URL 붙여넣기시 다중 URL 적용 안됨. 수정 필요. 다음라인 입력시 가능
+
 namespace YouTubeDownloaderGUI
 {
     public partial class MainWindow : Window
