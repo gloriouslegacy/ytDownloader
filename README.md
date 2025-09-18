@@ -1,4 +1,4 @@
-# 📘 YouTube Downloader (yt-dlp WPF)
+# 📘 ytDownloader (yt-dlp)
 
 유튜브 영상을 GUI로 손쉽게 저장하는 **WPF 기반 yt-dlp 프론트엔드**입니다.  
 `yt-dlp.exe` + `ffmpeg.exe`를 사용하며, **영상/음악/자막/썸네일**, **채널 최신 영상 자동 다운로드**, **설정 저장**, **자동 업데이트**를 지원합니다.
