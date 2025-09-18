@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using System.Windows;
 using ytDownloader.Properties;
 
+
 namespace ytDownloader
 {
     public partial class MainWindow : Window
@@ -135,13 +136,24 @@ namespace ytDownloader
 
             Directory.CreateDirectory(savePath);
 
-            StringBuilder args = new StringBuilder();
-            args.Append($"-o \"{Path.Combine(savePath, "%(title)s.%(ext)s")}\" ");
+            // 날짜/시간 태그 생성
+            string timestamp = DateTime.Now.ToString("yyyyMMdd_HHmmss");
 
-            if (comboFormat.SelectedIndex == 0)
+            StringBuilder args = new StringBuilder();
+
+            // 포맷에 따라 파일명 패턴 다르게 지정
+            if (comboFormat.SelectedIndex == 0) // 영상
+            {
+                string outputTemplate = $"%(title)s_{timestamp}_video.%(ext)s";
+                args.Append($"-o \"{Path.Combine(savePath, outputTemplate)}\" ");
                 args.Append("-f bestvideo+bestaudio ");
-            else
+            }
+            else // 오디오
+            {
+                string outputTemplate = $"%(title)s_{timestamp}_audio.%(ext)s";
+                args.Append($"-o \"{Path.Combine(savePath, outputTemplate)}\" ");
                 args.Append("--extract-audio --audio-format mp3 --audio-quality 0 ");
+            }
 
             if (ChkSingleVideo.IsChecked == true)
                 args.Append("--no-playlist ");
@@ -153,7 +165,11 @@ namespace ytDownloader
                 args.Append("--write-thumbnail ");
 
             if (ChkStructuredFolders.IsChecked == true)
-                args.Append($"-o \"{Path.Combine(savePath, "%(uploader)s/%(playlist)s/%(title)s.%(ext)s")}\" ");
+            {
+                // 구조적 폴더를 사용할 경우에도 동일하게 timestamp 적용
+                string structuredTemplate = $"%(uploader)s/%(playlist)s/%(title)s_{timestamp}_%(ext)s.%(ext)s";
+                args.Append($"-o \"{Path.Combine(savePath, structuredTemplate)}\" ");
+            }
 
             if (isChannelMode)
             {
@@ -234,6 +250,8 @@ namespace ytDownloader
                 }
             });
         }
+
+
 
         private void btnDownload_Click(object sender, RoutedEventArgs e)
         {
