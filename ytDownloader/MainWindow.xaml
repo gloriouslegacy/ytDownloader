@@ -120,8 +120,8 @@
 
                         <TextBlock Text="포맷 선택" FontWeight="Bold" Margin="5,10,5,5" Foreground="#FFF9F9F9"/>
                         <ComboBox Name="comboFormat" Foreground="#FF080707">
-                            <ComboBoxItem Content="영상+음성 (최고 화질)"/>
-                            <ComboBoxItem Content="MP3 (오디오 추출)"/>
+                            <ComboBoxItem Content="영상 (최고 화질)"/>
+                            <ComboBoxItem Content="음악 (최고 음원)"/>
                         </ComboBox>
 
                         <CheckBox Name="ChkSingleVideo" Content="단일 다운로드(재생목록 무시)"/>
