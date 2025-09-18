@@ -1,159 +1,197 @@
-﻿<Window
+﻿<Window x:Class="ytDownloader.MainWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        xmlns:av="http://schemas.microsoft.com/expression/blend/2008" xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" mc:Ignorable="av" x:Class="ytDownloader.MainWindow"
-        Title="ytDownloader(yt-dlp)" Height="600" Width="1000"
-        Background="#1E1E2E" Foreground="White" FontFamily="Segoe UI"
-        MinHeight="500" MinWidth="800" ResizeMode="CanResize">
+        Title="ytDownloader(ytdlp)"
+        Height="750" Width="1150"
+        WindowStartupLocation="CenterScreen"
+        Background="#1E1E2E"
+        Foreground="White">
 
-    <Grid Margin="10" Background="#1E1E2E">
+    <Window.Resources>
+        <!-- 버튼 스타일 -->
+        <Style TargetType="Button">
+            <Setter Property="Margin" Value="5"/>
+            <Setter Property="Padding" Value="10,5"/>
+            <Setter Property="Background" Value="#3A3F58"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="FontWeight" Value="Bold"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border Background="{TemplateBinding Background}"
+                                CornerRadius="6"
+                                Padding="{TemplateBinding Padding}">
+                            <ContentPresenter HorizontalAlignment="Center"
+                                              VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter Property="Background" Value="#4B526E"/>
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter Property="Background" Value="#5A607A"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- TextBox -->
+        <Style TargetType="TextBox">
+            <Setter Property="Margin" Value="5"/>
+            <Setter Property="Padding" Value="8,4"/>
+            <Setter Property="Background" Value="#2A2F45"/>
+            <Setter Property="BorderBrush" Value="#3A3F58"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Foreground" Value="White"/>
+        </Style>
+
+        <!-- ComboBox -->
+        <Style TargetType="ComboBox">
+            <Setter Property="Margin" Value="5"/>
+            <Setter Property="Padding" Value="5"/>
+            <Setter Property="Background" Value="#2A2F45"/>
+            <Setter Property="Foreground" Value="White"/>
+        </Style>
+
+        <!-- CheckBox -->
+        <Style TargetType="CheckBox">
+            <Setter Property="Margin" Value="5"/>
+            <Setter Property="Foreground" Value="White"/>
+        </Style>
+    </Window.Resources>
+
+    <Grid Margin="15">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
-            <!-- 상단 버튼 -->
-            <RowDefinition Height="Auto"/>
-            <!-- 옵션 -->
-            <RowDefinition Height="Auto"/>
-            <!-- 저장경로 -->
-            <RowDefinition Height="Auto"/>
-            <!-- URL 입력 -->
-            <RowDefinition Height="Auto"/>
-            <!-- 채널 -->
+            <!-- 헤더 -->
             <RowDefinition Height="*"/>
-            <!-- 로그 출력 -->
-            <RowDefinition Height="Auto"/>
-            <!-- 진행상황 -->
+            <!-- 탭 -->
+            <RowDefinition Height="220"/>
+            <!-- 로그 -->
         </Grid.RowDefinitions>
 
-        <!-- 상단 버튼 -->
-        <DockPanel Grid.Row="0" Margin="0,0,0,8" LastChildFill="False">
-            <ComboBox x:Name="comboFormat" Width="150" Height="25"
-                      Background="#2B2D42" Foreground="Black" BorderBrush="#3B82F6"
-                      SelectedIndex="0" FontSize="12" Margin="0,0,8,0" HorizontalAlignment="Center" VerticalAlignment="Center">
-                <ComboBoxItem Content="Video (MP4)"/>
-                <ComboBoxItem Content="Music (MP3)"/>
-            </ComboBox>
+        <!-- 헤더 -->
+        <Border Grid.Row="0" Padding="15" Background="#2A2F45" CornerRadius="8" Margin="0,0,0,10">
+            <TextBlock Text="ytDownloader(ytdlp)"
+                       FontSize="22"
+                       FontWeight="Bold"
+                       Foreground="gray"/>
+        </Border>
 
-            <Button x:Name="btnDownload" Content="↓ 다운로드" Width="150" Height="25"
-                    Background="#3B82F6" Foreground="White" FontSize="12" Margin="0,0,8,0"
-                    Click="btnDownload_Click"/>
+        <!-- 메인 영역 (TabControl) -->
+        <TabControl Grid.Row="1" Background="#1E1E2E" BorderBrush="#2A2F45">
+            <!-- 기본 설정 -->
+            <TabItem Header="기본 설정">
+                <Grid Margin="10">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="3*"/>
+                        <ColumnDefinition Width="2*"/>
+                    </Grid.ColumnDefinitions>
 
-            <CheckBox x:Name="ChkSingleVideo" Content="단일 리스트(플레이리스트 무시)"
-                      VerticalAlignment="Center" Foreground="#F1F5F9" FontSize="12" Margin="0,0,8,0"/>
+                    <!-- 좌측: URL 입력 -->
+                    <StackPanel Grid.Column="0" Margin="0,0,10,0">
+                        <TextBlock Text="URL 입력" FontWeight="Bold" Margin="5" Foreground="#FFF9F6F6"/>
+                        <DockPanel>
+                            <Button Content="붙여넣기" Width="80" Click="btnPaste_Click"/>
+                            <Button Content="지우기" Width="80" Click="btnUrlsClear_Click"/>
+                        </DockPanel>
+                        <TextBox Name="txtUrls" AcceptsReturn="True" Height="120" VerticalScrollBarVisibility="Auto"/>
 
-            <Button x:Name="btnOpenFolder" Content="📂 저장 경로 열기" Width="150" Height="25"
-                    Background="#22C55E" Foreground="White" FontSize="12"
-                    Click="btnOpenFolder_Click"/>
-        </DockPanel>
+                        <TextBlock Text="채널 / 재생목록 URL 입력" FontWeight="Bold" Margin="5,15,5,5" Foreground="#FFF7F3F3"/>
+                        <DockPanel>
+                            <Button Content="붙여넣기" Width="80" Click="btnChannelPaste_Click"/>
+                            <Button Content="지우기" Width="80" Click="btnChannelClear_Click"/>
+                        </DockPanel>
+                        <TextBox Name="txtChannelUrl" AcceptsReturn="True" Height="120" VerticalScrollBarVisibility="Auto"/>
+                    </StackPanel>
 
-        <!-- 옵션 -->
-        <WrapPanel Grid.Row="1" Margin="0,0,0,8" VerticalAlignment="Center">
-            <CheckBox x:Name="SubtitleCheckBox" Content="자막 다운로드" Margin="0,0,10,0"
-                      VerticalAlignment="Center" Foreground="#F1F5F9" FontSize="12"/>
+                    <!-- 우측: 저장 경로 & 옵션 + 실행 버튼 -->
+                    <StackPanel Grid.Column="1" Margin="10,0,0,0">
+                        <TextBlock Text="저장 경로" FontWeight="Bold" Margin="5" Foreground="#FFF9F9F9"/>
+                        <DockPanel>
+                            <TextBox Name="txtSavePath" IsReadOnly="True" Width="254"/>
+                            <Button Content="찾기" Width="70" Click="btnBrowse_Click"/>
+                            <Button Content="열기" Width="70" Click="btnOpenFolder_Click"/>
+                        </DockPanel>
 
-            <TextBlock Text="언어:" VerticalAlignment="Center" Margin="0,0,6,0" FontSize="12"/>
-            <ComboBox x:Name="SubtitleLangComboBox" Width="140" Height="25" Margin="0,0,10,0"
-                      Background="#2B2D42" Foreground="Black" BorderBrush="#3B82F6" HorizontalAlignment="Center"/>
+                        <TextBlock Text="포맷 선택" FontWeight="Bold" Margin="5,10,5,5" Foreground="#FFF9F9F9"/>
+                        <ComboBox Name="comboFormat" Foreground="#FF080707">
+                            <ComboBoxItem Content="영상+음성 (최고 화질)"/>
+                            <ComboBoxItem Content="MP3 (오디오 추출)"/>
+                        </ComboBox>
 
-            <Button x:Name="BtnLoadSubtitleLang" Content="언어 불러오기" Width="150" Height="25" Margin="0,0,10,0"
-                    Background="#6366F1" Foreground="White" FontSize="12" Click="BtnLoadSubtitleLang_Click"/>
+                        <CheckBox Name="ChkSingleVideo" Content="단일 다운로드(재생목록 무시)"/>
 
-            <TextBlock Text="포맷:" VerticalAlignment="Center" Margin="0,0,6,0" FontSize="12"/>
-            <ComboBox x:Name="SubtitleFormatComboBox" Width="100" Height="25" Margin="0,0,10,0"
-                      Background="#2B2D42" Foreground="Black" BorderBrush="#3B82F6" HorizontalAlignment="Center">
-                <ComboBoxItem Content="srt" IsSelected="True"/>
-                <ComboBoxItem Content="vtt"/>
-            </ComboBox>
+                        <!-- 다운로드 버튼을 우측 패널 하단에 배치 -->
+                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Margin="5,20,0,0">
+                            <Button Content="다운로드" Width="140" Click="btnDownload_Click"/>
+                            <Button Content="채널 다운로드" Width="140" Click="btnChannelDownload_Click"/>
+                        </StackPanel>
+                    </StackPanel>
+                </Grid>
 
-            <CheckBox x:Name="ChkWriteThumbnail" Content="썸네일 저장" Margin="0,0,10,0"
-                      VerticalAlignment="Center" Foreground="#F1F5F9" FontSize="12"/>
-            <CheckBox x:Name="ChkStructuredFolders" Content="채널/플레이리스트 폴더" Margin="0,0,10,0"
-                      VerticalAlignment="Center" Foreground="#F1F5F9" FontSize="12"/>
-        </WrapPanel>
+            </TabItem>
 
-        <!-- 저장 경로 -->
-        <Grid Grid.Row="2" Margin="0,0,0,8">
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="404*"/>
-                <ColumnDefinition Width="11*"/>
-                <ColumnDefinition Width="150"/>
-            </Grid.ColumnDefinitions>
+            <!-- 고급 설정 -->
+            <TabItem Header="고급 설정">
+                <StackPanel Margin="10">
+                    <CheckBox Name="ChkStructuredFolders" Content="업로더/재생목록 폴더 구조"/>
+                    <CheckBox Name="ChkWriteThumbnail" Content="썸네일 저장"/>
 
-            <StackPanel Orientation="Horizontal" Grid.Column="0" Grid.ColumnSpan="2">
-                <TextBlock Text="저장 경로:" VerticalAlignment="Center" Margin="0,0,6,0" FontSize="12"/>
-                <TextBox x:Name="txtSavePath" Height="25" 
-                         Background="#2B2D42" Foreground="White" BorderBrush="#2B2D42" 
-                         VerticalContentAlignment="Center" FontSize="12" Width="759"/>
-            </StackPanel>
+                    <TextBlock Text="자막 설정" FontWeight="Bold" Margin="5,10,5,5" Foreground="#FFF9F9F9"/>
+                    <CheckBox Name="SubtitleCheckBox" Content="자막 다운로드"/>
+                    <StackPanel Orientation="Horizontal">
+                        <ComboBox Name="SubtitleLangComboBox" Width="120" Foreground="#FF0A0A0A"/>
+                        <ComboBox Name="SubtitleFormatComboBox" Width="120" Foreground="#FF0E0E0E"/>
+                        <Button Content="불러오기" Width="90" Click="BtnLoadSubtitleLang_Click"/>
+                    </StackPanel>
 
-            <Button x:Name="btnBrowse" Grid.Column="2" Content="경로 선택" Width="150" Height="25"
-                    Background="#475569" Foreground="White" FontSize="12"
-                    Click="btnBrowse_Click"/>
-        </Grid>
+                    <Grid Margin="5,10,5,5">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="100"/>
+                        </Grid.ColumnDefinitions>
 
-        <!-- URL 입력 -->
-        <Grid Grid.Row="3" Margin="0,0,0,8">
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="*"/>
-                <ColumnDefinition Width="150"/>
-            </Grid.ColumnDefinitions>
+                        <TextBlock Text="최대 다운로드 개수" 
+                                FontWeight="Bold" 
+                                VerticalAlignment="Center"
+                                Grid.Column="0" Margin="0,0,10,0" Foreground="#FFFBF3F3"/>
+                        <TextBox Name="txtMaxDownloads" 
+             Width="80" 
+             Grid.Column="1"/>
+                    </Grid>
+                </StackPanel>
+            </TabItem>
+        </TabControl>
 
-            <TextBox x:Name="txtUrls" Grid.Column="0" Height="150"
-                     Background="#2B2D42" Foreground="White"
-                     TextWrapping="Wrap" VerticalScrollBarVisibility="Auto"
-                     AcceptsReturn="True" FontSize="12" Margin="0,0,8,0" BorderBrush="#2B2D42"
-                     />
+        <!-- 로그 & 진행 상태 -->
+        <Border Grid.Row="2" Background="#2A2F45" CornerRadius="8" Padding="10">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="*"/>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
 
-            <StackPanel Grid.Column="1" Orientation="Vertical">
-                <Button Content="붙여넣기" Height="25" Margin="0,0,0,6"
-                        Background="#3B82F6" Foreground="White" FontSize="12" Click="btnPaste_Click"/>
-                <Button Content="지우기" Height="25"
-                        Background="#EF4444" Foreground="White" FontSize="12" Click="btnUrlsClear_Click"/>
-            </StackPanel>
-        </Grid>
+                <TextBox Name="txtOutput" Grid.Row="0"
+                         IsReadOnly="True"
+                         AcceptsReturn="True"
+                         VerticalScrollBarVisibility="Auto"
+                         Background="#12121C"
+                         BorderThickness="0"
+                         Foreground="LightGray"/>
 
-        <!-- 채널 다운로드 -->
-        <DockPanel Grid.Row="4" Margin="0,0,0,8" LastChildFill="False">
-            <TextBox x:Name="txtChannelUrl" Width="756" Height="80"
-                    Background="#2B2D42" Foreground="White"
-                    BorderThickness="1" BorderBrush="#2B2D42"
-                    FontSize="12" TextAlignment="Left"
-                    AcceptsReturn="True" TextWrapping="Wrap"
-                    VerticalScrollBarVisibility="Auto"
-                    ToolTip="채널 또는 RSS URL 입력 (줄바꿈으로 여러 개 입력 가능)"
-                    />
-
-            <TextBox x:Name="txtMaxDownloads" Width="60" Height="25" Margin="6,0,0,0"
-                     Background="#2B2D42" Foreground="White" BorderBrush="#2B2D42"
-                     FontSize="12" TextAlignment="Center" VerticalContentAlignment="Center"
-                     Text="5"/>
-
-            <Button x:Name="btnChannelDownload" Content="구독 다운로드" Width="150" Height="25" Margin="6,0,0,0"
-                    Background="#3B82F6" Foreground="White" FontSize="12" Click="btnChannelDownload_Click"/>
-        </DockPanel>
-
-        <!-- 로그 출력 -->
-        <TextBox x:Name="txtOutput" Grid.Row="5" Margin="0,0,0,8"
-                 Background="#2B2D42" Foreground="White" BorderBrush="#2B2D42"
-                 TextWrapping="Wrap" VerticalScrollBarVisibility="Auto"
-                 AcceptsReturn="True" FontSize="12"/>
-
-        <!-- 진행 상태 -->
-        <Grid Grid.Row="6" Margin="0,0,0,0">
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="*"/>
-                <ColumnDefinition Width="160"/>
-                <ColumnDefinition Width="160"/>
-            </Grid.ColumnDefinitions>
-
-            <ProgressBar x:Name="progressBar" Grid.Column="0" Height="14" Margin="2,0,8,0"
-                         Foreground="#3B82F6" Background="#2B2D42" BorderBrush="#2B2D42"
-                         Minimum="0" Maximum="100"/>
-
-            <TextBlock x:Name="txtSpeed" Grid.Column="1" VerticalAlignment="Center" TextAlignment="Center"
-                       FontSize="12" Foreground="#F1F5F9" Text="-" />
-
-            <TextBlock x:Name="txtEta" Grid.Column="2" VerticalAlignment="Center" TextAlignment="Center"
-                       FontSize="12" Foreground="#F1F5F9" Text="-" />
-        </Grid>
+                <StackPanel Grid.Row="1" Orientation="Horizontal" VerticalAlignment="Center" Margin="0,10,0,0">
+                    <ProgressBar Name="progressBar" Width="827" Height="20" Margin="5"/>
+                    <TextBlock Text="속도:" Margin="15,0,5,0" VerticalAlignment="Center"/>
+                    <TextBlock Name="txtSpeed" Text="-" Width="100" VerticalAlignment="Center"/>
+                    <TextBlock Text="ETA:" Margin="15,0,5,0" VerticalAlignment="Center"/>
+                    <TextBlock Name="txtEta" Text="-" Width="100" VerticalAlignment="Center"/>
+                </StackPanel>
+            </Grid>
+        </Border>
     </Grid>
 </Window>

@@ -284,6 +284,13 @@ namespace ytDownloader
             SubtitleLangComboBox.Items.Add("fr");
             SubtitleLangComboBox.Items.Add("de");
             SubtitleLangComboBox.SelectedIndex = 0;
+
+            // 자막 포맷 목록
+            SubtitleFormatComboBox.Items.Clear();
+            SubtitleFormatComboBox.Items.Add("srt");
+            SubtitleFormatComboBox.Items.Add("vtt");
+            SubtitleFormatComboBox.Items.Add("ass");
+            SubtitleFormatComboBox.SelectedIndex = 0;
         }
 
         private void Window_Closing(object sender, CancelEventArgs e) => SaveSettings();
