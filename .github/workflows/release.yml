@@ -51,8 +51,11 @@ jobs:
             $lastCommit = git log -1 --pretty=%B
             echo "Last commit: $lastCommit"
 
-            # 따옴표 제거
-            $prev="${{ steps.get_release.outputs.result }}".Trim("'").Trim('"')
+            # 따옴표 안전 제거
+            $prev="${{ steps.get_release.outputs.result }}"
+            $prev=$prev -replace '"',''
+            $prev=$prev -replace "'",''
+
             Write-Output "Previous version: $prev"
 
             $parts=$prev.Split('.')
@@ -74,7 +77,7 @@ jobs:
             }
 
             $newVersion="$major.$minor.$patch"
-            $date=$(Get-Date -Format "yyyyMMdd")
+            $date=Get-Date -Format "yyyyMMdd"
             $version="$newVersion-$date"
           }
 
