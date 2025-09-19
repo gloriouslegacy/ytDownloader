@@ -10,6 +10,8 @@ on:
 jobs:
   build:
     runs-on: windows-latest
+    permissions:
+      contents: write   # Release 작성 권한 필요
 
     steps:
       - name: Checkout repository
@@ -32,76 +34,67 @@ jobs:
               per_page: 1
             });
             if (releases.length === 0) {
-              return "0.1.0"; // 초기 버전
+              return "0.1.0";
             } else {
-              return releases[0].tag_name.split("-")[0]; // ex) "0.3.5" 추출
+              return releases[0].tag_name.replace(/^v/, ""); // v 제거
             }
 
-      # 📌 버전 계산: 태그 vs main 구분
+      # 📌 버전 계산
       - name: Determine version
         id: vars
         shell: bash
         run: |
           if [[ "${GITHUB_REF}" == refs/tags/* ]]; then
-            # 태그 push → 정식 Release
-            version="${GITHUB_REF#refs/tags/}"
-            version="${version#v}"   # v 제거
+            # 태그 push → 정식 릴리스
+            base_version="${GITHUB_REF#refs/tags/v}"
+            version="${base_version}"
+            release_name="${base_version}"
           else
-            # main push → Pre-release
-            lastCommit=$(git log -1 --pretty=%B)
-            echo "Last commit: $lastCommit"
-
+            # main push → Pre-release (자동 증가 + 날짜)
+            last_commit=$(git log -1 --pretty=%B)
             prev="${{ steps.get_release.outputs.result }}"
             IFS='.' read -r major minor patch <<< "$prev"
 
-            if [[ "$lastCommit" == *"BREAKING"* ]]; then
+            if [[ "$last_commit" == *"BREAKING"* ]]; then
               major=$((major+1)); minor=0; patch=0
-            elif [[ "$lastCommit" == feat:* ]]; then
+            elif [[ "$last_commit" == feat:* ]]; then
               minor=$((minor+1)); patch=0
             else
               patch=$((patch+1))
             fi
 
-            newVersion="$major.$minor.$patch"
+            new_version="$major.$minor.$patch"
             date=$(date +%Y%m%d)
-            version="$newVersion-$date"
+            version="$new_version-$date"
+            release_name="$version"
           fi
 
           echo "version=$version" >> $GITHUB_OUTPUT
+          echo "base_version=$base_version" >> $GITHUB_OUTPUT
+          echo "release_name=$release_name" >> $GITHUB_OUTPUT
 
-      # 📌 WPF 빌드
       - name: Build (ytDownloader WPF)
-        shell: bash
-        run: |
-          baseVersion=$(echo "${{ steps.vars.outputs.version }}" | cut -d'-' -f1)
-          echo "BaseVersion=$baseVersion"
-          dotnet publish ytDownloader/ytDownloader.csproj -c Release -r win-x64 --self-contained false -o publish/ytDownloader \
-            -p:Version=${{ steps.vars.outputs.version }} \
-            -p:AssemblyVersion=$baseVersion.0 \
-            -p:FileVersion=$baseVersion.0
+        run: dotnet publish ytDownloader/ytDownloader.csproj -c Release -r win-x64 --self-contained false -o publish/ytDownloader -p:Version=${{ steps.vars.outputs.version }}
 
-      # 📌 Updater 빌드
       - name: Build (Updater)
         run: dotnet publish Updater/Updater.csproj -c Release -r win-x64 --self-contained false -o publish/Updater
 
-      # 📌 릴리스 패키지 준비 (PowerShell로 압축)
       - name: Prepare release package
-        shell: pwsh
+        shell: bash
         run: |
-          mkdir dist
-          Copy-Item publish/ytDownloader/* dist/ -Recurse
-          Copy-Item publish/Updater/Updater.exe dist/
-          if (Test-Path dist/tools) { Remove-Item dist/tools -Recurse -Force }
-          Remove-Item dist/*.pdb -Force -ErrorAction SilentlyContinue
-          Compress-Archive -Path dist/* -DestinationPath yt_downloader_${{ steps.vars.outputs.version }}.zip -Force
+          mkdir -p dist
+          cp -r publish/ytDownloader/* dist/
+          cp publish/Updater/Updater.exe dist/
+          rm -rf dist/tools || true
+          rm -f dist/*.pdb || true
+          zip -r yt_downloader_${{ steps.vars.outputs.release_name }}.zip dist/*
 
-      # 📌 GitHub Release 생성
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v1
         with:
-          tag_name: ${{ steps.vars.outputs.version }}
-          name: Release ${{ steps.vars.outputs.version }}
-          files: yt_downloader_${{ steps.vars.outputs.version }}.zip
+          tag_name: v${{ steps.vars.outputs.base_version }}
+          name: Release ${{ steps.vars.outputs.release_name }}
+          files: yt_downloader_${{ steps.vars.outputs.release_name }}.zip
           prerelease: ${{ !startsWith(github.ref, 'refs/tags/') }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
