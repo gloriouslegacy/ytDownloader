@@ -37,7 +37,7 @@ jobs:
               return releases[0].tag_name.split("-")[0]; // ex) "0.3.5" 추출
             }
 
-      # 📌 버전 계산: 태그 vs main 구분 (Bash)
+      # 📌 버전 계산 (태그 vs main push)
       - name: Determine version
         id: vars
         shell: bash
@@ -47,13 +47,11 @@ jobs:
             tag="${GITHUB_REF_NAME}"
             version="${tag#v}"
           else
-            # main push → Pre-release
+            # main push → Pre-release (커밋 메시지 기반 증가 + 날짜)
             lastCommit=$(git log -1 --pretty=%B)
             echo "Last commit: $lastCommit"
 
             prev="${{ steps.get_release.outputs.result }}"
-            echo "Previous version raw: $prev"
-
             IFS='.' read -r major minor patch <<< "$prev"
 
             if [[ "$lastCommit" == *"BREAKING"* ]]; then
@@ -67,14 +65,15 @@ jobs:
               patch=$((patch+1))
             fi
 
-            newVersion="${major}.${minor}.${patch}"
-            date=$(date +%Y%m%d)
-            version="${newVersion}-${date}"
+            newVersion="$major.$minor.$patch"
+            date=$(date +'%Y%m%d')
+            version="$newVersion-$date"
           fi
 
           echo "version=$version" >> $GITHUB_OUTPUT
 
-           - name: Build (ytDownloader)
+      - name: Build (ytDownloader WPF)
+        shell: bash
         run: |
           baseVersion=$(echo "${{ steps.vars.outputs.version }}" | cut -d'-' -f1)
           echo "BaseVersion=$baseVersion"
@@ -84,15 +83,22 @@ jobs:
             -p:FileVersion=$baseVersion.0
 
       - name: Build (Updater)
-        run: dotnet publish Updater/Updater.csproj -c Release -r win-x64 --self-contained false -o publish/Updater
+        shell: bash
+        run: |
+          baseVersion=$(echo "${{ steps.vars.outputs.version }}" | cut -d'-' -f1)
+          dotnet publish Updater/Updater.csproj -c Release -r win-x64 --self-contained false -o publish/Updater \
+            -p:Version=${{ steps.vars.outputs.version }} \
+            -p:AssemblyVersion=$baseVersion.0 \
+            -p:FileVersion=$baseVersion.0
 
       - name: Prepare release package
+        shell: bash
         run: |
           mkdir dist
           cp -r publish/ytDownloader/* dist/
           cp publish/Updater/Updater.exe dist/
-          if [ -d dist/tools ]; then rm -rf dist/tools; fi
-          rm -f dist/*.pdb
+          rm -rf dist/tools || true
+          rm -f dist/*.pdb || true
           zip -r yt_downloader_${{ steps.vars.outputs.version }}.zip dist/*
 
       - name: Create GitHub Release
@@ -104,4 +110,3 @@ jobs:
           prerelease: ${{ !startsWith(github.ref, 'refs/tags/') }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
