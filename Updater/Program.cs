@@ -2,108 +2,61 @@
 using System.Diagnostics;
 using System.IO;
 using System.IO.Compression;
-using System.Linq;
-using System.Reflection;
 
-class Program
+namespace Updater
 {
-    private static readonly string LogFile = Path.Combine(Path.GetTempPath(), "ytDownloader_updater.log");
-
-    static void Log(string msg)
+    internal class Program
     {
-        File.AppendAllText(LogFile, $"[{DateTime.Now:yyyy-MM-dd HH:mm:ss}] {msg}\n");
-    }
-
-    [STAThread]
-    static int Main(string[] args)
-    {
-        Log("=== Updater 시작 ===");
-
-        if (args.Length < 3)
+        static int Main(string[] args)
         {
-            Log("인자가 부족합니다.");
-            return 1;
-        }
-
-        string zipPath = args[0];
-        string installDir = args[1];
-        string targetExe = args[2];
-
-        Log($"zipPath   = {zipPath}");
-        Log($"installDir= {installDir}");
-        Log($"targetExe = {targetExe}");
-
-        try
-        {
-            if (!File.Exists(zipPath))
-                throw new FileNotFoundException("ZIP 파일을 찾을 수 없습니다.", zipPath);
-
-            // 🔹 ZIP 유효성 검사
-            using (var archive = ZipFile.OpenRead(zipPath))
+            if (args.Length < 3)
             {
-                if (archive.Entries.Count == 0)
-                    throw new InvalidDataException("다운로드된 ZIP이 비어있습니다.");
-
-                Log($"ZIP 유효성 통과 (파일 {archive.Entries.Count}개)");
+                Console.Error.WriteLine("Usage: Updater <zipPath> <installDir> <targetExe>");
+                return 1;
             }
 
-            // 🔹 현재 실행 중인 ytDownloader 종료 대기
-            foreach (var p in Process.GetProcessesByName(Path.GetFileNameWithoutExtension(targetExe)))
+            string zipPath = args[0];
+            string installDir = args[1];
+            string targetExe = args[2];
+
+            try
             {
-                try
+                Console.WriteLine("[Updater] 업데이트 시작...");
+                if (!File.Exists(zipPath))
                 {
-                    Log($"기존 프로세스 종료 대기: {p.ProcessName} (PID {p.Id})");
-                    p.Kill();
-                    p.WaitForExit();
+                    Console.Error.WriteLine("[Updater] ZIP 파일이 존재하지 않습니다: " + zipPath);
+                    return 1;
                 }
-                catch (Exception ex)
+
+                // ZIP 유효성 검사
+                using (var archive = ZipFile.OpenRead(zipPath))
                 {
-                    Log($"프로세스 종료 실패: {ex}");
+                    if (archive.Entries.Count == 0)
+                    {
+                        Console.Error.WriteLine("[Updater] ZIP 파일이 비어 있습니다.");
+                        return 1;
+                    }
                 }
+
+                // 기존 파일들 덮어쓰기
+                ZipFile.ExtractToDirectory(zipPath, installDir, overwriteFiles: true);
+                Console.WriteLine("[Updater] 압축 해제 완료");
+
+                // 프로그램 다시 실행
+                Process.Start(new ProcessStartInfo
+                {
+                    FileName = targetExe,
+                    WorkingDirectory = installDir
+                });
+
+                Console.WriteLine("[Updater] 업데이트가 완료되었습니다.");
+                return 0;
             }
-
-            // 🔹 ZIP 압축 해제 (덮어쓰기)
-            Log("ZIP 압축 해제 시작...");
-            ZipFile.ExtractToDirectory(zipPath, installDir, overwriteFiles: true);
-            Log("ZIP 압축 해제 완료");
-
-            // 🔹 버전 확인 (exe의 FileVersionInfo 이용)
-            string exePath = Path.Combine(installDir, Path.GetFileName(targetExe));
-            if (File.Exists(exePath))
+            catch (Exception ex)
             {
-                var fvi = FileVersionInfo.GetVersionInfo(exePath);
-                string fileVersion = fvi.FileVersion ?? "";
-                string productVersion = fvi.ProductVersion ?? "";
-
-                // 🔹 날짜 제거: 0.3.15-20250919 → 0.3.15
-                string normalizedVersion = productVersion.Split('-')[0];
-
-                Log($"업데이트된 버전: FileVersion={fileVersion}, ProductVersion={productVersion}, Normalized={normalizedVersion}");
+                Console.Error.WriteLine("[Updater] 업데이트 실패: " + ex.Message);
+                return 1;
             }
-            else
-            {
-                Log("경고: 업데이트 후 ytDownloader.exe를 찾을 수 없습니다.");
-            }
-
-            // 🔹 업데이트 완료 후 프로그램 재실행
-            Log("업데이트 완료 → ytDownloader.exe 재실행");
-            Process.Start(new ProcessStartInfo
-            {
-                FileName = exePath,
-                UseShellExecute = true
-            });
-
-            return 0;
-        }
-        catch (Exception ex)
-        {
-            Log($"업데이트 실패: {ex}");
-            System.Windows.MessageBox.Show(
-                "업데이트 실패: " + ex.Message,
-                "업데이트 오류",
-                System.Windows.MessageBoxButton.OK,
-                System.Windows.MessageBoxImage.Error);
-            return 1;
         }
     }
 }
