@@ -66,12 +66,14 @@
 
 	<Grid Margin="15">
 		<Grid.RowDefinitions>
-			<RowDefinition Height="Auto"/>
-			<!-- 헤더 -->
-			<RowDefinition Height="*"/>
-			<!-- 탭 -->
-			<RowDefinition Height="220"/>
-			<!-- 로그 -->
+            <RowDefinition Height="Auto"/>
+            <!-- 상단 메뉴 -->
+            <RowDefinition Height="Auto"/>
+            <!-- 버튼/옵션 -->
+            <RowDefinition Height="Auto"/>
+            <!-- 참고 링크 (추가됨) -->
+            <RowDefinition Height="*"/>
+            <!-- 로그창 -->
 		</Grid.RowDefinitions>
 
 		<!-- 헤더 -->
@@ -173,8 +175,29 @@
 			</TabItem>
 		</TabControl>
 
-		<!-- 로그 & 진행 상태 -->
-		<Border Grid.Row="2" Background="#2A2F45" CornerRadius="8" Padding="10">
+        <!-- 참고 링크 (gloriouslegacy, yt-dlp) -->
+        <TextBlock Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="2"
+               HorizontalAlignment="Right"
+               VerticalAlignment="Center"
+               Margin="0,5,10,5"
+               Foreground="LightGray"
+               FontSize="12">
+		-
+        <Hyperlink NavigateUri="https://github.com/gloriouslegacy/ytDownloader"
+                   RequestNavigate="Hyperlink_RequestNavigate"
+                   Foreground="SkyBlue">
+            gloriouslegacy
+        </Hyperlink>
+        <Run Text=" " />
+        <Hyperlink NavigateUri="https://github.com/yt-dlp/yt-dlp/releases"
+                   RequestNavigate="Hyperlink_RequestNavigate"
+                   Foreground="SkyBlue">
+            yt-dlp
+        </Hyperlink>
+        </TextBlock>
+
+        <!-- 로그 & 진행 상태 -->
+        <Border Grid.Row="3" Grid.Column="0" Grid.ColumnSpan="2" Background="#2A2F45" CornerRadius="8" Padding="10">
 			<Grid>
 				<Grid.RowDefinitions>
 					<RowDefinition Height="*"/>

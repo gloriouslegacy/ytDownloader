@@ -14,6 +14,14 @@ using Newtonsoft.Json;
 using System.Net.Http;
 using System.Collections.Generic;
 using System.Reflection;
+using System.Reflection;
+using System.Net.Http;
+using Newtonsoft.Json;
+using System.Windows;
+using System.Diagnostics;
+using System.IO;
+using System.Threading.Tasks;
+using System.Windows.Navigation;
 
 namespace ytDownloader
 {
@@ -88,7 +96,7 @@ namespace ytDownloader
                 using var httpClient = new HttpClient();
                 httpClient.DefaultRequestHeaders.UserAgent.ParseAdd("ytDownloader/1.0");
 
-                // 📌 모든 Release 가져오기 (정식 + Pre-release 포함)
+                // 📌 GitHub Release API 호출 (정식 + Pre-release 포함)
                 var response = await httpClient.GetAsync("https://api.github.com/repos/gloriouslegacy/ytDownloader/releases");
                 if (!response.IsSuccessStatusCode)
                 {
@@ -101,22 +109,22 @@ namespace ytDownloader
 
                 if (releases == null || releases.Count == 0)
                 {
-                    AppendOutput("ℹ️ 첫 버전입니다. 아직 등록된 릴리스가 없습니다.");
+                    AppendOutput("ℹ️ 아직 등록된 릴리스가 없습니다.");
                     return;
                 }
 
-                // 📌 최신 Release (첫 번째 항목이 최신)
+                // 📌 최신 Release (첫 번째 항목)
                 var latest = releases[0];
                 string latestTag = latest.tag_name;
                 bool isPre = latest.prerelease;
 
-                // 현재 실행 중인 어셈블리 버전 가져오기 (.csproj <Version> 값)
+                // 📌 현재 실행 중인 어셈블리 버전 (csproj의 <Version>)
                 string currentVersion = Assembly
                     .GetExecutingAssembly()
                     .GetCustomAttribute<AssemblyInformationalVersionAttribute>()?
                     .InformationalVersion ?? "0.0.0";
 
-                // v 접두사 제거 후 비교
+                // 📌 v 접두사 제거 (ex: v0.3.0 → 0.3.0)
                 string latestTagClean = latestTag.StartsWith("v", StringComparison.OrdinalIgnoreCase)
                     ? latestTag.Substring(1)
                     : latestTag;
@@ -126,10 +134,13 @@ namespace ytDownloader
                     Dispatcher.Invoke(() =>
                     {
                         string preMsg = isPre ? "Pre-release" : "정식 릴리스";
-                        if (MessageBox.Show($"새 {preMsg} {latestTag} 버전이 있습니다. 업데이트 하시겠습니까?",
-                            "업데이트 확인", MessageBoxButton.YesNo, MessageBoxImage.Question) == MessageBoxResult.Yes)
+                        if (MessageBox.Show(
+                                $"새 {preMsg} {latestTag} 버전이 있습니다.\n업데이트 하시겠습니까?",
+                                "업데이트 확인",
+                                MessageBoxButton.YesNo,
+                                MessageBoxImage.Question) == MessageBoxResult.Yes)
                         {
-                            // 최신 릴리스 ZIP 다운로드 링크
+                            // 📌 최신 릴리스 ZIP 다운로드 링크 (Updater.exe는 ZIP에 포함되지 않음!)
                             string assetUrl = latest.assets[0].browser_download_url;
                             _ = RunUpdateAsync(assetUrl);
                         }
@@ -146,8 +157,10 @@ namespace ytDownloader
             }
         }
 
+
         private async Task RunUpdateAsync(string zipUrl)
         {
+            // 📌 "업데이트 중입니다..." 진행창 표시
             var updateWindow = new UpdateWindow();
             updateWindow.Show();
 
@@ -156,34 +169,43 @@ namespace ytDownloader
                 try
                 {
                     using var httpClient = new HttpClient();
+
+                    // 📌 릴리스 ZIP 다운로드 (Updater.exe는 포함되지 않음)
                     string tempZip = Path.Combine(Path.GetTempPath(), "ytDownloader_update.zip");
                     await File.WriteAllBytesAsync(tempZip, await httpClient.GetByteArrayAsync(zipUrl));
 
+                    // 📌 Updater.exe는 설치 폴더에 이미 존재한다고 가정 (ZIP에는 없음)
                     string updaterPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Updater.exe");
                     string installDir = AppDomain.CurrentDomain.BaseDirectory;
-                    string targetExe = Process.GetCurrentProcess().MainModule.FileName;
+                    string targetExe = Process.GetCurrentProcess().MainModule!.FileName;
 
-                    // 📌 Updater.exe 실행 (tools 폴더 제외 로직은 Program.cs에서 처리)
+                    // 📌 관리자 권한으로 Updater.exe 실행 → ZIP 적용 후 ytDownloader.exe 재실행
                     Process.Start(new ProcessStartInfo
                     {
                         FileName = updaterPath,
                         Arguments = $"\"{tempZip}\" \"{installDir}\" \"{targetExe}\"",
-                        UseShellExecute = true
+                        UseShellExecute = true,
+                        Verb = "runas" // ✅ UAC 팝업 → 관리자 권한 요청
                     });
 
+                    // 📌 UI 스레드: 업데이트 창 닫고 현재 앱 종료
                     Dispatcher.Invoke(() =>
                     {
                         updateWindow.Close();
-                        Application.Current.Shutdown(); // 자기 자신 종료
+                        Application.Current.Shutdown();
                     });
                 }
                 catch (Exception ex)
                 {
+                    // 📌 오류 발생 시 업데이트 창 닫고 사용자에게 알림
                     Dispatcher.Invoke(() =>
                     {
                         updateWindow.Close();
-                        MessageBox.Show("업데이트 실패: " + ex.Message, "업데이트 오류",
-                            MessageBoxButton.OK, MessageBoxImage.Error);
+                        MessageBox.Show(
+                            "업데이트 실패: " + ex.Message,
+                            "업데이트 오류",
+                            MessageBoxButton.OK,
+                            MessageBoxImage.Error);
                     });
                 }
             });
@@ -456,6 +478,17 @@ namespace ytDownloader
             SubtitleFormatComboBox.Items.Add("ass");
             SubtitleFormatComboBox.SelectedIndex = 0;
         }
+
+        private void Hyperlink_RequestNavigate(object sender, RequestNavigateEventArgs e)
+        {
+            Process.Start(new ProcessStartInfo
+            {
+                FileName = e.Uri.AbsoluteUri,
+                UseShellExecute = true
+            });
+            e.Handled = true;
+        }
+
 
         private void Window_Closing(object sender, CancelEventArgs e) => SaveSettings();
     }
