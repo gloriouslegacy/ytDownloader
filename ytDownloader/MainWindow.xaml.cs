@@ -160,6 +160,7 @@ namespace ytDownloader
 
         private async Task RunUpdateAsync(string zipUrl)
         {
+            // 📌 "업데이트 중입니다..." 진행창 표시
             var updateWindow = new UpdateWindow();
             updateWindow.Show();
 
@@ -170,50 +171,62 @@ namespace ytDownloader
 
                 try
                 {
-                    if (File.Exists(tempZip))
-                        File.Delete(tempZip); // 🔥 이전 실패 파일 삭제
-
                     using var httpClient = new HttpClient();
-                    httpClient.DefaultRequestHeaders.UserAgent.ParseAdd("ytDownloader/1.0");
+                    using var response = await httpClient.GetAsync(zipUrl, HttpCompletionOption.ResponseHeadersRead);
+                    response.EnsureSuccessStatusCode();
 
-                    using (var response = await httpClient.GetAsync(zipUrl, HttpCompletionOption.ResponseHeadersRead))
+                    // 📌 스트림 방식으로 안정적으로 ZIP 저장
+                    await using (var stream = await response.Content.ReadAsStreamAsync())
+                    await using (var fs = new FileStream(tempZip, FileMode.Create, FileAccess.Write, FileShare.None))
                     {
-                        response.EnsureSuccessStatusCode();
-
-                        await using var httpStream = await response.Content.ReadAsStreamAsync();
-                        await using var fileStream = new FileStream(tempZip, FileMode.Create, FileAccess.Write, FileShare.None);
-
-                        byte[] buffer = new byte[81920]; // 80KB
-                        int bytesRead;
-                        long totalBytes = 0;
-                        while ((bytesRead = await httpStream.ReadAsync(buffer, 0, buffer.Length)) > 0)
+                        byte[] buffer = new byte[81920]; // 80KB 버퍼
+                        int read;
+                        while ((read = await stream.ReadAsync(buffer, 0, buffer.Length)) > 0)
                         {
-                            await fileStream.WriteAsync(buffer, 0, bytesRead);
-                            totalBytes += bytesRead;
+                            await fs.WriteAsync(buffer, 0, read);
                         }
-
-                        await fileStream.FlushAsync();
-                        File.AppendAllText(logFile, $"✅ Download complete: {totalBytes} bytes{Environment.NewLine}");
                     }
 
-                    // 다운로드 후 유효성 검사
-                    using (var zip = ZipFile.OpenRead(tempZip))
+                    // 📌 ZIP 유효성 검사
+                    using (var archive = ZipFile.OpenRead(tempZip))
                     {
-                        if (zip.Entries.Count == 0)
-                            throw new InvalidDataException("ZIP archive has no entries!");
+                        if (archive.Entries.Count == 0)
+                            throw new InvalidDataException("다운로드한 ZIP이 비어 있습니다.");
                     }
 
-                    string updaterPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Updater.exe");
-                    string installDir = AppDomain.CurrentDomain.BaseDirectory;
+                    string baseDir = AppDomain.CurrentDomain.BaseDirectory;
+                    string updaterPath = Path.Combine(baseDir, "Updater.exe");
+                    string installDir = baseDir;
                     string targetExe = Process.GetCurrentProcess().MainModule!.FileName;
 
-                    Process.Start(new ProcessStartInfo
+                    // 📌 로그 기록
+                    File.AppendAllText(logFile,
+                        $"[RunUpdateAsync]{Environment.NewLine}" +
+                        $"tempZip    = {tempZip}{Environment.NewLine}" +
+                        $"baseDir    = {baseDir}{Environment.NewLine}" +
+                        $"updaterPath= {updaterPath}{Environment.NewLine}" +
+                        $"installDir = {installDir}{Environment.NewLine}" +
+                        $"targetExe  = {targetExe}{Environment.NewLine}{Environment.NewLine}");
+
+                    // 📌 Updater.exe 실행
+                    var psi = new ProcessStartInfo
                     {
                         FileName = updaterPath,
                         Arguments = $"\"{tempZip}\" \"{installDir}\" \"{targetExe}\"",
-                        UseShellExecute = true
-                    });
+                        UseShellExecute = true,
+                        WorkingDirectory = baseDir
+                        // Verb = "runas" // 필요 시 관리자 권한 요청
+                    };
 
+                    File.AppendAllText(logFile,
+                        $"[RunUpdateAsync] Launching Updater.exe{Environment.NewLine}" +
+                        $"FileName       = {psi.FileName}{Environment.NewLine}" +
+                        $"Arguments      = {psi.Arguments}{Environment.NewLine}" +
+                        $"WorkingDir     = {psi.WorkingDirectory}{Environment.NewLine}");
+
+                    Process.Start(psi);
+
+                    // 📌 UI 스레드: 업데이트 창 닫고 현재 앱 종료
                     Dispatcher.Invoke(() =>
                     {
                         updateWindow.Close();
@@ -222,16 +235,24 @@ namespace ytDownloader
                 }
                 catch (Exception ex)
                 {
-                    File.AppendAllText(logFile, $"❌ RunUpdateAsync failed: {ex}{Environment.NewLine}");
+                    // 📌 오류 발생 시 로그 기록
+                    File.AppendAllText(logFile,
+                        $"❌ 업데이트 실패: {ex}{Environment.NewLine}");
+
+                    // 📌 UI 알림
                     Dispatcher.Invoke(() =>
                     {
                         updateWindow.Close();
-                        MessageBox.Show("업데이트 실패: " + ex.Message, "업데이트 오류",
-                            MessageBoxButton.OK, MessageBoxImage.Error);
+                        MessageBox.Show(
+                            "업데이트 실패: " + ex.Message,
+                            "업데이트 오류",
+                            MessageBoxButton.OK,
+                            MessageBoxImage.Error);
                     });
                 }
             });
         }
+
 
 
 
