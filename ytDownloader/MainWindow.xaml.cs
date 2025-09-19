@@ -159,6 +159,7 @@ namespace ytDownloader
 
         private async Task RunUpdateAsync(string zipUrl)
         {
+            // 📌 "업데이트 중입니다..." 진행창 표시
             var updateWindow = new UpdateWindow();
             updateWindow.Show();
 
@@ -166,74 +167,54 @@ namespace ytDownloader
             {
                 try
                 {
-                    using var httpClient = new HttpClient();
-
-                    // 최신 릴리스 ZIP 다운로드 → %TEMP%
                     string tempZip = Path.Combine(Path.GetTempPath(), "ytDownloader_update.zip");
-                    await File.WriteAllBytesAsync(tempZip, await httpClient.GetByteArrayAsync(zipUrl));
 
-                    // 실행 중인 폴더 = 설치 폴더
-                    string baseDir = Path.GetDirectoryName(Process.GetCurrentProcess().MainModule!.FileName)!;
+                    // 📌 ZIP 안정적으로 다운로드 (스트림 방식)
+                    using (var httpClient = new HttpClient())
+                    using (var response = await httpClient.GetAsync(zipUrl, HttpCompletionOption.ResponseHeadersRead))
+                    {
+                        response.EnsureSuccessStatusCode();
+
+                        using (var stream = await response.Content.ReadAsStreamAsync())
+                        using (var fileStream = new FileStream(tempZip, FileMode.Create, FileAccess.Write, FileShare.None))
+                        {
+                            await stream.CopyToAsync(fileStream);
+                        }
+                    }
+
+                    string baseDir = AppDomain.CurrentDomain.BaseDirectory;
                     string updaterPath = Path.Combine(baseDir, "Updater.exe");
                     string installDir = baseDir;
                     string targetExe = Process.GetCurrentProcess().MainModule!.FileName;
 
-                    // 통합 로그
-                    string logFile = Path.Combine(Path.GetTempPath(), "ytDownloader_update.log");
-                    string logMsg =
-                        $"[RunUpdateAsync]\n" +
-                        $"tempZip    = {tempZip}\n" +
-                        $"baseDir    = {baseDir}\n" +
-                        $"updaterPath= {updaterPath}\n" +
-                        $"installDir = {installDir}\n" +
-                        $"targetExe  = {targetExe}\n";
-                    AppendOutput(logMsg);
-                    File.AppendAllText(logFile, logMsg + Environment.NewLine);
+                    // 📌 로그 파일 (런처용)
+                    string launcherLog = Path.Combine(Path.GetTempPath(), "ytDownloader_update_launcher.log");
+                    File.AppendAllText(launcherLog,
+                        $"[RunUpdateAsync]\r\n" +
+                        $"tempZip    = {tempZip}\r\n" +
+                        $"baseDir    = {baseDir}\r\n" +
+                        $"updaterPath= {updaterPath}\r\n" +
+                        $"installDir = {installDir}\r\n" +
+                        $"targetExe  = {targetExe}\r\n\r\n");
 
-                    if (!File.Exists(updaterPath))
-                    {
-                        Dispatcher.Invoke(() =>
-                        {
-                            updateWindow.Close();
-                            MessageBox.Show(
-                                $"Updater.exe가 실행 폴더에 없습니다.\n경로: {updaterPath}\n\n" +
-                                "ZIP 내부에서 실행하지 말고, 기존 폴더의 ytDownloader.exe를 실행하세요.",
-                                "업데이트 오류",
-                                MessageBoxButton.OK,
-                                MessageBoxImage.Error
-                            );
-                        });
-                        return;
-                    }
-
-                    //var psi = new ProcessStartInfo
-                    //{
-                    //    FileName = updaterPath,
-                    //    Arguments = $"\"{tempZip}\" \"{installDir}\" \"{targetExe}\"",
-                    //    WorkingDirectory = baseDir,
-                    //    UseShellExecute = true,
-                    //    //Verb = "runas"
-                    //};
-
+                    // 📌 Updater.exe 실행 (관리자 권한 없이, 일반 실행)
                     var psi = new ProcessStartInfo
                     {
                         FileName = updaterPath,
                         Arguments = $"\"{tempZip}\" \"{installDir}\" \"{targetExe}\"",
-                        WorkingDirectory = baseDir,
-                        UseShellExecute = true
+                        UseShellExecute = true,
+                        WorkingDirectory = baseDir
                     };
-                    Process.Start(psi);
 
-                    string runMsg =
-                        $"[RunUpdateAsync] Launching Updater.exe\n" +
-                        $"FileName       = {psi.FileName}\n" +
-                        $"Arguments      = {psi.Arguments}\n" +
-                        $"WorkingDir     = {psi.WorkingDirectory}\n";
-                    AppendOutput(runMsg);
-                    File.AppendAllText(logFile, runMsg + Environment.NewLine);
+                    File.AppendAllText(launcherLog,
+                        "[RunUpdateAsync] Launching Updater.exe\r\n" +
+                        $"FileName       = {psi.FileName}\r\n" +
+                        $"Arguments      = {psi.Arguments}\r\n" +
+                        $"WorkingDir     = {psi.WorkingDirectory}\r\n\r\n");
 
                     Process.Start(psi);
 
+                    // 📌 UI 스레드: 업데이트 창 닫고 현재 앱 종료
                     Dispatcher.Invoke(() =>
                     {
                         updateWindow.Close();
@@ -249,12 +230,8 @@ namespace ytDownloader
                             "업데이트 실패: " + ex.Message,
                             "업데이트 오류",
                             MessageBoxButton.OK,
-                            MessageBoxImage.Error
-                        );
+                            MessageBoxImage.Error);
                     });
-
-                    string logFile = Path.Combine(Path.GetTempPath(), "ytDownloader_update.log");
-                    File.AppendAllText(logFile, $"[RunUpdateAsync] Exception: {ex}\n");
                 }
             });
         }

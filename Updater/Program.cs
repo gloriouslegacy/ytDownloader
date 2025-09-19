@@ -2,7 +2,6 @@
 using System.Diagnostics;
 using System.IO;
 using System.IO.Compression;
-using System.Linq;
 using System.Threading;
 
 class Program
@@ -14,18 +13,16 @@ class Program
     {
         try
         {
-            // 전역 예외 처리
             AppDomain.CurrentDomain.UnhandledException += (s, e) =>
             {
-                File.AppendAllText(LogFile,
-                    $"[{DateTime.Now:yyyy-MM-dd HH:mm:ss}] ❌ UnhandledException: {e.ExceptionObject}\n");
+                Log($"❌ UnhandledException: {e.ExceptionObject}");
             };
 
             Log("=== Updater.exe 시작 ===");
 
             if (args.Length < 3)
             {
-                Log("❌ 실행 인자가 부족합니다. 사용법: Updater.exe <zipPath> <installDir> <targetExe>");
+                Log("❌ 실행 인자가 부족합니다. Updater.exe <zipPath> <installDir> <targetExe>");
                 return;
             }
 
@@ -49,12 +46,17 @@ class Program
                 Directory.CreateDirectory(installDir);
             }
 
-            // 1. 대상 exe가 잠겨 있으면 잠금 해제 대기
             WaitForFileUnlock(targetExe);
 
-            // 2. 압축 해제 (tools 폴더 제외)
+            // 📌 ZIP 유효성 검사
             using (ZipArchive archive = ZipFile.OpenRead(zipPath))
             {
+                if (archive.Entries.Count == 0)
+                {
+                    Log("❌ ZIP 파일에 항목이 없습니다. 손상되었을 가능성 있음.");
+                    return;
+                }
+
                 foreach (var entry in archive.Entries)
                 {
                     if (entry.FullName.StartsWith("tools/", StringComparison.OrdinalIgnoreCase) ||
@@ -79,8 +81,8 @@ class Program
                 }
             }
 
-            // 3. 완료 후 새 실행
             Log("✅ 업데이트 완료, ytDownloader 재실행 시도");
+
             Process.Start(new ProcessStartInfo
             {
                 FileName = targetExe,
@@ -121,7 +123,6 @@ class Program
 
     private static void Log(string message)
     {
-        File.AppendAllText(LogFile,
-            $"[{DateTime.Now:yyyy-MM-dd HH:mm:ss}] {message}\n");
+        File.AppendAllText(LogFile, $"[{DateTime.Now:yyyy-MM-dd HH:mm:ss}] {message}\n");
     }
 }
