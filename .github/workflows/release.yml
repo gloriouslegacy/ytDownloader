@@ -82,16 +82,16 @@ jobs:
       - name: Build (Updater)
         run: dotnet publish Updater/Updater.csproj -c Release -r win-x64 --self-contained false -o publish/Updater
 
-      # 📌 릴리스 패키지 준비
+      # 📌 릴리스 패키지 준비 (Windows PowerShell 기반)
       - name: Prepare release package
-        shell: bash
+        shell: pwsh
         run: |
-          mkdir -p dist
-          cp -r publish/ytDownloader/* dist/
-          cp publish/Updater/Updater.exe dist/
-          rm -rf dist/tools || true
-          rm -f dist/*.pdb || true
-          zip -r yt_downloader_${{ steps.vars.outputs.release_name }}.zip dist/*
+          mkdir dist
+          Copy-Item publish/ytDownloader/* dist/ -Recurse
+          Copy-Item publish/Updater/Updater.exe dist/
+          if (Test-Path dist/tools) { Remove-Item dist/tools -Recurse -Force }
+          Get-ChildItem dist -Include *.pdb -Recurse | Remove-Item -Force
+          Compress-Archive -Path dist/* -DestinationPath yt_downloader_${{ steps.vars.outputs.release_name }}.zip -Force
 
       # 📌 GitHub Release 생성
       - name: Create GitHub Release
