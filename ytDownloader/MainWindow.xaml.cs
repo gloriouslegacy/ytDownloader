@@ -159,62 +159,61 @@ namespace ytDownloader
 
         private async Task RunUpdateAsync(string zipUrl)
         {
-            // 📌 "업데이트 중입니다..." 진행창 표시
             var updateWindow = new UpdateWindow();
             updateWindow.Show();
 
             await Task.Run(async () =>
             {
+                string tempZip = Path.Combine(Path.GetTempPath(), "ytDownloader_update.zip");
+                string logFile = Path.Combine(Path.GetTempPath(), "ytDownloader_update_launcher.log");
+
                 try
                 {
-                    string tempZip = Path.Combine(Path.GetTempPath(), "ytDownloader_update.zip");
+                    using var httpClient = new HttpClient();
 
-                    // 📌 ZIP 안정적으로 다운로드 (스트림 방식)
-                    using (var httpClient = new HttpClient())
+                    // 📌 스트리밍 방식으로 ZIP 다운로드
                     using (var response = await httpClient.GetAsync(zipUrl, HttpCompletionOption.ResponseHeadersRead))
                     {
                         response.EnsureSuccessStatusCode();
 
-                        using (var stream = await response.Content.ReadAsStreamAsync())
-                        using (var fileStream = new FileStream(tempZip, FileMode.Create, FileAccess.Write, FileShare.None))
-                        {
-                            await stream.CopyToAsync(fileStream);
-                        }
+                        await using var stream = await response.Content.ReadAsStreamAsync();
+                        await using var fileStream = new FileStream(tempZip, FileMode.Create, FileAccess.Write, FileShare.None);
+                        await stream.CopyToAsync(fileStream);
                     }
 
+                    // 📌 Updater.exe 실행 준비
                     string baseDir = AppDomain.CurrentDomain.BaseDirectory;
                     string updaterPath = Path.Combine(baseDir, "Updater.exe");
                     string installDir = baseDir;
                     string targetExe = Process.GetCurrentProcess().MainModule!.FileName;
 
-                    // 📌 로그 파일 (런처용)
-                    string launcherLog = Path.Combine(Path.GetTempPath(), "ytDownloader_update_launcher.log");
-                    File.AppendAllText(launcherLog,
-                        $"[RunUpdateAsync]\r\n" +
-                        $"tempZip    = {tempZip}\r\n" +
-                        $"baseDir    = {baseDir}\r\n" +
-                        $"updaterPath= {updaterPath}\r\n" +
-                        $"installDir = {installDir}\r\n" +
-                        $"targetExe  = {targetExe}\r\n\r\n");
+                    // 로그 기록
+                    File.AppendAllText(logFile,
+                        $"[RunUpdateAsync]{Environment.NewLine}" +
+                        $"tempZip    = {tempZip}{Environment.NewLine}" +
+                        $"baseDir    = {baseDir}{Environment.NewLine}" +
+                        $"updaterPath= {updaterPath}{Environment.NewLine}" +
+                        $"installDir = {installDir}{Environment.NewLine}" +
+                        $"targetExe  = {targetExe}{Environment.NewLine}{Environment.NewLine}");
 
-                    // 📌 Updater.exe 실행 (관리자 권한 없이, 일반 실행)
+                    // 📌 Updater 실행
                     var psi = new ProcessStartInfo
                     {
                         FileName = updaterPath,
                         Arguments = $"\"{tempZip}\" \"{installDir}\" \"{targetExe}\"",
                         UseShellExecute = true,
                         WorkingDirectory = baseDir
+                        // Verb = "runas"  // 필요시 관리자 권한 요청
                     };
 
-                    File.AppendAllText(launcherLog,
-                        "[RunUpdateAsync] Launching Updater.exe\r\n" +
-                        $"FileName       = {psi.FileName}\r\n" +
-                        $"Arguments      = {psi.Arguments}\r\n" +
-                        $"WorkingDir     = {psi.WorkingDirectory}\r\n\r\n");
+                    File.AppendAllText(logFile,
+                        $"[RunUpdateAsync] Launching Updater.exe{Environment.NewLine}" +
+                        $"FileName   = {psi.FileName}{Environment.NewLine}" +
+                        $"Arguments  = {psi.Arguments}{Environment.NewLine}" +
+                        $"WorkingDir = {psi.WorkingDirectory}{Environment.NewLine}");
 
                     Process.Start(psi);
 
-                    // 📌 UI 스레드: 업데이트 창 닫고 현재 앱 종료
                     Dispatcher.Invoke(() =>
                     {
                         updateWindow.Close();
@@ -223,18 +222,18 @@ namespace ytDownloader
                 }
                 catch (Exception ex)
                 {
+                    File.AppendAllText(logFile, $"❌ RunUpdateAsync Exception: {ex}{Environment.NewLine}");
+
                     Dispatcher.Invoke(() =>
                     {
                         updateWindow.Close();
-                        MessageBox.Show(
-                            "업데이트 실패: " + ex.Message,
-                            "업데이트 오류",
-                            MessageBoxButton.OK,
-                            MessageBoxImage.Error);
+                        MessageBox.Show("업데이트 실패: " + ex.Message,
+                            "업데이트 오류", MessageBoxButton.OK, MessageBoxImage.Error);
                     });
                 }
             });
         }
+
 
 
 

@@ -2,127 +2,114 @@
 using System.Diagnostics;
 using System.IO;
 using System.IO.Compression;
+using System.Linq;
 using System.Threading;
 
-class Program
+namespace Updater
 {
-    private static readonly string LogFile =
-        Path.Combine(Path.GetTempPath(), "ytDownloader_updater.log");
-
-    static void Main(string[] args)
+    internal class Program
     {
-        try
-        {
-            AppDomain.CurrentDomain.UnhandledException += (s, e) =>
-            {
-                Log($"❌ UnhandledException: {e.ExceptionObject}");
-            };
+        private static string logFile = Path.Combine(Path.GetTempPath(), "ytDownloader_updater.log");
 
-            Log("=== Updater.exe 시작 ===");
-
-            if (args.Length < 3)
-            {
-                Log("❌ 실행 인자가 부족합니다. Updater.exe <zipPath> <installDir> <targetExe>");
-                return;
-            }
-
-            string zipPath = args[0];
-            string installDir = args[1];
-            string targetExe = args[2];
-
-            Log($"zipPath    = {zipPath}");
-            Log($"installDir = {installDir}");
-            Log($"targetExe  = {targetExe}");
-
-            if (!File.Exists(zipPath))
-            {
-                Log("❌ ZIP 파일이 존재하지 않습니다.");
-                return;
-            }
-
-            if (!Directory.Exists(installDir))
-            {
-                Log("📂 설치 폴더가 없어서 생성합니다.");
-                Directory.CreateDirectory(installDir);
-            }
-
-            WaitForFileUnlock(targetExe);
-
-            // 📌 ZIP 유효성 검사
-            using (ZipArchive archive = ZipFile.OpenRead(zipPath))
-            {
-                if (archive.Entries.Count == 0)
-                {
-                    Log("❌ ZIP 파일에 항목이 없습니다. 손상되었을 가능성 있음.");
-                    return;
-                }
-
-                foreach (var entry in archive.Entries)
-                {
-                    if (entry.FullName.StartsWith("tools/", StringComparison.OrdinalIgnoreCase) ||
-                        entry.FullName.StartsWith("tools\\", StringComparison.OrdinalIgnoreCase))
-                    {
-                        Log($"↷ Skip tools: {entry.FullName}");
-                        continue;
-                    }
-
-                    string destinationPath = Path.Combine(installDir, entry.FullName);
-
-                    if (string.IsNullOrEmpty(entry.Name))
-                    {
-                        Directory.CreateDirectory(destinationPath);
-                        continue;
-                    }
-
-                    Directory.CreateDirectory(Path.GetDirectoryName(destinationPath)!);
-
-                    Log($"→ Extract {entry.FullName}");
-                    entry.ExtractToFile(destinationPath, true);
-                }
-            }
-
-            Log("✅ 업데이트 완료, ytDownloader 재실행 시도");
-
-            Process.Start(new ProcessStartInfo
-            {
-                FileName = targetExe,
-                UseShellExecute = true
-            });
-
-            Log("=== Updater.exe 종료 ===");
-        }
-        catch (Exception ex)
-        {
-            Log($"❌ 예외 발생: {ex}");
-        }
-    }
-
-    private static void WaitForFileUnlock(string filePath)
-    {
-        if (string.IsNullOrEmpty(filePath) || !File.Exists(filePath))
-            return;
-
-        for (int i = 0; i < 20; i++) // 최대 10초 대기
+        static void Main(string[] args)
         {
             try
             {
-                using (FileStream fs = File.Open(filePath, FileMode.Open, FileAccess.ReadWrite, FileShare.None))
+                if (args.Length < 3)
                 {
-                    Log($"🔓 파일 잠금 해제됨: {filePath}");
+                    Log("❌ 잘못된 인자. 사용법: Updater.exe <zipPath> <installDir> <targetExe>");
                     return;
                 }
+
+                string zipPath = args[0];
+                string installDir = args[1];
+                string targetExe = args[2];
+
+                Log("=== Updater 시작 ===");
+                Log($"zipPath   = {zipPath}");
+                Log($"installDir= {installDir}");
+                Log($"targetExe = {targetExe}");
+
+                // 1. ZIP 유효성 검사
+                using (ZipArchive archive = ZipFile.OpenRead(zipPath))
+                {
+                    if (archive.Entries == null || archive.Entries.Count == 0)
+                    {
+                        Log("❌ 업데이트 실패: ZIP 파일이 비어있거나 손상됨");
+                        return;
+                    }
+                }
+
+                // 2. 파일 잠금 해제 대기
+                WaitForFileRelease(targetExe);
+
+                // 3. 압축 해제 (tools 폴더 제외)
+                using (ZipArchive archive = ZipFile.OpenRead(zipPath))
+                {
+                    foreach (var entry in archive.Entries)
+                    {
+                        if (entry.FullName.StartsWith("tools/", StringComparison.OrdinalIgnoreCase) ||
+                            entry.FullName.StartsWith("tools\\", StringComparison.OrdinalIgnoreCase))
+                        {
+                            Log($"⏭️ 제외됨: {entry.FullName}");
+                            continue;
+                        }
+
+                        string destinationPath = Path.Combine(installDir, entry.FullName);
+
+                        if (string.IsNullOrEmpty(entry.Name))
+                        {
+                            Directory.CreateDirectory(destinationPath);
+                            continue;
+                        }
+
+                        Directory.CreateDirectory(Path.GetDirectoryName(destinationPath)!);
+                        entry.ExtractToFile(destinationPath, true);
+                        Log($"✅ 덮어씀: {destinationPath}");
+                    }
+                }
+
+                // 4. 원래 프로그램 다시 실행
+                Process.Start(new ProcessStartInfo
+                {
+                    FileName = targetExe,
+                    UseShellExecute = true
+                });
+
+                Log("=== 업데이트 완료 후 프로그램 재실행 성공 ===");
             }
-            catch (IOException)
+            catch (Exception ex)
             {
-                Log("⏳ 파일 잠김 상태, 500ms 대기");
-                Thread.Sleep(500);
+                Log($"❌ 예외 발생: {ex}");
             }
         }
-        Log("⚠️ 파일 잠금을 해제하지 못했습니다. 강행 진행.");
-    }
 
-    private static void Log(string message)
-    {
-        File.AppendAllText(LogFile, $"[{DateTime.Now:yyyy-MM-dd HH:mm:ss}] {message}\n");
+        private static void WaitForFileRelease(string filePath)
+        {
+            for (int i = 0; i < 10; i++) // 최대 10초 대기
+            {
+                try
+                {
+                    using (FileStream stream = File.Open(filePath, FileMode.Open, FileAccess.ReadWrite, FileShare.None))
+                    {
+                        Log($"🔓 파일 잠금 해제 확인: {filePath}");
+                        return;
+                    }
+                }
+                catch (IOException)
+                {
+                    Log($"⏳ 파일 잠금 중... {filePath}");
+                    Thread.Sleep(1000);
+                }
+            }
+
+            Log($"⚠️ 파일 잠금 해제 실패: {filePath}");
+        }
+
+        private static void Log(string message)
+        {
+            string logEntry = $"[{DateTime.Now:yyyy-MM-dd HH:mm:ss}] {message}{Environment.NewLine}";
+            File.AppendAllText(logFile, logEntry);
+        }
     }
 }
