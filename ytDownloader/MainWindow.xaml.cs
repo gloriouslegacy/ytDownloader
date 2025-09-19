@@ -13,7 +13,7 @@ using Newtonsoft.Json.Linq;
 using Newtonsoft.Json;
 using System.Net.Http;
 using System.Collections.Generic;
-
+using System.Reflection;
 
 namespace ytDownloader
 {
@@ -110,10 +110,35 @@ namespace ytDownloader
                 string latestTag = latest.tag_name;
                 bool isPre = latest.prerelease;
 
-                if (isPre)
-                    AppendOutput($"🔔 최신 Pre-release: {latestTag}");
+                // 현재 실행 중인 어셈블리 버전 가져오기 (.csproj <Version> 값)
+                string currentVersion = Assembly
+                    .GetExecutingAssembly()
+                    .GetCustomAttribute<AssemblyInformationalVersionAttribute>()?
+                    .InformationalVersion ?? "0.0.0";
+
+                // v 접두사 제거 후 비교
+                string latestTagClean = latestTag.StartsWith("v", StringComparison.OrdinalIgnoreCase)
+                    ? latestTag.Substring(1)
+                    : latestTag;
+
+                if (latestTagClean != currentVersion)
+                {
+                    Dispatcher.Invoke(() =>
+                    {
+                        string preMsg = isPre ? "Pre-release" : "정식 릴리스";
+                        if (MessageBox.Show($"새 {preMsg} {latestTag} 버전이 있습니다. 업데이트 하시겠습니까?",
+                            "업데이트 확인", MessageBoxButton.YesNo, MessageBoxImage.Question) == MessageBoxResult.Yes)
+                        {
+                            // 최신 릴리스 ZIP 다운로드 링크
+                            string assetUrl = latest.assets[0].browser_download_url;
+                            _ = RunUpdateAsync(assetUrl);
+                        }
+                    });
+                }
                 else
-                    AppendOutput($"🔔 최신 정식 릴리스: {latestTag}");
+                {
+                    AppendOutput("✅ 최신 버전을 사용 중입니다.");
+                }
             }
             catch (Exception ex)
             {
@@ -121,6 +146,48 @@ namespace ytDownloader
             }
         }
 
+        private async Task RunUpdateAsync(string zipUrl)
+        {
+            var updateWindow = new UpdateWindow();
+            updateWindow.Show();
+
+            await Task.Run(async () =>
+            {
+                try
+                {
+                    using var httpClient = new HttpClient();
+                    string tempZip = Path.Combine(Path.GetTempPath(), "ytDownloader_update.zip");
+                    await File.WriteAllBytesAsync(tempZip, await httpClient.GetByteArrayAsync(zipUrl));
+
+                    string updaterPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Updater.exe");
+                    string installDir = AppDomain.CurrentDomain.BaseDirectory;
+                    string targetExe = Process.GetCurrentProcess().MainModule.FileName;
+
+                    // 📌 Updater.exe 실행 (tools 폴더 제외 로직은 Program.cs에서 처리)
+                    Process.Start(new ProcessStartInfo
+                    {
+                        FileName = updaterPath,
+                        Arguments = $"\"{tempZip}\" \"{installDir}\" \"{targetExe}\"",
+                        UseShellExecute = true
+                    });
+
+                    Dispatcher.Invoke(() =>
+                    {
+                        updateWindow.Close();
+                        Application.Current.Shutdown(); // 자기 자신 종료
+                    });
+                }
+                catch (Exception ex)
+                {
+                    Dispatcher.Invoke(() =>
+                    {
+                        updateWindow.Close();
+                        MessageBox.Show("업데이트 실패: " + ex.Message, "업데이트 오류",
+                            MessageBoxButton.OK, MessageBoxImage.Error);
+                    });
+                }
+            });
+        }
 
         private void LoadSettings()
         {

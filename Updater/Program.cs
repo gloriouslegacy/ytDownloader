@@ -26,7 +26,35 @@ namespace Updater
             try
             {
                 // 압축 해제 (덮어쓰기)
-                ZipFile.ExtractToDirectory(zipPath, installDir, true);
+                //ZipFile.ExtractToDirectory(zipPath, installDir, true);
+
+                // 압축 해제 (tools 폴더 제외)
+                using (ZipArchive archive = ZipFile.OpenRead(zipPath))
+                {
+                    foreach (var entry in archive.Entries)
+                    {
+                        // tools 폴더는 무시
+                        if (entry.FullName.StartsWith("tools/", StringComparison.OrdinalIgnoreCase) ||
+                            entry.FullName.StartsWith("tools\\", StringComparison.OrdinalIgnoreCase))
+                            continue;
+
+                        string destinationPath = Path.Combine(installDir, entry.FullName);
+
+                        if (string.IsNullOrEmpty(entry.Name))
+                        {
+                            // 디렉토리인 경우
+                            Directory.CreateDirectory(destinationPath);
+                            continue;
+                        }
+
+                        // 상위 폴더 생성
+                        Directory.CreateDirectory(Path.GetDirectoryName(destinationPath)!);
+
+                        // 파일 덮어쓰기
+                        entry.ExtractToFile(destinationPath, true);
+                    }
+                }
+
 
                 // 원래 프로그램 재실행
                 Process.Start(new ProcessStartInfo
