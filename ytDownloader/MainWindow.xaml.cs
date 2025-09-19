@@ -10,6 +10,9 @@ using System.Windows;
 using ytDownloader.Properties;
 using System.Net.Http;
 using Newtonsoft.Json.Linq;
+using Newtonsoft.Json;
+using System.Net.Http;
+using System.Collections.Generic;
 
 
 namespace ytDownloader
@@ -82,65 +85,42 @@ namespace ytDownloader
         {
             try
             {
-                string currentVersion = System.Reflection.Assembly
-                    .GetExecutingAssembly().GetName().Version.ToString();
+                using var httpClient = new HttpClient();
+                httpClient.DefaultRequestHeaders.UserAgent.ParseAdd("ytDownloader/1.0");
 
-                using (HttpClient client = new HttpClient())
+                // 📌 모든 Release 가져오기 (정식 + Pre-release 포함)
+                var response = await httpClient.GetAsync("https://api.github.com/repos/gloriouslegacy/ytDownloader/releases");
+                if (!response.IsSuccessStatusCode)
                 {
-                    // GitHub API 호출
-                    client.DefaultRequestHeaders.UserAgent.ParseAdd("ytDownloader");
-                    string json = await client.GetStringAsync(
-                        "https://api.github.com/repos/gloriouslegacy/ytDownloader/releases/latest");
-
-                    JObject release = JObject.Parse(json);
-                    string latestVersion = release["tag_name"]?.ToString().TrimStart('v') ?? "0.0.0";
-                    string downloadUrl = release["assets"]?[0]?["browser_download_url"]?.ToString();
-
-                    if (string.IsNullOrEmpty(downloadUrl))
-                    {
-                        AppendOutput("⚠️ 최신 릴리스 다운로드 링크를 찾을 수 없습니다.");
-                        return;
-                    }
-
-                    if (new Version(latestVersion) > new Version(currentVersion))
-                    {
-                        if (MessageBox.Show(
-                            $"새 버전 {latestVersion}을 발견했습니다. 업데이트 하시겠습니까?",
-                            "업데이트 확인",
-                            MessageBoxButton.YesNo,
-                            MessageBoxImage.Question) == MessageBoxResult.Yes)
-                        {
-                            string tempZip = Path.Combine(Path.GetTempPath(), "ytDownloader_update.zip");
-
-                            AppendOutput($"⬇️ 업데이트 파일 다운로드 중... ({downloadUrl})");
-                            using (HttpClient wc = new HttpClient())
-                            {
-                                var data = await wc.GetByteArrayAsync(downloadUrl);
-                                File.WriteAllBytes(tempZip, data);
-                            }
-
-                            AppendOutput("📦 업데이트 준비 중...");
-
-                            string updaterPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Updater.exe");
-                            string targetExe = System.Reflection.Assembly.GetExecutingAssembly().Location;
-                            string installDir = AppDomain.CurrentDomain.BaseDirectory;
-
-                            // Updater 실행 후 자기 자신 종료
-                            Process.Start(updaterPath, $"\"{tempZip}\" \"{installDir}\" \"{targetExe}\"");
-                            Application.Current.Shutdown();
-                        }
-                    }
-                    else
-                    {
-                        AppendOutput("✅ 최신 버전을 사용 중입니다.");
-                    }
+                    AppendOutput($"❌ 업데이트 확인 실패: {response.StatusCode}");
+                    return;
                 }
+
+                var json = await response.Content.ReadAsStringAsync();
+                var releases = JsonConvert.DeserializeObject<List<dynamic>>(json);
+
+                if (releases == null || releases.Count == 0)
+                {
+                    AppendOutput("ℹ️ 첫 버전입니다. 아직 등록된 릴리스가 없습니다.");
+                    return;
+                }
+
+                // 📌 최신 Release (첫 번째 항목이 최신)
+                var latest = releases[0];
+                string latestTag = latest.tag_name;
+                bool isPre = latest.prerelease;
+
+                if (isPre)
+                    AppendOutput($"🔔 최신 Pre-release: {latestTag}");
+                else
+                    AppendOutput($"🔔 최신 정식 릴리스: {latestTag}");
             }
             catch (Exception ex)
             {
-                AppendOutput("❌ 업데이트 확인 실패: " + ex.Message);
+                AppendOutput($"❌ 업데이트 확인 실패: {ex.Message}");
             }
         }
+
 
         private void LoadSettings()
         {
