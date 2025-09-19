@@ -163,74 +163,55 @@ namespace ytDownloader
             var updateWindow = new UpdateWindow();
             updateWindow.Show();
 
-            string logPath = Path.Combine(Path.GetTempPath(), "ytDownloader_update_launcher.log");
-
             await Task.Run(async () =>
             {
+                string tempZip = Path.Combine(Path.GetTempPath(), "ytDownloader_update.zip");
+                string logFile = Path.Combine(Path.GetTempPath(), "ytDownloader_update_launcher.log");
+
                 try
                 {
-                    string tempZip = Path.Combine(Path.GetTempPath(), "ytDownloader_update.zip");
+                    if (File.Exists(tempZip))
+                        File.Delete(tempZip); // 🔥 이전 실패 파일 삭제
+
+                    using var httpClient = new HttpClient();
+                    httpClient.DefaultRequestHeaders.UserAgent.ParseAdd("ytDownloader/1.0");
+
+                    using (var response = await httpClient.GetAsync(zipUrl, HttpCompletionOption.ResponseHeadersRead))
+                    {
+                        response.EnsureSuccessStatusCode();
+
+                        await using var httpStream = await response.Content.ReadAsStreamAsync();
+                        await using var fileStream = new FileStream(tempZip, FileMode.Create, FileAccess.Write, FileShare.None);
+
+                        byte[] buffer = new byte[81920]; // 80KB
+                        int bytesRead;
+                        long totalBytes = 0;
+                        while ((bytesRead = await httpStream.ReadAsync(buffer, 0, buffer.Length)) > 0)
+                        {
+                            await fileStream.WriteAsync(buffer, 0, bytesRead);
+                            totalBytes += bytesRead;
+                        }
+
+                        await fileStream.FlushAsync();
+                        File.AppendAllText(logFile, $"✅ Download complete: {totalBytes} bytes{Environment.NewLine}");
+                    }
+
+                    // 다운로드 후 유효성 검사
+                    using (var zip = ZipFile.OpenRead(tempZip))
+                    {
+                        if (zip.Entries.Count == 0)
+                            throw new InvalidDataException("ZIP archive has no entries!");
+                    }
+
                     string updaterPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Updater.exe");
                     string installDir = AppDomain.CurrentDomain.BaseDirectory;
                     string targetExe = Process.GetCurrentProcess().MainModule!.FileName;
-
-                    using var httpClient = new HttpClient();
-
-                    int maxRetries = 3;
-                    bool downloadOk = false;
-
-                    for (int attempt = 1; attempt <= maxRetries; attempt++)
-                    {
-                        File.AppendAllText(logPath, $"[RunUpdateAsync] Download attempt {attempt}/{maxRetries}\r\n");
-
-                        try
-                        {
-                            using var response = await httpClient.GetAsync(zipUrl, HttpCompletionOption.ResponseHeadersRead);
-                            response.EnsureSuccessStatusCode();
-
-                            long? contentLength = response.Content.Headers.ContentLength;
-
-                            await using (var fs = new FileStream(tempZip, FileMode.Create, FileAccess.Write, FileShare.None))
-                            await using (var stream = await response.Content.ReadAsStreamAsync())
-                            {
-                                await stream.CopyToAsync(fs);
-                            }
-
-                            long actualSize = new FileInfo(tempZip).Length;
-                            File.AppendAllText(logPath, $"[RunUpdateAsync] Downloaded {actualSize} bytes\r\n");
-
-                            if (contentLength.HasValue && actualSize != contentLength.Value)
-                                throw new InvalidDataException($"Size mismatch: expected {contentLength}, got {actualSize}");
-
-                            using (var archive = ZipFile.OpenRead(tempZip))
-                            {
-                                if (archive.Entries.Count == 0)
-                                    throw new InvalidDataException("ZIP archive is empty");
-                            }
-
-                            downloadOk = true;
-                            break;
-                        }
-                        catch (Exception ex)
-                        {
-                            File.AppendAllText(logPath, $"[RunUpdateAsync] Attempt {attempt} failed: {ex.Message}\r\n");
-                            if (attempt == maxRetries)
-                                throw;
-                            await Task.Delay(2000);
-                        }
-                    }
-
-                    if (!downloadOk)
-                        throw new Exception("ZIP download failed after retries");
-
-                    File.AppendAllText(logPath, $"[RunUpdateAsync] Launching Updater.exe\r\n");
 
                     Process.Start(new ProcessStartInfo
                     {
                         FileName = updaterPath,
                         Arguments = $"\"{tempZip}\" \"{installDir}\" \"{targetExe}\"",
-                        UseShellExecute = true,
-                        // Verb = "runas"  // 필요 시 관리자 권한
+                        UseShellExecute = true
                     });
 
                     Dispatcher.Invoke(() =>
@@ -241,8 +222,7 @@ namespace ytDownloader
                 }
                 catch (Exception ex)
                 {
-                    File.AppendAllText(logPath, $"❌ RunUpdateAsync failed: {ex}\r\n");
-
+                    File.AppendAllText(logFile, $"❌ RunUpdateAsync failed: {ex}{Environment.NewLine}");
                     Dispatcher.Invoke(() =>
                     {
                         updateWindow.Close();
@@ -252,6 +232,7 @@ namespace ytDownloader
                 }
             });
         }
+
 
 
 

@@ -2,89 +2,82 @@
 using System.Diagnostics;
 using System.IO;
 using System.IO.Compression;
-using System.Linq;
 using System.Threading;
 
-class Program
+namespace Updater
 {
-    static int Main(string[] args)
+    class Program
     {
-        string logPath = Path.Combine(Path.GetTempPath(), "ytDownloader_updater.log");
-        try
+        [STAThread]
+        static void Main(string[] args)
         {
             if (args.Length < 3)
-            {
-                File.AppendAllText(logPath, "❌ Invalid arguments\r\n");
-                return 1;
-            }
+                return; // 인자 부족 → 종료
 
             string zipPath = args[0];
             string installDir = args[1];
             string targetExe = args[2];
 
-            File.AppendAllText(logPath, $"[Updater] zipPath={zipPath}\r\ninstallDir={installDir}\r\n");
+            string logFile = Path.Combine(Path.GetTempPath(), "ytDownloader_updater.log");
 
-            if (!File.Exists(zipPath))
-                throw new FileNotFoundException("ZIP not found", zipPath);
-
-            using (var archive = ZipFile.OpenRead(zipPath))
+            try
             {
-                if (archive.Entries.Count == 0)
-                    throw new InvalidDataException("ZIP archive has no entries");
-            }
+                Thread.Sleep(2000); // 메인 프로그램 종료 대기
 
-            // ✅ 대상 프로세스 종료 대기
-            for (int i = 0; i < 20; i++)
-            {
-                if (!IsFileLocked(targetExe))
-                    break;
-                Thread.Sleep(500);
-            }
+                // 🔥 ZIP 유효성 검사
+                if (!File.Exists(zipPath))
+                    throw new FileNotFoundException("업데이트 ZIP 파일이 존재하지 않습니다.", zipPath);
 
-            // ✅ 압축 해제
-            using (var archive = ZipFile.OpenRead(zipPath))
-            {
-                foreach (var entry in archive.Entries)
+                using (var archive = ZipFile.OpenRead(zipPath))
                 {
-                    string destinationPath = Path.Combine(installDir, entry.FullName);
+                    if (archive.Entries.Count == 0)
+                        throw new InvalidDataException("ZIP 파일이 비어 있습니다. (Entries.Count == 0)");
 
-                    if (entry.FullName.EndsWith("/"))
-                        continue;
+                    foreach (var entry in archive.Entries)
+                    {
+                        // tools 폴더 무시
+                        if (entry.FullName.StartsWith("tools/", StringComparison.OrdinalIgnoreCase) ||
+                            entry.FullName.StartsWith("tools\\", StringComparison.OrdinalIgnoreCase))
+                            continue;
 
-                    Directory.CreateDirectory(Path.GetDirectoryName(destinationPath)!);
-                    entry.ExtractToFile(destinationPath, true);
+                        string destinationPath = Path.Combine(installDir, entry.FullName);
+
+                        if (string.IsNullOrEmpty(entry.Name))
+                        {
+                            Directory.CreateDirectory(destinationPath);
+                            continue;
+                        }
+
+                        Directory.CreateDirectory(Path.GetDirectoryName(destinationPath)!);
+
+                        entry.ExtractToFile(destinationPath, true);
+                    }
+                }
+
+                // ✅ 로그 기록
+                File.AppendAllText(logFile,
+                    $"[{DateTime.Now:yyyy-MM-dd HH:mm:ss}] 업데이트 성공: {zipPath} → {installDir}{Environment.NewLine}");
+
+                // 메인 프로그램 재실행
+                Process.Start(new ProcessStartInfo
+                {
+                    FileName = targetExe,
+                    UseShellExecute = true
+                });
+            }
+            catch (Exception ex)
+            {
+                try
+                {
+                    File.AppendAllText(logFile,
+                        $"[{DateTime.Now:yyyy-MM-dd HH:mm:ss}] 업데이트 실패\n" +
+                        $"ZIP: {zipPath}\n설치경로: {installDir}\n에러: {ex}\n");
+                }
+                catch
+                {
+                    // 로그 작성 실패 시 무시
                 }
             }
-
-            File.AppendAllText(logPath, "[Updater] Update applied successfully\r\n");
-
-            // ✅ 새 실행
-            Process.Start(new ProcessStartInfo
-            {
-                FileName = targetExe,
-                WorkingDirectory = installDir,
-                UseShellExecute = true
-            });
-
-            return 0;
-        }
-        catch (Exception ex)
-        {
-            File.AppendAllText(logPath, $"❌ Update failed: {ex}\r\n");
-            return 1;
-        }
-    }
-
-    private static bool IsFileLocked(string filePath)
-    {
-        try
-        {
-            using var stream = File.Open(filePath, FileMode.Open, FileAccess.Read, FileShare.None);
-            return false;
-        }
-        catch (IOException)
-        {
-            return true;
         }
     }
 }
