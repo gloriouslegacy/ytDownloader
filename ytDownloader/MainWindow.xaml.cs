@@ -140,7 +140,7 @@ namespace ytDownloader
                                 MessageBoxButton.YesNo,
                                 MessageBoxImage.Question) == MessageBoxResult.Yes)
                         {
-                            // 📌 최신 릴리스 ZIP 다운로드 링크 (Updater.exe는 ZIP에 포함되지 않음!)
+                            // 최신 릴리스 ZIP 다운로드 링크 (Updater.exe는 ZIP에 포함되지 않음!)
                             string assetUrl = latest.assets[0].browser_download_url;
                             _ = RunUpdateAsync(assetUrl);
                         }
@@ -157,63 +157,8 @@ namespace ytDownloader
             }
         }
 
-
-        //private async Task RunUpdateAsync(string zipUrl)
-        //{
-        //    // 📌 "업데이트 중입니다..." 진행창 표시
-        //    var updateWindow = new UpdateWindow();
-        //    updateWindow.Show();
-
-        //    await Task.Run(async () =>
-        //    {
-        //        try
-        //        {
-        //            using var httpClient = new HttpClient();
-
-        //            // 📌 릴리스 ZIP 다운로드 (Updater.exe는 포함되지 않음)
-        //            string tempZip = Path.Combine(Path.GetTempPath(), "ytDownloader_update.zip");
-        //            await File.WriteAllBytesAsync(tempZip, await httpClient.GetByteArrayAsync(zipUrl));
-
-        //            // 📌 Updater.exe는 설치 폴더에 이미 존재한다고 가정 (ZIP에는 없음)
-        //            string updaterPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Updater.exe");
-        //            string installDir = AppDomain.CurrentDomain.BaseDirectory;
-        //            string targetExe = Process.GetCurrentProcess().MainModule!.FileName;
-
-        //            // 📌 관리자 권한으로 Updater.exe 실행 → ZIP 적용 후 ytDownloader.exe 재실행
-        //            Process.Start(new ProcessStartInfo
-        //            {
-        //                FileName = updaterPath,
-        //                Arguments = $"\"{tempZip}\" \"{installDir}\" \"{targetExe}\"",
-        //                UseShellExecute = true,
-        //                Verb = "runas" // ✅ UAC 팝업 → 관리자 권한 요청
-        //            });
-
-        //            // 📌 UI 스레드: 업데이트 창 닫고 현재 앱 종료
-        //            Dispatcher.Invoke(() =>
-        //            {
-        //                updateWindow.Close();
-        //                Application.Current.Shutdown();
-        //            });
-        //        }
-        //        catch (Exception ex)
-        //        {
-        //            // 📌 오류 발생 시 업데이트 창 닫고 사용자에게 알림
-        //            Dispatcher.Invoke(() =>
-        //            {
-        //                updateWindow.Close();
-        //                MessageBox.Show(
-        //                    "업데이트 실패: " + ex.Message,
-        //                    "업데이트 오류",
-        //                    MessageBoxButton.OK,
-        //                    MessageBoxImage.Error);
-        //            });
-        //        }
-        //    });
-        //}
-
         private async Task RunUpdateAsync(string zipUrl)
         {
-            // "업데이트 중입니다..." 진행창 표시
             var updateWindow = new UpdateWindow();
             updateWindow.Show();
 
@@ -223,24 +168,26 @@ namespace ytDownloader
                 {
                     using var httpClient = new HttpClient();
 
-                    // 최신 릴리스 ZIP 다운로드 → %TEMP%\ytDownloader_update.zip
+                    // 최신 릴리스 ZIP 다운로드 → %TEMP%
                     string tempZip = Path.Combine(Path.GetTempPath(), "ytDownloader_update.zip");
                     await File.WriteAllBytesAsync(tempZip, await httpClient.GetByteArrayAsync(zipUrl));
 
-                    // Updater.exe는 현재 실행 폴더에 반드시 존재해야 함
-                    string baseDir = AppDomain.CurrentDomain.BaseDirectory;
+                    // 실행 중인 폴더 = 설치 폴더
+                    string baseDir = Path.GetDirectoryName(Process.GetCurrentProcess().MainModule!.FileName)!;
                     string updaterPath = Path.Combine(baseDir, "Updater.exe");
                     string installDir = baseDir;
                     string targetExe = Process.GetCurrentProcess().MainModule!.FileName;
 
-                    // 로그 기록 (TextBox + 파일)
-                    string logFile = Path.Combine(Path.GetTempPath(), "ytDownloader_update_launcher.log");
-                    string logMsg = $"[RunUpdateAsync]\n" +
-                                    $"tempZip: {tempZip}\n" +
-                                    $"updaterPath: {updaterPath}\n" +
-                                    $"installDir: {installDir}\n" +
-                                    $"targetExe: {targetExe}\n";
-                    AppendOutput(logMsg); // UI TextBox에 출력
+                    // 통합 로그
+                    string logFile = Path.Combine(Path.GetTempPath(), "ytDownloader_update.log");
+                    string logMsg =
+                        $"[RunUpdateAsync]\n" +
+                        $"tempZip    = {tempZip}\n" +
+                        $"baseDir    = {baseDir}\n" +
+                        $"updaterPath= {updaterPath}\n" +
+                        $"installDir = {installDir}\n" +
+                        $"targetExe  = {targetExe}\n";
+                    AppendOutput(logMsg);
                     File.AppendAllText(logFile, logMsg + Environment.NewLine);
 
                     if (!File.Exists(updaterPath))
@@ -249,7 +196,7 @@ namespace ytDownloader
                         {
                             updateWindow.Close();
                             MessageBox.Show(
-                                $"Updater.exe를 찾을 수 없습니다.\n경로: {updaterPath}\n\n" +
+                                $"Updater.exe가 실행 폴더에 없습니다.\n경로: {updaterPath}\n\n" +
                                 "ZIP 내부에서 실행하지 말고, 기존 폴더의 ytDownloader.exe를 실행하세요.",
                                 "업데이트 오류",
                                 MessageBoxButton.OK,
@@ -259,27 +206,25 @@ namespace ytDownloader
                         return;
                     }
 
-                    // 관리자 권한으로 Updater.exe 실행
                     var psi = new ProcessStartInfo
                     {
                         FileName = updaterPath,
                         Arguments = $"\"{tempZip}\" \"{installDir}\" \"{targetExe}\"",
-                        WorkingDirectory = baseDir, // 실행 폴더 강제
+                        WorkingDirectory = baseDir,
                         UseShellExecute = true,
-                        Verb = "runas"
+                        //Verb = "runas"
                     };
 
-                    // 실행 명령 로그 추가
-                    string runMsg = $"[RunUpdateAsync] Launching Updater.exe\n" +
-                                    $"FileName: {psi.FileName}\n" +
-                                    $"Arguments: {psi.Arguments}\n" +
-                                    $"WorkingDirectory: {psi.WorkingDirectory}\n";
+                    string runMsg =
+                        $"[RunUpdateAsync] Launching Updater.exe\n" +
+                        $"FileName       = {psi.FileName}\n" +
+                        $"Arguments      = {psi.Arguments}\n" +
+                        $"WorkingDir     = {psi.WorkingDirectory}\n";
                     AppendOutput(runMsg);
                     File.AppendAllText(logFile, runMsg + Environment.NewLine);
 
                     Process.Start(psi);
 
-                    // UI 스레드: 업데이트 창 닫고 현재 앱 종료
                     Dispatcher.Invoke(() =>
                     {
                         updateWindow.Close();
@@ -288,7 +233,6 @@ namespace ytDownloader
                 }
                 catch (Exception ex)
                 {
-                    // 오류 발생 시 업데이트 창 닫고 사용자에게 알림
                     Dispatcher.Invoke(() =>
                     {
                         updateWindow.Close();
@@ -300,12 +244,12 @@ namespace ytDownloader
                         );
                     });
 
-                    // 예외 로그 기록
-                    string logFile = Path.Combine(Path.GetTempPath(), "ytDownloader_update_launcher.log");
+                    string logFile = Path.Combine(Path.GetTempPath(), "ytDownloader_update.log");
                     File.AppendAllText(logFile, $"[RunUpdateAsync] Exception: {ex}\n");
                 }
             });
         }
+
 
 
         private void LoadSettings()
