@@ -182,7 +182,7 @@
                Margin="0,5,10,5"
                Foreground="LightGray"
                FontSize="12">
-		-
+		
         <Hyperlink NavigateUri="https://github.com/gloriouslegacy/ytDownloader"
                    RequestNavigate="Hyperlink_RequestNavigate"
                    Foreground="SkyBlue">
