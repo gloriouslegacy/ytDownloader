@@ -37,17 +37,17 @@ jobs:
               return releases[0].tag_name.split("-")[0]; // ex) "0.3.5" 추출
             }
 
-      # 📌 버전 계산 (태그 vs main push)
+      # 📌 버전 계산: 태그 vs main 구분
       - name: Determine version
         id: vars
         shell: bash
         run: |
           if [[ "${GITHUB_REF}" == refs/tags/* ]]; then
             # 태그 push → 정식 Release
-            tag="${GITHUB_REF_NAME}"
-            version="${tag#v}"
+            version="${GITHUB_REF#refs/tags/}"
+            version="${version#v}"   # v 제거
           else
-            # main push → Pre-release (커밋 메시지 기반 증가 + 날짜)
+            # main push → Pre-release
             lastCommit=$(git log -1 --pretty=%B)
             echo "Last commit: $lastCommit"
 
@@ -55,23 +55,21 @@ jobs:
             IFS='.' read -r major minor patch <<< "$prev"
 
             if [[ "$lastCommit" == *"BREAKING"* ]]; then
-              major=$((major+1))
-              minor=0
-              patch=0
+              major=$((major+1)); minor=0; patch=0
             elif [[ "$lastCommit" == feat:* ]]; then
-              minor=$((minor+1))
-              patch=0
+              minor=$((minor+1)); patch=0
             else
               patch=$((patch+1))
             fi
 
             newVersion="$major.$minor.$patch"
-            date=$(date +'%Y%m%d')
+            date=$(date +%Y%m%d)
             version="$newVersion-$date"
           fi
 
           echo "version=$version" >> $GITHUB_OUTPUT
 
+      # 📌 WPF 빌드
       - name: Build (ytDownloader WPF)
         shell: bash
         run: |
@@ -82,25 +80,22 @@ jobs:
             -p:AssemblyVersion=$baseVersion.0 \
             -p:FileVersion=$baseVersion.0
 
+      # 📌 Updater 빌드
       - name: Build (Updater)
-        shell: bash
-        run: |
-          baseVersion=$(echo "${{ steps.vars.outputs.version }}" | cut -d'-' -f1)
-          dotnet publish Updater/Updater.csproj -c Release -r win-x64 --self-contained false -o publish/Updater \
-            -p:Version=${{ steps.vars.outputs.version }} \
-            -p:AssemblyVersion=$baseVersion.0 \
-            -p:FileVersion=$baseVersion.0
+        run: dotnet publish Updater/Updater.csproj -c Release -r win-x64 --self-contained false -o publish/Updater
 
+      # 📌 릴리스 패키지 준비 (PowerShell로 압축)
       - name: Prepare release package
-        shell: bash
+        shell: pwsh
         run: |
           mkdir dist
-          cp -r publish/ytDownloader/* dist/
-          cp publish/Updater/Updater.exe dist/
-          rm -rf dist/tools || true
-          rm -f dist/*.pdb || true
-          zip -r yt_downloader_${{ steps.vars.outputs.version }}.zip dist/*
+          Copy-Item publish/ytDownloader/* dist/ -Recurse
+          Copy-Item publish/Updater/Updater.exe dist/
+          if (Test-Path dist/tools) { Remove-Item dist/tools -Recurse -Force }
+          Remove-Item dist/*.pdb -Force -ErrorAction SilentlyContinue
+          Compress-Archive -Path dist/* -DestinationPath yt_downloader_${{ steps.vars.outputs.version }}.zip -Force
 
+      # 📌 GitHub Release 생성
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v1
         with:
