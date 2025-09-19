@@ -37,51 +37,42 @@ jobs:
               return releases[0].tag_name.split("-")[0]; // ex) "0.3.5" 추출
             }
 
-      # 📌 버전 계산: 태그 vs main 구분
+      # 📌 버전 계산: 태그 vs main 구분 (Bash)
       - name: Determine version
         id: vars
-        shell: pwsh
+        shell: bash
         run: |
-          if ("${{ github.ref }}" -like "refs/tags/*") {
+          if [[ "${GITHUB_REF}" == refs/tags/* ]]; then
             # 태그 push → 정식 Release
-            $tag="${{ github.ref_name }}"
-            $version=$tag.TrimStart("v")
-          } else {
-            # main push → Pre-release (커밋 메시지 기반 증가 + 날짜)
-            $lastCommit = git log -1 --pretty=%B
+            tag="${GITHUB_REF_NAME}"
+            version="${tag#v}"
+          else
+            # main push → Pre-release
+            lastCommit=$(git log -1 --pretty=%B)
             echo "Last commit: $lastCommit"
 
-            # 따옴표 안전 제거
-            $prev="${{ steps.get_release.outputs.result }}"
-            $prev=$prev -replace '"',''
-            $prev=$prev -replace "'",''
+            prev="${{ steps.get_release.outputs.result }}"
+            echo "Previous version raw: $prev"
 
-            Write-Output "Previous version: $prev"
+            IFS='.' read -r major minor patch <<< "$prev"
 
-            $parts=$prev.Split('.')
-            $major=[int]$parts[0]
-            $minor=[int]$parts[1]
-            $patch=[int]$parts[2]
+            if [[ "$lastCommit" == *"BREAKING"* ]]; then
+              major=$((major+1))
+              minor=0
+              patch=0
+            elif [[ "$lastCommit" == feat:* ]]; then
+              minor=$((minor+1))
+              patch=0
+            else
+              patch=$((patch+1))
+            fi
 
-            if ($lastCommit -match "BREAKING") {
-              $major++
-              $minor=0
-              $patch=0
-            }
-            elseif ($lastCommit -match "^feat:") {
-              $minor++
-              $patch=0
-            }
-            else {
-              $patch++
-            }
+            newVersion="${major}.${minor}.${patch}"
+            date=$(date +%Y%m%d)
+            version="${newVersion}-${date}"
+          fi
 
-            $newVersion="$major.$minor.$patch"
-            $date=Get-Date -Format "yyyyMMdd"
-            $version="$newVersion-$date"
-          }
-
-          echo "version=$version" >> $env:GITHUB_OUTPUT
+          echo "version=$version" >> $GITHUB_OUTPUT
 
       - name: Build (ytDownloader WPF)
         run: dotnet publish ytDownloader/ytDownloader.csproj -c Release -r win-x64 --self-contained false -o publish/ytDownloader -p:Version=${{ steps.vars.outputs.version }} -p:AssemblyVersion=${{ steps.vars.outputs.version }}.0 -p:FileVersion=${{ steps.vars.outputs.version }}.0
@@ -92,11 +83,11 @@ jobs:
       - name: Prepare release package
         run: |
           mkdir dist
-          copy publish\\ytDownloader\\* dist\\
-          copy publish\\Updater\\Updater.exe dist\\
-          if exist dist\\tools rmdir /s /q dist\\tools
-          del dist\\*.pdb
-          powershell Compress-Archive -Path dist\\* -DestinationPath yt_downloader_${{ steps.vars.outputs.version }}.zip
+          cp -r publish/ytDownloader/* dist/
+          cp publish/Updater/Updater.exe dist/
+          if [ -d dist/tools ]; then rm -rf dist/tools; fi
+          rm -f dist/*.pdb
+          zip -r yt_downloader_${{ steps.vars.outputs.version }}.zip dist/*
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v1
@@ -107,3 +98,4 @@ jobs:
           prerelease: ${{ !startsWith(github.ref, 'refs/tags/') }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
