@@ -2,7 +2,6 @@
 using System.Diagnostics;
 using System.IO;
 using System.IO.Compression;
-using System.Linq;
 using System.Threading;
 
 namespace Updater
@@ -11,7 +10,7 @@ namespace Updater
     {
         static int Main(string[] args)
         {
-            string logFile = Path.Combine(Path.GetTempPath(), "ytDownloader_updater.log");
+            string logFile = Path.Combine(Path.GetTempPath(), "ytDownloader_update.log");
 
             void Log(string message)
             {
@@ -28,7 +27,7 @@ namespace Updater
             {
                 if (args.Length < 3)
                 {
-                    Log("인자가 부족합니다. [zipPath] [installDir] [targetExe]");
+                    Log("❌ 인자가 부족합니다. [zipPath] [installDir] [targetExe]");
                     return 1;
                 }
 
@@ -36,13 +35,13 @@ namespace Updater
                 string installDir = args[1];
                 string targetExe = args[2];
 
-                Log($"📌 인자 확인");
+                Log("📌 인자 확인");
                 Log($"zipPath   = {zipPath}");
                 Log($"installDir= {installDir}");
                 Log($"targetExe = {targetExe}");
 
-                // 대상 exe 종료 대기 (최대 10초)
-                Log("대상 프로세스 종료 대기...");
+                // 대상 exe 종료 대기
+                Log("⌛ 대상 프로세스 종료 대기...");
                 for (int i = 0; i < 20; i++)
                 {
                     var procs = Process.GetProcessesByName(Path.GetFileNameWithoutExtension(targetExe));
@@ -51,12 +50,11 @@ namespace Updater
                 }
 
                 // 압축 해제 (tools 폴더 제외)
-                Log("압축 해제 시작...");
+                Log("📦 압축 해제 시작...");
                 using (ZipArchive archive = ZipFile.OpenRead(zipPath))
                 {
                     foreach (var entry in archive.Entries)
                     {
-                        // tools 폴더 제외
                         if (entry.FullName.StartsWith("tools/", StringComparison.OrdinalIgnoreCase) ||
                             entry.FullName.StartsWith("tools\\", StringComparison.OrdinalIgnoreCase))
                         {
@@ -73,15 +71,14 @@ namespace Updater
                         }
 
                         Directory.CreateDirectory(Path.GetDirectoryName(destinationPath)!);
-
                         Log($"➡️ 덮어쓰기: {destinationPath}");
                         entry.ExtractToFile(destinationPath, true);
                     }
                 }
-                Log("압축 해제 완료");
+                Log("✅ 압축 해제 완료");
 
                 // 대상 exe 재실행
-                Log("프로그램 재실행...");
+                Log("🚀 프로그램 재실행...");
                 Process.Start(new ProcessStartInfo
                 {
                     FileName = targetExe,
@@ -89,12 +86,12 @@ namespace Updater
                     UseShellExecute = true
                 });
 
-                Log("업데이트 성공");
+                Log("🎉 업데이트 성공");
                 return 0;
             }
             catch (Exception ex)
             {
-                Log($"예외 발생: {ex}");
+                Log($"❌ 예외 발생: {ex}");
                 return 1;
             }
         }
