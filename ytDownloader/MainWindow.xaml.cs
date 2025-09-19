@@ -206,14 +206,23 @@ namespace ytDownloader
                         return;
                     }
 
+                    //var psi = new ProcessStartInfo
+                    //{
+                    //    FileName = updaterPath,
+                    //    Arguments = $"\"{tempZip}\" \"{installDir}\" \"{targetExe}\"",
+                    //    WorkingDirectory = baseDir,
+                    //    UseShellExecute = true,
+                    //    //Verb = "runas"
+                    //};
+
                     var psi = new ProcessStartInfo
                     {
                         FileName = updaterPath,
                         Arguments = $"\"{tempZip}\" \"{installDir}\" \"{targetExe}\"",
                         WorkingDirectory = baseDir,
-                        UseShellExecute = true,
-                        //Verb = "runas"
+                        UseShellExecute = true
                     };
+                    Process.Start(psi);
 
                     string runMsg =
                         $"[RunUpdateAsync] Launching Updater.exe\n" +
