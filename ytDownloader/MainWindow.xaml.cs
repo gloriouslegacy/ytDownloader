@@ -96,7 +96,7 @@ namespace ytDownloader
                 using var httpClient = new HttpClient();
                 httpClient.DefaultRequestHeaders.UserAgent.ParseAdd("ytDownloader/1.0");
 
-                //  GitHub Release API 호출 (정식 + Pre-release 포함)
+                // 📌 GitHub Release API 호출 (정식 + Pre-release 포함)
                 var response = await httpClient.GetAsync("https://api.github.com/repos/gloriouslegacy/ytDownloader/releases");
                 if (!response.IsSuccessStatusCode)
                 {
@@ -105,26 +105,26 @@ namespace ytDownloader
                 }
 
                 var json = await response.Content.ReadAsStringAsync();
-                var releases = JsonConvert.DeserializeObject<List<dynamic>>(json);
+                var releases = JArray.Parse(json); // ✅ JSON 배열 파싱
 
                 if (releases == null || releases.Count == 0)
                 {
-                    AppendOutput("ℹ️ 아직 등록된 릴리스가 없습니다.");
+                    AppendOutput("ℹ️ 첫 버전입니다. 아직 등록된 릴리스가 없습니다.");
                     return;
                 }
 
-                //  최신 Release (첫 번째 항목)
+                // 최신 Release (첫 번째 항목이 최신)
                 var latest = releases[0];
-                string latestTag = latest.tag_name;
-                bool isPre = latest.prerelease;
+                string latestTag = latest["tag_name"]?.ToString() ?? "";
+                bool isPre = latest["prerelease"]?.ToObject<bool>() ?? false;
 
-                //  현재 실행 중인 어셈블리 버전 (csproj의 <Version>)
+                // 현재 실행 중인 어셈블리 버전 가져오기
                 string currentVersion = Assembly
                     .GetExecutingAssembly()
                     .GetCustomAttribute<AssemblyInformationalVersionAttribute>()?
                     .InformationalVersion ?? "0.0.0";
 
-                //  v 접두사 제거 (ex: v0.3.0 → 0.3.0)
+                // v 접두사 제거 후 비교
                 string latestTagClean = latestTag.StartsWith("v", StringComparison.OrdinalIgnoreCase)
                     ? latestTag.Substring(1)
                     : latestTag;
@@ -134,15 +134,25 @@ namespace ytDownloader
                     Dispatcher.Invoke(() =>
                     {
                         string preMsg = isPre ? "Pre-release" : "정식 릴리스";
-                        if (MessageBox.Show(
-                                $"새 {preMsg} {latestTag} 버전이 있습니다.\n업데이트 하시겠습니까?",
-                                "업데이트 확인",
-                                MessageBoxButton.YesNo,
-                                MessageBoxImage.Question) == MessageBoxResult.Yes)
+                        if (MessageBox.Show($"새 {preMsg} {latestTag} 버전이 있습니다. 업데이트 하시겠습니까?",
+                            "업데이트 확인", MessageBoxButton.YesNo, MessageBoxImage.Question) == MessageBoxResult.Yes)
                         {
-                            // 최신 릴리스 ZIP 다운로드 링크 (Updater.exe는 ZIP에 포함되지 않음!)
-                            string assetUrl = latest.assets[0].browser_download_url;
-                            _ = RunUpdateAsync(assetUrl);
+                            // 최신 릴리스 ZIP 다운로드 링크 (zip 필터링)
+                            var zipAsset = latest["assets"]?
+                                .FirstOrDefault(a => a["name"]?.ToString().EndsWith(".zip", StringComparison.OrdinalIgnoreCase) == true);
+
+                            if (zipAsset != null)
+                            {
+                                string assetUrl = zipAsset["browser_download_url"]?.ToString();
+                                if (!string.IsNullOrEmpty(assetUrl))
+                                {
+                                    _ = RunUpdateAsync(assetUrl); // 📌 업데이트 실행
+                                }
+                            }
+                            else
+                            {
+                                AppendOutput("❌ ZIP 에셋을 찾을 수 없습니다.");
+                            }
                         }
                     });
                 }
@@ -156,6 +166,7 @@ namespace ytDownloader
                 AppendOutput($"❌ 업데이트 확인 실패: {ex.Message}");
             }
         }
+
 
 
         // ETA 계산 → "hh:mm:ss" 또는 "mm:ss" 포맷
@@ -194,52 +205,22 @@ namespace ytDownloader
             return $"{gb:F2} GB/s";
         }
 
-        private async Task RunUpdateAsync(dynamic latest)
+        private async Task RunUpdateAsync(string assetUrl)
         {
-            string logFile = Path.Combine(Path.GetTempPath(), "ytDownloader_update.log");
-
             var updateWindow = new UpdateWindow();
             updateWindow.Show();
 
             await Task.Run(async () =>
             {
+                string logPath = Path.Combine(Path.GetTempPath(), "ytDownloader_update_launcher.log");
                 try
                 {
-                    AppendOutput("[RunUpdateAsync] 업데이트 ZIP 선택 중...");
-                    File.AppendAllText(logFile, $"[{DateTime.Now:yyyy-MM-dd HH:mm:ss}] RunUpdateAsync 시작{Environment.NewLine}");
-
                     using var httpClient = new HttpClient();
+                    httpClient.DefaultRequestHeaders.UserAgent.ParseAdd("ytDownloader-Updater");
 
-                    // 📌 ZIP 자산만 찾기
-                    string? assetUrl = null;
-                    string? assetName = null;
-                    foreach (var asset in latest.assets)
-                    {
-                        string name = (string)asset.name;
-                        if (name.EndsWith(".zip", StringComparison.OrdinalIgnoreCase))
-                        {
-                            assetUrl = (string)asset.browser_download_url;
-                            assetName = name;
-                            break;
-                        }
-                    }
-
-                    if (assetUrl == null)
-                    {
-                        Dispatcher.Invoke(() =>
-                        {
-                            updateWindow.Close();
-                            MessageBox.Show("❌ 업데이트 ZIP 파일을 찾을 수 없습니다.",
-                                "업데이트 오류", MessageBoxButton.OK, MessageBoxImage.Error);
-                        });
-                        return;
-                    }
-
-                    // 📌 다운로드 대상 경로
                     string tempZip = Path.Combine(Path.GetTempPath(), "ytDownloader_update.zip");
 
-                    AppendOutput($"[RunUpdateAsync] ZIP 다운로드 시작: {assetName}");
-
+                    // 📌 ZIP 다운로드 (스트리밍)
                     using (var response = await httpClient.GetAsync(assetUrl, HttpCompletionOption.ResponseHeadersRead))
                     {
                         response.EnsureSuccessStatusCode();
@@ -261,64 +242,39 @@ namespace ytDownloader
                             if (contentLength > 0)
                             {
                                 double progress = (double)totalRead / contentLength * 100.0;
-                                double speedBytes = totalRead / stopwatch.Elapsed.TotalSeconds; // B/s
+                                double speedBytes = totalRead / stopwatch.Elapsed.TotalSeconds;
                                 double etaSec = (contentLength - totalRead) / (speedBytes > 0 ? speedBytes : 1);
-                                double remainingBytes = (contentLength - totalRead);
-                                double totalBytes = contentLength;
 
                                 Dispatcher.Invoke(() =>
                                 {
-                                    progressBar.Value = progress;
-                                    //txtProgress.Text = $"{progress:F1}%"; // ✅ 퍼센트 표시
-                                    txtSpeed.Text = FormatSpeed(speedBytes);
-                                    txtEta.Text = $"{FormatEta(etaSec)} / {FormatSize(remainingBytes)} 남음 / 총 {FormatSize(totalBytes)}";
+                                    updateWindow.UpdateProgress(
+                                        progress,
+                                        FormatSpeed(speedBytes),
+                                        $"{FormatEta(etaSec)}"
+                                    );
                                 });
                             }
                         }
                     }
 
-                    long fileSize = new FileInfo(tempZip).Length;
-                    AppendOutput($"[RunUpdateAsync] ZIP 다운로드 완료: {fileSize} bytes");
-                    File.AppendAllText(logFile, $"[{DateTime.Now:yyyy-MM-dd HH:mm:ss}] ZIP 다운로드 완료 ({fileSize} bytes){Environment.NewLine}");
-
-                    // 📌 ZIP 유효성 검사
-                    try
-                    {
-                        using var archive = ZipFile.OpenRead(tempZip);
-                        if (archive.Entries == null || archive.Entries.Count == 0)
-                            throw new InvalidDataException("ZIP 파일이 비어 있음");
-
-                        AppendOutput($"[RunUpdateAsync] ZIP 유효성 검사 통과: {archive.Entries.Count} 개 항목");
-                    }
-                    catch (Exception ex)
-                    {
-                        AppendOutput($"❌ ZIP 유효성 검사 실패: {ex.Message}");
-                        File.AppendAllText(logFile, $"[{DateTime.Now:yyyy-MM-dd HH:mm:ss}] ZIP 유효성 검사 실패: {ex}{Environment.NewLine}");
-                        Dispatcher.Invoke(() =>
-                        {
-                            updateWindow.Close();
-                            MessageBox.Show("다운로드된 ZIP이 손상되었습니다.\n" + ex.Message,
-                                "업데이트 오류", MessageBoxButton.OK, MessageBoxImage.Error);
-                        });
-                        return;
-                    }
-
-                    // 📌 실행 경로
-                    string baseDir = AppDomain.CurrentDomain.BaseDirectory;
-                    string updaterPath = Path.Combine(baseDir, "Updater.exe");
-                    string installDir = baseDir;
+                    // 📌 Updater.exe 실행
+                    string updaterPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Updater.exe");
+                    string installDir = AppDomain.CurrentDomain.BaseDirectory;
                     string targetExe = Process.GetCurrentProcess().MainModule!.FileName;
 
-                    AppendOutput($"[RunUpdateAsync] updaterPath = {updaterPath}");
+                    File.AppendAllText(logPath,
+                        $"[RunUpdateAsync]\r\nzipUrl = {assetUrl}\r\ntempZip = {tempZip}\r\nupdaterPath = {updaterPath}\r\ninstallDir = {installDir}\r\ntargetExe = {targetExe}\r\n");
 
-                    // 📌 Updater 실행
-                    Process.Start(new ProcessStartInfo
+                    var psi = new ProcessStartInfo
                     {
                         FileName = updaterPath,
                         Arguments = $"\"{tempZip}\" \"{installDir}\" \"{targetExe}\"",
                         UseShellExecute = true,
-                        WorkingDirectory = baseDir
-                    });
+                        Verb = "runas", // 관리자 권한
+                        WorkingDirectory = installDir
+                    };
+
+                    Process.Start(psi);
 
                     Dispatcher.Invoke(() =>
                     {
@@ -328,17 +284,20 @@ namespace ytDownloader
                 }
                 catch (Exception ex)
                 {
-                    AppendOutput($"❌ RunUpdateAsync 실패: {ex.Message}");
-                    File.AppendAllText(logFile, $"[{DateTime.Now:yyyy-MM-dd HH:mm:ss}] RunUpdateAsync 실패: {ex}{Environment.NewLine}");
+                    File.AppendAllText(logPath, $"RunUpdateAsync 실패: {ex}\r\n");
                     Dispatcher.Invoke(() =>
                     {
                         updateWindow.Close();
-                        MessageBox.Show("업데이트 실패: " + ex.Message,
-                            "업데이트 오류", MessageBoxButton.OK, MessageBoxImage.Error);
+                        MessageBox.Show(
+                            "업데이트 실패: " + ex.Message,
+                            "업데이트 오류",
+                            MessageBoxButton.OK,
+                            MessageBoxImage.Error);
                     });
                 }
             });
         }
+
 
 
 
