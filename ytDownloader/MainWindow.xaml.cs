@@ -189,19 +189,51 @@ namespace ytDownloader
             StringBuilder args = new StringBuilder();
 
             // 포맷에 따라 파일명 패턴 다르게 지정
-            if (comboFormat.SelectedIndex == 0) // 영상
+            if (comboFormat.SelectedIndex == 0) // 영상 (최고화질)
             {
-                string outputTemplate = $"%(title)s_{timestamp}_video.%(ext)s";
+                string outputTemplate = $"%(title)s_{timestamp}_best.%(ext)s";
                 args.Append($"-o \"{Path.Combine(savePath, outputTemplate)}\" ");
                 args.Append("-f bestvideo+bestaudio ");
             }
-            else // 오디오
+            else if (comboFormat.SelectedIndex == 1) // 영상 (1080p)
             {
-                string outputTemplate = $"%(title)s_{timestamp}_audio.%(ext)s";
+                string outputTemplate = $"%(title)s_{timestamp}_1080p.%(ext)s";
+                args.Append($"-o \"{Path.Combine(savePath, outputTemplate)}\" ");
+                args.Append("-f \"bestvideo[height=1080]+bestaudio/best[height=1080]\" ");
+            }
+            else if (comboFormat.SelectedIndex == 2) // 영상 (720p)
+            {
+                string outputTemplate = $"%(title)s_{timestamp}_720p.%(ext)s";
+                args.Append($"-o \"{Path.Combine(savePath, outputTemplate)}\" ");
+                args.Append("-f \"bestvideo[height=720]+bestaudio/best[height=720]\" ");
+            }
+            else if (comboFormat.SelectedIndex == 3) // 영상 (480p)
+            {
+                string outputTemplate = $"%(title)s_{timestamp}_480p.%(ext)s";
+                args.Append($"-o \"{Path.Combine(savePath, outputTemplate)}\" ");
+                args.Append("-f \"bestvideo[height=480]+bestaudio/best[height=480]\" ");
+            }
+            else if (comboFormat.SelectedIndex == 4) // 음악 (MP3)
+            {
+                string outputTemplate = $"%(title)s_{timestamp}_audio_mp3.%(ext)s";
                 args.Append($"-o \"{Path.Combine(savePath, outputTemplate)}\" ");
                 args.Append("--extract-audio --audio-format mp3 --audio-quality 0 ");
+                args.Append("--embed-thumbnail --add-metadata ");
             }
-
+            else if (comboFormat.SelectedIndex == 5) // 음악 (Best - 원본 유지)
+            {
+                string outputTemplate = $"%(title)s_{timestamp}_audio_best.%(ext)s";
+                args.Append($"-o \"{Path.Combine(savePath, outputTemplate)}\" ");
+                args.Append("--extract-audio --audio-format best ");
+                args.Append("--embed-thumbnail --add-metadata ");
+            }
+            else if (comboFormat.SelectedIndex == 6) // 음악 (FLAC - 무손실 변환)
+            {
+                string outputTemplate = $"%(title)s_{timestamp}_audio_flac.%(ext)s";
+                args.Append($"-o \"{Path.Combine(savePath, outputTemplate)}\" ");
+                args.Append("--extract-audio --audio-format flac ");
+                args.Append("--embed-thumbnail --add-metadata ");
+            }
             if (ChkSingleVideo.IsChecked == true)
                 args.Append("--no-playlist ");
 

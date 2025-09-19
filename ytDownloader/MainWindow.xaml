@@ -7,176 +7,181 @@
         Background="#1E1E2E"
         Foreground="White">
 
-    <Window.Resources>
-        <!-- 버튼 스타일 -->
-        <Style TargetType="Button">
-            <Setter Property="Margin" Value="5"/>
-            <Setter Property="Padding" Value="10,5"/>
-            <Setter Property="Background" Value="#3A3F58"/>
-            <Setter Property="Foreground" Value="White"/>
-            <Setter Property="FontWeight" Value="Bold"/>
-            <Setter Property="BorderThickness" Value="0"/>
-            <Setter Property="Cursor" Value="Hand"/>
-            <Setter Property="Template">
-                <Setter.Value>
-                    <ControlTemplate TargetType="Button">
-                        <Border Background="{TemplateBinding Background}"
+	<Window.Resources>
+		<!-- 버튼 스타일 -->
+		<Style TargetType="Button">
+			<Setter Property="Margin" Value="5"/>
+			<Setter Property="Padding" Value="10,5"/>
+			<Setter Property="Background" Value="#3A3F58"/>
+			<Setter Property="Foreground" Value="White"/>
+			<Setter Property="FontWeight" Value="Bold"/>
+			<Setter Property="BorderThickness" Value="0"/>
+			<Setter Property="Cursor" Value="Hand"/>
+			<Setter Property="Template">
+				<Setter.Value>
+					<ControlTemplate TargetType="Button">
+						<Border Background="{TemplateBinding Background}"
                                 CornerRadius="6"
                                 Padding="{TemplateBinding Padding}">
-                            <ContentPresenter HorizontalAlignment="Center"
+							<ContentPresenter HorizontalAlignment="Center"
                                               VerticalAlignment="Center"/>
-                        </Border>
-                        <ControlTemplate.Triggers>
-                            <Trigger Property="IsMouseOver" Value="True">
-                                <Setter Property="Background" Value="#4B526E"/>
-                            </Trigger>
-                            <Trigger Property="IsPressed" Value="True">
-                                <Setter Property="Background" Value="#5A607A"/>
-                            </Trigger>
-                        </ControlTemplate.Triggers>
-                    </ControlTemplate>
-                </Setter.Value>
-            </Setter>
-        </Style>
+						</Border>
+						<ControlTemplate.Triggers>
+							<Trigger Property="IsMouseOver" Value="True">
+								<Setter Property="Background" Value="#4B526E"/>
+							</Trigger>
+							<Trigger Property="IsPressed" Value="True">
+								<Setter Property="Background" Value="#5A607A"/>
+							</Trigger>
+						</ControlTemplate.Triggers>
+					</ControlTemplate>
+				</Setter.Value>
+			</Setter>
+		</Style>
 
-        <!-- TextBox -->
-        <Style TargetType="TextBox">
-            <Setter Property="Margin" Value="5"/>
-            <Setter Property="Padding" Value="8,4"/>
-            <Setter Property="Background" Value="#2A2F45"/>
-            <Setter Property="BorderBrush" Value="#3A3F58"/>
-            <Setter Property="BorderThickness" Value="1"/>
-            <Setter Property="Foreground" Value="White"/>
-        </Style>
+		<!-- TextBox -->
+		<Style TargetType="TextBox">
+			<Setter Property="Margin" Value="5"/>
+			<Setter Property="Padding" Value="8,4"/>
+			<Setter Property="Background" Value="#2A2F45"/>
+			<Setter Property="BorderBrush" Value="#3A3F58"/>
+			<Setter Property="BorderThickness" Value="1"/>
+			<Setter Property="Foreground" Value="White"/>
+		</Style>
 
-        <!-- ComboBox -->
-        <Style TargetType="ComboBox">
-            <Setter Property="Margin" Value="5"/>
-            <Setter Property="Padding" Value="5"/>
-            <Setter Property="Background" Value="#2A2F45"/>
-            <Setter Property="Foreground" Value="White"/>
-        </Style>
+		<!-- ComboBox -->
+		<Style TargetType="ComboBox">
+			<Setter Property="Margin" Value="5"/>
+			<Setter Property="Padding" Value="5"/>
+			<Setter Property="Background" Value="#2A2F45"/>
+			<Setter Property="Foreground" Value="White"/>
+		</Style>
 
-        <!-- CheckBox -->
-        <Style TargetType="CheckBox">
-            <Setter Property="Margin" Value="5"/>
-            <Setter Property="Foreground" Value="White"/>
-        </Style>
-    </Window.Resources>
+		<!-- CheckBox -->
+		<Style TargetType="CheckBox">
+			<Setter Property="Margin" Value="5"/>
+			<Setter Property="Foreground" Value="White"/>
+		</Style>
+	</Window.Resources>
 
-    <Grid Margin="15">
-        <Grid.RowDefinitions>
-            <RowDefinition Height="Auto"/>
-            <!-- 헤더 -->
-            <RowDefinition Height="*"/>
-            <!-- 탭 -->
-            <RowDefinition Height="220"/>
-            <!-- 로그 -->
-        </Grid.RowDefinitions>
+	<Grid Margin="15">
+		<Grid.RowDefinitions>
+			<RowDefinition Height="Auto"/>
+			<!-- 헤더 -->
+			<RowDefinition Height="*"/>
+			<!-- 탭 -->
+			<RowDefinition Height="220"/>
+			<!-- 로그 -->
+		</Grid.RowDefinitions>
 
-        <!-- 헤더 -->
-        <Border Grid.Row="0" Padding="15" Background="#2A2F45" CornerRadius="8" Margin="0,0,0,10">
-            <TextBlock Text="ytDownloader(ytdlp)"
+		<!-- 헤더 -->
+		<Border Grid.Row="0" Padding="15" Background="#2A2F45" CornerRadius="8" Margin="0,0,0,10">
+			<TextBlock Text="ytDownloader(ytdlp)"
                        FontSize="22"
                        FontWeight="Bold"
                        Foreground="gray"/>
-        </Border>
+		</Border>
 
-        <!-- 메인 영역 (TabControl) -->
-        <TabControl Grid.Row="1" Background="#1E1E2E" BorderBrush="#2A2F45">
-            <!-- 기본 설정 -->
-            <TabItem Header="기본 설정">
-                <Grid Margin="10">
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="3*"/>
-                        <ColumnDefinition Width="2*"/>
-                    </Grid.ColumnDefinitions>
+		<!-- 메인 영역 (TabControl) -->
+		<TabControl Grid.Row="1" Background="#1E1E2E" BorderBrush="#2A2F45">
+			<!-- 기본 설정 -->
+			<TabItem Header="기본 설정">
+				<Grid Margin="10">
+					<Grid.ColumnDefinitions>
+						<ColumnDefinition Width="3*"/>
+						<ColumnDefinition Width="2*"/>
+					</Grid.ColumnDefinitions>
 
-                    <!-- 좌측: URL 입력 -->
-                    <StackPanel Grid.Column="0" Margin="0,0,10,0">
-                        <TextBlock Text="URL 입력" FontWeight="Bold" Margin="5" Foreground="#FFF9F6F6"/>
-                        <DockPanel>
-                            <Button Content="붙여넣기" Width="80" Click="btnPaste_Click"/>
-                            <Button Content="지우기" Width="80" Click="btnUrlsClear_Click"/>
-                        </DockPanel>
-                        <TextBox Name="txtUrls" AcceptsReturn="True" Height="120" VerticalScrollBarVisibility="Auto"/>
+					<!-- 좌측: URL 입력 -->
+					<StackPanel Grid.Column="0" Margin="0,0,10,0">
+						<TextBlock Text="URL 입력" FontWeight="Bold" Margin="5" Foreground="#FFF9F6F6"/>
+						<DockPanel>
+							<Button Content="붙여넣기" Width="80" Click="btnPaste_Click"/>
+							<Button Content="지우기" Width="80" Click="btnUrlsClear_Click"/>
+						</DockPanel>
+						<TextBox Name="txtUrls" AcceptsReturn="True" Height="120" VerticalScrollBarVisibility="Auto"/>
 
-                        <TextBlock Text="채널 / 재생목록 URL 입력" FontWeight="Bold" Margin="5,15,5,5" Foreground="#FFF7F3F3"/>
-                        <DockPanel>
-                            <Button Content="붙여넣기" Width="80" Click="btnChannelPaste_Click"/>
-                            <Button Content="지우기" Width="80" Click="btnChannelClear_Click"/>
-                        </DockPanel>
-                        <TextBox Name="txtChannelUrl" AcceptsReturn="True" Height="120" VerticalScrollBarVisibility="Auto"/>
-                    </StackPanel>
+						<TextBlock Text="채널 / 재생목록 URL 입력" FontWeight="Bold" Margin="5,15,5,5" Foreground="#FFF7F3F3"/>
+						<DockPanel>
+							<Button Content="붙여넣기" Width="80" Click="btnChannelPaste_Click"/>
+							<Button Content="지우기" Width="80" Click="btnChannelClear_Click"/>
+						</DockPanel>
+						<TextBox Name="txtChannelUrl" AcceptsReturn="True" Height="120" VerticalScrollBarVisibility="Auto"/>
+					</StackPanel>
 
-                    <!-- 우측: 저장 경로 & 옵션 + 실행 버튼 -->
-                    <StackPanel Grid.Column="1" Margin="10,0,0,0">
-                        <TextBlock Text="저장 경로" FontWeight="Bold" Margin="5" Foreground="#FFF9F9F9"/>
-                        <DockPanel>
-                            <TextBox Name="txtSavePath" IsReadOnly="True" Width="254"/>
-                            <Button Content="찾기" Width="70" Click="btnBrowse_Click"/>
-                            <Button Content="열기" Width="70" Click="btnOpenFolder_Click"/>
-                        </DockPanel>
+					<!-- 우측: 저장 경로 & 옵션 + 실행 버튼 -->
+					<StackPanel Grid.Column="1" Margin="10,0,0,0">
+						<TextBlock Text="저장 경로" FontWeight="Bold" Margin="5" Foreground="#FFF9F9F9"/>
+						<DockPanel>
+							<TextBox Name="txtSavePath" IsReadOnly="True" Width="254"/>
+							<Button Content="찾기" Width="70" Click="btnBrowse_Click"/>
+							<Button Content="열기" Width="70" Click="btnOpenFolder_Click"/>
+						</DockPanel>
 
-                        <TextBlock Text="포맷 선택" FontWeight="Bold" Margin="5,10,5,5" Foreground="#FFF9F9F9"/>
-                        <ComboBox Name="comboFormat" Foreground="#FF080707">
-                            <ComboBoxItem Content="영상 (최고 화질)"/>
-                            <ComboBoxItem Content="음악 (최고 음원)"/>
-                        </ComboBox>
+						<TextBlock Text="포맷 선택" FontWeight="Bold" Margin="5,10,5,5" Foreground="#FFF9F9F9"/>
+						<ComboBox Name="comboFormat" Foreground="#FF080707">
+							<ComboBoxItem Content="영상 (최고화질)" />
+							<ComboBoxItem Content="영상 (1080p)" />
+							<ComboBoxItem Content="영상 (720p)" />
+							<ComboBoxItem Content="영상 (480p)" />
+							<ComboBoxItem Content="음악 (MP3 V0 VBR)" />
+							<ComboBoxItem Content="음악 (Best 원본유지)" />
+							<ComboBoxItem Content="음악 (FLAC 무손실 변환)" />
+						</ComboBox>
 
-                        <CheckBox Name="ChkSingleVideo" Content="단일 다운로드(재생목록 무시)"/>
+						<CheckBox Name="ChkSingleVideo" Content="단일 다운로드(재생목록 무시)"/>
 
-                        <!-- 다운로드 버튼을 우측 패널 하단에 배치 -->
-                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Margin="5,20,0,0">
-                            <Button Content="다운로드" Width="140" Click="btnDownload_Click"/>
-                            <Button Content="채널 다운로드" Width="140" Click="btnChannelDownload_Click"/>
-                        </StackPanel>
-                    </StackPanel>
-                </Grid>
+						<!-- 다운로드 버튼을 우측 패널 하단에 배치 -->
+						<StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Margin="5,20,0,0">
+							<Button Content="다운로드" Width="140" Click="btnDownload_Click"/>
+							<Button Content="채널 다운로드" Width="140" Click="btnChannelDownload_Click"/>
+						</StackPanel>
+					</StackPanel>
+				</Grid>
 
-            </TabItem>
+			</TabItem>
 
-            <!-- 고급 설정 -->
-            <TabItem Header="고급 설정">
-                <StackPanel Margin="10">
-                    <CheckBox Name="ChkStructuredFolders" Content="업로더/재생목록 폴더 구조"/>
-                    <CheckBox Name="ChkWriteThumbnail" Content="썸네일 저장"/>
+			<!-- 고급 설정 -->
+			<TabItem Header="고급 설정">
+				<StackPanel Margin="10">
+					<CheckBox Name="ChkStructuredFolders" Content="업로더/재생목록 폴더 구조"/>
+					<CheckBox Name="ChkWriteThumbnail" Content="썸네일 저장"/>
 
-                    <TextBlock Text="자막 설정" FontWeight="Bold" Margin="5,10,5,5" Foreground="#FFF9F9F9"/>
-                    <CheckBox Name="SubtitleCheckBox" Content="자막 다운로드"/>
-                    <StackPanel Orientation="Horizontal">
-                        <ComboBox Name="SubtitleLangComboBox" Width="120" Foreground="#FF0A0A0A"/>
-                        <ComboBox Name="SubtitleFormatComboBox" Width="120" Foreground="#FF0E0E0E"/>
-                        <Button Content="불러오기" Width="90" Click="BtnLoadSubtitleLang_Click"/>
-                    </StackPanel>
+					<TextBlock Text="자막 설정" FontWeight="Bold" Margin="5,10,5,5" Foreground="#FFF9F9F9"/>
+					<CheckBox Name="SubtitleCheckBox" Content="자막 다운로드"/>
+					<StackPanel Orientation="Horizontal">
+						<ComboBox Name="SubtitleLangComboBox" Width="120" Foreground="#FF0A0A0A"/>
+						<ComboBox Name="SubtitleFormatComboBox" Width="120" Foreground="#FF0E0E0E"/>
+						<Button Content="불러오기" Width="90" Click="BtnLoadSubtitleLang_Click"/>
+					</StackPanel>
 
-                    <Grid Margin="5,10,5,5">
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="Auto"/>
-                            <ColumnDefinition Width="100"/>
-                        </Grid.ColumnDefinitions>
+					<Grid Margin="5,10,5,5">
+						<Grid.ColumnDefinitions>
+							<ColumnDefinition Width="Auto"/>
+							<ColumnDefinition Width="100"/>
+						</Grid.ColumnDefinitions>
 
-                        <TextBlock Text="최대 다운로드 개수" 
-                                FontWeight="Bold" 
+						<TextBlock Text="최대 다운로드 개수"
+                                FontWeight="Bold"
                                 VerticalAlignment="Center"
                                 Grid.Column="0" Margin="0,0,10,0" Foreground="#FFFBF3F3"/>
-                        <TextBox Name="txtMaxDownloads" 
-             Width="80" 
+						<TextBox Name="txtMaxDownloads"
+             Width="80"
              Grid.Column="1"/>
-                    </Grid>
-                </StackPanel>
-            </TabItem>
-        </TabControl>
+					</Grid>
+				</StackPanel>
+			</TabItem>
+		</TabControl>
 
-        <!-- 로그 & 진행 상태 -->
-        <Border Grid.Row="2" Background="#2A2F45" CornerRadius="8" Padding="10">
-            <Grid>
-                <Grid.RowDefinitions>
-                    <RowDefinition Height="*"/>
-                    <RowDefinition Height="Auto"/>
-                </Grid.RowDefinitions>
+		<!-- 로그 & 진행 상태 -->
+		<Border Grid.Row="2" Background="#2A2F45" CornerRadius="8" Padding="10">
+			<Grid>
+				<Grid.RowDefinitions>
+					<RowDefinition Height="*"/>
+					<RowDefinition Height="Auto"/>
+				</Grid.RowDefinitions>
 
-                <TextBox Name="txtOutput" Grid.Row="0"
+				<TextBox Name="txtOutput" Grid.Row="0"
                          IsReadOnly="True"
                          AcceptsReturn="True"
                          VerticalScrollBarVisibility="Auto"
@@ -184,14 +189,14 @@
                          BorderThickness="0"
                          Foreground="LightGray"/>
 
-                <StackPanel Grid.Row="1" Orientation="Horizontal" VerticalAlignment="Center" Margin="0,10,0,0">
-                    <ProgressBar Name="progressBar" Width="827" Height="20" Margin="5"/>
-                    <TextBlock Text="속도:" Margin="15,0,5,0" VerticalAlignment="Center"/>
-                    <TextBlock Name="txtSpeed" Text="-" Width="100" VerticalAlignment="Center"/>
-                    <TextBlock Text="ETA:" Margin="15,0,5,0" VerticalAlignment="Center"/>
-                    <TextBlock Name="txtEta" Text="-" Width="100" VerticalAlignment="Center"/>
-                </StackPanel>
-            </Grid>
-        </Border>
-    </Grid>
+				<StackPanel Grid.Row="1" Orientation="Horizontal" VerticalAlignment="Center" Margin="0,10,0,0">
+					<ProgressBar Name="progressBar" Width="827" Height="20" Margin="5"/>
+					<TextBlock Text="속도:" Margin="15,0,5,0" VerticalAlignment="Center"/>
+					<TextBlock Name="txtSpeed" Text="-" Width="100" VerticalAlignment="Center"/>
+					<TextBlock Text="ETA:" Margin="15,0,5,0" VerticalAlignment="Center"/>
+					<TextBlock Name="txtEta" Text="-" Width="100" VerticalAlignment="Center"/>
+				</StackPanel>
+			</Grid>
+		</Border>
+	</Grid>
 </Window>
