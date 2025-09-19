@@ -74,8 +74,14 @@ jobs:
 
           echo "version=$version" >> $GITHUB_OUTPUT
 
-      - name: Build (ytDownloader WPF)
-        run: dotnet publish ytDownloader/ytDownloader.csproj -c Release -r win-x64 --self-contained false -o publish/ytDownloader -p:Version=${{ steps.vars.outputs.version }} -p:AssemblyVersion=${{ steps.vars.outputs.version }}.0 -p:FileVersion=${{ steps.vars.outputs.version }}.0
+           - name: Build (ytDownloader)
+        run: |
+          baseVersion=$(echo "${{ steps.vars.outputs.version }}" | cut -d'-' -f1)
+          echo "BaseVersion=$baseVersion"
+          dotnet publish ytDownloader/ytDownloader.csproj -c Release -r win-x64 --self-contained false -o publish/ytDownloader \
+            -p:Version=${{ steps.vars.outputs.version }} \
+            -p:AssemblyVersion=$baseVersion.0 \
+            -p:FileVersion=$baseVersion.0
 
       - name: Build (Updater)
         run: dotnet publish Updater/Updater.csproj -c Release -r win-x64 --self-contained false -o publish/Updater
