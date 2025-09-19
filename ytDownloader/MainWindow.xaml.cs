@@ -194,88 +194,84 @@ namespace ytDownloader
         }
 
         // 속도 자동 변환 (B/s, KB/s, MB/s, GB/s)
-        string FormatSpeed(double bytesPerSec)
+        private async Task RunUpdateAsync(string zipUrl)
         {
-            if (bytesPerSec < 1024) return $"{bytesPerSec:F0} B/s";
-            double kb = bytesPerSec / 1024d;
-            if (kb < 1024) return $"{kb:F1} KB/s";
-            double mb = kb / 1024d;
-            if (mb < 1024) return $"{mb:F1} MB/s";
-            double gb = mb / 1024d;
-            return $"{gb:F2} GB/s";
-        }
+            string logFile = Path.Combine(Path.GetTempPath(), "ytDownloader_update_launcher.log");
+            void Log(string m) => File.AppendAllText(logFile, $"[{DateTime.Now:HH:mm:ss}] {m}\r\n");
 
-        private async Task RunUpdateAsync(string assetUrl)
-        {
             var updateWindow = new UpdateWindow();
             updateWindow.Show();
 
             await Task.Run(async () =>
             {
-                string logPath = Path.Combine(Path.GetTempPath(), "ytDownloader_update_launcher.log");
                 try
                 {
-                    using var httpClient = new HttpClient();
-                    httpClient.DefaultRequestHeaders.UserAgent.ParseAdd("ytDownloader-Updater");
+                    using var http = new HttpClient();
+                    http.DefaultRequestHeaders.UserAgent.ParseAdd("ytDownloader-Updater");
 
                     string tempZip = Path.Combine(Path.GetTempPath(), "ytDownloader_update.zip");
+                    Log($"zipUrl     = {zipUrl}");
+                    Log($"tempZip    = {tempZip}");
 
-                    // 📌 ZIP 다운로드 (스트리밍)
-                    using (var response = await httpClient.GetAsync(assetUrl, HttpCompletionOption.ResponseHeadersRead))
+                    // ── 1) ZIP 스트리밍 다운로드 (진행바/속도/ETA 갱신)
+                    using var resp = await http.GetAsync(zipUrl, HttpCompletionOption.ResponseHeadersRead);
+                    resp.EnsureSuccessStatusCode();
+
+                    var total = resp.Content.Headers.ContentLength ?? -1L;
+                    var buffer = new byte[81920];
+                    long readTotal = 0;
+                    var sw = Stopwatch.StartNew();
+
+                    await using var src = await resp.Content.ReadAsStreamAsync();
+                    await using var dst = new FileStream(tempZip, FileMode.Create, FileAccess.Write, FileShare.None);
+
+                    int read;
+                    while ((read = await src.ReadAsync(buffer, 0, buffer.Length)) > 0)
                     {
-                        response.EnsureSuccessStatusCode();
+                        await dst.WriteAsync(buffer, 0, read);
+                        readTotal += read;
 
-                        var contentLength = response.Content.Headers.ContentLength ?? -1L;
-                        var totalRead = 0L;
-                        var buffer = new byte[81920];
-                        var stopwatch = Stopwatch.StartNew();
-
-                        await using var stream = await response.Content.ReadAsStreamAsync();
-                        await using var fs = new FileStream(tempZip, FileMode.Create, FileAccess.Write, FileShare.None);
-
-                        int read;
-                        while ((read = await stream.ReadAsync(buffer, 0, buffer.Length)) > 0)
+                        if (total > 0)
                         {
-                            await fs.WriteAsync(buffer, 0, read);
-                            totalRead += read;
+                            double pct = readTotal * 100.0 / total;
+                            double spd = readTotal / Math.Max(0.001, sw.Elapsed.TotalSeconds); // B/s
+                            double eta = (total - readTotal) / Math.Max(1, spd);
 
-                            if (contentLength > 0)
+                            Dispatcher.Invoke(() =>
                             {
-                                double progress = (double)totalRead / contentLength * 100.0;
-                                double speedBytes = totalRead / stopwatch.Elapsed.TotalSeconds;
-                                double etaSec = (contentLength - totalRead) / (speedBytes > 0 ? speedBytes : 1);
-
-                                Dispatcher.Invoke(() =>
-                                {
-                                    updateWindow.UpdateProgress(
-                                        progress,
-                                        FormatSpeed(speedBytes),
-                                        $"{FormatEta(etaSec)}"
-                                    );
-                                });
-                            }
+                                updateWindow.UpdateProgress(pct, FormatSpeed(spd),
+                                    $"{TimeSpan.FromSeconds(eta):mm\\:ss}");
+                            });
                         }
                     }
 
-                    // 📌 Updater.exe 실행
-                    string updaterPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Updater.exe");
-                    string installDir = AppDomain.CurrentDomain.BaseDirectory;
+                    // 2) 다운로드 완료 UI
+                    Dispatcher.Invoke(() =>
+                    {
+                        updateWindow.UpdateProgress(100, "-", "-");
+                        updateWindow.SetStatus("다운로드 완료. 업데이트 적용 중...");
+                    });
+
+                    // ── 3) Updater.exe 실행(관리자) → 파일 교체 & 완료 알림은 Updater에서
+                    string baseDir = AppDomain.CurrentDomain.BaseDirectory;
+                    string updaterExe = Path.Combine(baseDir, "Updater.exe");
                     string targetExe = Process.GetCurrentProcess().MainModule!.FileName;
 
-                    File.AppendAllText(logPath,
-                        $"[RunUpdateAsync]\r\nzipUrl = {assetUrl}\r\ntempZip = {tempZip}\r\nupdaterPath = {updaterPath}\r\ninstallDir = {installDir}\r\ntargetExe = {targetExe}\r\n");
+                    Log($"updaterExe = {updaterExe}");
+                    Log($"installDir = {baseDir}");
+                    Log($"targetExe  = {targetExe}");
 
                     var psi = new ProcessStartInfo
                     {
-                        FileName = updaterPath,
-                        Arguments = $"\"{tempZip}\" \"{installDir}\" \"{targetExe}\"",
+                        FileName = updaterExe,
+                        Arguments = $"\"{tempZip}\" \"{baseDir}\" \"{targetExe}\"",
                         UseShellExecute = true,
-                        Verb = "runas", // 관리자 권한
-                        WorkingDirectory = installDir
+                        Verb = "runas",                 // UAC
+                        WorkingDirectory = baseDir
                     };
-
                     Process.Start(psi);
 
+                    // 4) 메인앱 종료 (Updater가 교체 후 재실행)
                     Dispatcher.Invoke(() =>
                     {
                         updateWindow.Close();
@@ -284,19 +280,26 @@ namespace ytDownloader
                 }
                 catch (Exception ex)
                 {
-                    File.AppendAllText(logPath, $"RunUpdateAsync 실패: {ex}\r\n");
+                    Log("RunUpdateAsync error: " + ex);
                     Dispatcher.Invoke(() =>
                     {
                         updateWindow.Close();
-                        MessageBox.Show(
-                            "업데이트 실패: " + ex.Message,
-                            "업데이트 오류",
-                            MessageBoxButton.OK,
-                            MessageBoxImage.Error);
+                        MessageBox.Show("업데이트 실패: " + ex.Message,
+                            "업데이트 오류", MessageBoxButton.OK, MessageBoxImage.Error);
                     });
                 }
             });
+
+            // 보조 포맷 함수들
+            string FormatSpeed(double bps)
+            {
+                if (bps <= 0) return "-";
+                if (bps < 1024) return $"{bps:F0} B/s";
+                if (bps < 1024 * 1024) return $"{bps / 1024:F1} KB/s";
+                return $"{bps / (1024 * 1024):F1} MB/s";
+            }
         }
+
 
 
 
