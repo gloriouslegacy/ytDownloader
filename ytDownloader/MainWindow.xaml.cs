@@ -273,18 +273,26 @@ namespace ytDownloader
                 }
                 AppendOutput($"[INFO] ZIP 다운로드 완료: {tempZip}");
 
-                // Updater.exe 경로
-                string updaterPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Updater.exe");
+                // Updater.exe 경로 - updater 서브폴더에서 먼저 찾기
+                string baseDir = AppDomain.CurrentDomain.BaseDirectory;
+                string updaterPath = Path.Combine(baseDir, "updater", "Updater.exe");
+
+                // 만약 updater 폴더가 없다면 기본 경로에서 찾기 (하위 호환성)
+                if (!File.Exists(updaterPath))
+                {
+                    updaterPath = Path.Combine(baseDir, "Updater.exe");
+                }
 
                 // 현재 실행 중인 exe 경로 - 정규화
                 string targetExe = Process.GetCurrentProcess().MainModule!.FileName;
                 targetExe = Path.GetFullPath(targetExe); // 정규화
 
                 // 설치 경로 - 정규화하고 마지막 구분자 제거
-                string installDir = Path.GetDirectoryName(targetExe) ?? AppDomain.CurrentDomain.BaseDirectory;
+                string installDir = Path.GetDirectoryName(targetExe) ?? baseDir;
                 installDir = Path.GetFullPath(installDir).TrimEnd('\\', '/');
 
                 AppendOutput("[INFO] Updater 실행 준비");
+                AppendOutput($"[INFO] baseDir     = '{baseDir}'");
                 AppendOutput($"[INFO] updaterPath = '{updaterPath}'");
                 AppendOutput($"[INFO] installDir  = '{installDir}'");
                 AppendOutput($"[INFO] targetExe   = '{targetExe}'");
@@ -292,11 +300,16 @@ namespace ytDownloader
                 // Updater.exe 존재 확인
                 if (!File.Exists(updaterPath))
                 {
-                    AppendOutput($"[ERROR] Updater.exe를 찾을 수 없습니다: {updaterPath}");
-                    MessageBox.Show($"Updater.exe를 찾을 수 없습니다.\n경로: {updaterPath}",
+                    AppendOutput($"[ERROR] Updater.exe를 찾을 수 없습니다:");
+                    AppendOutput($"[ERROR]   시도한 경로 1: {Path.Combine(baseDir, "updater", "Updater.exe")}");
+                    AppendOutput($"[ERROR]   시도한 경로 2: {Path.Combine(baseDir, "Updater.exe")}");
+                    MessageBox.Show($"Updater.exe를 찾을 수 없습니다.\n\n확인된 경로:\n1. {Path.Combine(baseDir, "updater", "Updater.exe")}\n2. {Path.Combine(baseDir, "Updater.exe")}",
                         "업데이트 오류", MessageBoxButton.OK, MessageBoxImage.Error);
                     return;
                 }
+
+                // updater 폴더에 있는 경우 작업 디렉터리도 설정
+                string workingDir = Path.GetDirectoryName(updaterPath) ?? baseDir;
 
                 // 경로에 공백이 포함된 경우를 대비하여 각각 개별적으로 따옴표 처리
                 string arguments = $"\"{tempZip}\" \"{installDir}\" \"{targetExe}\"";
@@ -308,12 +321,14 @@ namespace ytDownloader
                     Arguments = arguments,
                     UseShellExecute = true,
                     Verb = "runas", // 관리자 권한 요청
-                    WindowStyle = ProcessWindowStyle.Normal
+                    WindowStyle = ProcessWindowStyle.Normal,
+                    WorkingDirectory = workingDir // Updater 실행 시 적절한 작업 디렉터리 설정
                 };
 
                 AppendOutput($"[INFO] 최종 명령줄: {psi.FileName} {psi.Arguments}");
+                AppendOutput($"[INFO] 작업 디렉터리: {psi.WorkingDirectory}");
 
-                // 명령줄이 올바른지 검증
+                // 명령줄이 올바른지 검증 (디버그용)
                 string[] testArgs = arguments.Split(new[] { "\" \"" }, StringSplitOptions.None);
                 AppendOutput($"[DEBUG] 파싱될 인자 개수: {testArgs.Length}");
                 for (int i = 0; i < testArgs.Length; i++)
