@@ -20,12 +20,10 @@ namespace Updater
             string debugLog = Path.Combine(Path.GetTempPath(), "updater_debug.log");
             try
             {
-                // UTF-8로 로그 파일 작성
                 File.AppendAllText(debugLog, $"[INFO] [{DateTime.Now}] 시작됨\n", Encoding.UTF8);
                 File.AppendAllText(debugLog, $"[INFO] 전체 인자 문자열: {string.Join(" ", e.Args)}\n", Encoding.UTF8);
                 File.AppendAllText(debugLog, $"[INFO] 인자 개수: {e.Args.Length}\n", Encoding.UTF8);
 
-                // 각 인자를 개별적으로 로깅
                 for (int i = 0; i < e.Args.Length; i++)
                 {
                     File.AppendAllText(debugLog, $"[INFO] 인자[{i}]: '{e.Args[i]}'\n", Encoding.UTF8);
@@ -47,7 +45,7 @@ namespace Updater
                 File.AppendAllText(debugLog, "[ERROR] 필요한 인자: <zipPath> <installDir> <targetExe>\n", Encoding.UTF8);
 
                 window.UpdateStatus(errorMsg);
-                Task.Delay(5000).ContinueWith(_ => Shutdown()); // 더 긴 시간으로 변경하여 오류 메시지를 볼 수 있도록
+                Task.Delay(5000).ContinueWith(_ => Shutdown());
                 return;
             }
 
@@ -55,7 +53,6 @@ namespace Updater
             string installDir = e.Args[1];
             string targetExe = e.Args[2];
 
-            // 인자 유효성 검사 및 로깅
             File.AppendAllText(debugLog, $"[INFO] 파싱된 인자들:\n", Encoding.UTF8);
             File.AppendAllText(debugLog, $"[INFO]   zipPath    = '{zipPath}'\n", Encoding.UTF8);
             File.AppendAllText(debugLog, $"[INFO]   installDir = '{installDir}'\n", Encoding.UTF8);
@@ -63,17 +60,79 @@ namespace Updater
 
             Task.Run(() => RunUpdaterAsync(zipPath, installDir, targetExe, window));
         }
+
+        private async Task<bool> TryDeleteFileWithRetry(string filePath, int maxRetries = 5)
+        {
+            for (int i = 0; i < maxRetries; i++)
+            {
+                try
+                {
+                    if (File.Exists(filePath))
+                    {
+                        File.Delete(filePath);
+                        File.AppendAllText(logFile, $"[INFO] 파일 삭제 성공 (시도 {i + 1}/{maxRetries}): {filePath}\n", Encoding.UTF8);
+                    }
+                    return true;
+                }
+                catch (Exception ex)
+                {
+                    File.AppendAllText(logFile, $"[WARNING] 파일 삭제 실패 (시도 {i + 1}/{maxRetries}): {ex.Message}\n", Encoding.UTF8);
+
+                    if (i < maxRetries - 1)
+                    {
+                        await Task.Delay(1000 * (i + 1)); // 점진적 지연: 1초, 2초, 3초...
+
+                        // 프로세스 종료 대기
+                        await WaitForProcessesToClose(filePath);
+                    }
+                }
+            }
+            return false;
+        }
+
+        private async Task WaitForProcessesToClose(string filePath)
+        {
+            try
+            {
+                string fileName = Path.GetFileNameWithoutExtension(filePath);
+                var processes = Process.GetProcessesByName(fileName);
+
+                foreach (var proc in processes)
+                {
+                    try
+                    {
+                        File.AppendAllText(logFile, $"[INFO] 프로세스 대기 중: {proc.ProcessName} (PID: {proc.Id})\n", Encoding.UTF8);
+
+                        if (!proc.WaitForExit(2000)) // 2초 대기
+                        {
+                            File.AppendAllText(logFile, $"[WARNING] 프로세스가 종료되지 않음: {proc.ProcessName}\n", Encoding.UTF8);
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        File.AppendAllText(logFile, $"[WARNING] 프로세스 대기 오류: {ex.Message}\n", Encoding.UTF8);
+                    }
+                    finally
+                    {
+                        proc.Dispose();
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                File.AppendAllText(logFile, $"[WARNING] 프로세스 확인 오류: {ex.Message}\n", Encoding.UTF8);
+            }
+        }
+
         private async Task RunUpdaterAsync(string zipPath, string installDir, string targetExe, UpdateWindow window)
         {
             try
             {
-                // UTF-8로 로그 파일 작성
                 File.AppendAllText(logFile, $"[INFO] Updater 시작: {DateTime.Now}\n", Encoding.UTF8);
                 File.AppendAllText(logFile, $"[INFO] zipPath    = {zipPath}\n", Encoding.UTF8);
                 File.AppendAllText(logFile, $"[INFO] installDir = {installDir}\n", Encoding.UTF8);
                 File.AppendAllText(logFile, $"[INFO] targetExe  = {targetExe}\n", Encoding.UTF8);
 
-                // 파일 존재 확인
                 if (!File.Exists(zipPath))
                 {
                     string errorMsg = "업데이트 ZIP 파일이 존재하지 않습니다.";
@@ -84,7 +143,6 @@ namespace Updater
 
                 window.Dispatcher.Invoke(() => window.UpdateStatus("업데이트 파일 압축 해제 중..."));
 
-                // ZIP 파일 압축 해제
                 using (var archive = ZipFile.OpenRead(zipPath))
                 {
                     if (archive.Entries.Count == 0)
@@ -132,17 +190,14 @@ namespace Updater
                                 File.AppendAllText(logFile, $"[INFO] 상위 폴더 생성: {directoryPath}\n", Encoding.UTF8);
                             }
 
-                            // 기존 파일이 사용 중일 수 있으므로 잠시 대기
+                            // 기존 파일 삭제 (재시도 로직 적용)
                             if (File.Exists(destinationPath))
                             {
-                                await Task.Delay(100);
-                                try
+                                bool deleted = await TryDeleteFileWithRetry(destinationPath);
+                                if (!deleted)
                                 {
-                                    File.Delete(destinationPath);
-                                }
-                                catch (Exception deleteEx)
-                                {
-                                    File.AppendAllText(logFile, $"[WARNING] 기존 파일 삭제 실패: {deleteEx.Message}\n", Encoding.UTF8);
+                                    File.AppendAllText(logFile, $"[ERROR] 파일 삭제 최종 실패, 건너뜀: {destinationPath}\n", Encoding.UTF8);
+                                    continue;
                                 }
                             }
 
@@ -190,8 +245,6 @@ namespace Updater
                 string errorMsg = $"오류 발생: {ex.Message}";
                 window.Dispatcher.Invoke(() => window.UpdateStatus(errorMsg));
                 File.AppendAllText(logFile, $"[ERROR] 예외: {ex}\n", Encoding.UTF8);
-
-                // 상세한 오류 정보도 로그에 기록
                 File.AppendAllText(logFile, $"[ERROR] StackTrace: {ex.StackTrace}\n", Encoding.UTF8);
             }
             finally

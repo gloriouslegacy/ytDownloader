@@ -91,7 +91,7 @@ namespace ytDownloader
                 }
 
                 var json = await response.Content.ReadAsStringAsync();
-                var releases = JArray.Parse(json);     
+                var releases = JArray.Parse(json);
 
                 if (releases == null || releases.Count == 0)
                 {
@@ -112,6 +112,9 @@ namespace ytDownloader
                     ? latestTag.Substring(1)
                     : latestTag;
 
+                AppendOutput($"[INFO] 현재 버전: {currentVersion}");
+                AppendOutput($"[INFO] 최신 버전: {latestTagClean}");
+
                 if (latestTagClean != currentVersion)
                 {
                     Dispatcher.Invoke(() =>
@@ -120,20 +123,36 @@ namespace ytDownloader
                         if (MessageBox.Show($"새 {preMsg} {latestTag} 버전이 있습니다. 업데이트 하시겠습니까?",
                             "업데이트 확인", MessageBoxButton.YesNo, MessageBoxImage.Question) == MessageBoxResult.Yes)
                         {
+                            // 메인 ZIP 파일을 명확히 선택 (yt_downloader_로 시작하는 파일)
                             var zipAsset = latest["assets"]?
-                                .FirstOrDefault(a => a["name"]?.ToString().EndsWith(".zip", StringComparison.OrdinalIgnoreCase) == true);
+                                .FirstOrDefault(a =>
+                                {
+                                    string assetName = a["name"]?.ToString() ?? "";
+                                    return assetName.StartsWith("yt_downloader_", StringComparison.OrdinalIgnoreCase) &&
+                                           assetName.EndsWith(".zip", StringComparison.OrdinalIgnoreCase);
+                                });
 
                             if (zipAsset != null)
                             {
                                 string assetUrl = zipAsset["browser_download_url"]?.ToString();
+                                string assetName = zipAsset["name"]?.ToString() ?? "";
+
+                                AppendOutput($"[INFO] 선택된 에셋: {assetName}");
+                                AppendOutput($"[INFO] 다운로드 URL: {assetUrl}");
+
                                 if (!string.IsNullOrEmpty(assetUrl))
                                 {
-                                    _ = RunUpdateAsync(assetUrl);    
+                                    _ = RunUpdateAsync(assetUrl);
                                 }
                             }
                             else
                             {
-                                AppendOutput("❌ ZIP 에셋을 찾을 수 없습니다.");
+                                AppendOutput("❌ 메인 ZIP 에셋을 찾을 수 없습니다.");
+                                AppendOutput("[INFO] 사용 가능한 에셋들:");
+                                foreach (var asset in latest["assets"] ?? new JArray())
+                                {
+                                    AppendOutput($"[INFO]   - {asset["name"]}");
+                                }
                             }
                         }
                     });
@@ -148,7 +167,6 @@ namespace ytDownloader
                 AppendOutput($"❌ 업데이트 확인 실패: {ex.Message}");
             }
         }
-
 
 
         //string FormatEta(double seconds)
@@ -180,7 +198,7 @@ namespace ytDownloader
         //        if (bps < 1024 * 1024) return $"{bps / 1024:F1} KB/s";
         //        return $"{bps / (1024 * 1024):F1} MB/s";
         //    }
-        
+
         private async Task RunUpdateAsync(string zipUrl)
         {
             try
