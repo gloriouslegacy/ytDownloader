@@ -240,7 +240,8 @@ namespace ytDownloader
                         FileName = updaterPath,
                         Arguments = $"\"{tempZip}\" \"{baseDir}\" \"{targetExe}\"",
                         WorkingDirectory = baseDir,
-                        UseShellExecute = true,
+                        UseShellExecute = false, // 콘솔/로그
+                        CreateNoWindow = false, // 콘솔 창
                         Verb = "runas" //관리자 권한
                     };
 
