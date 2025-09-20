@@ -20,18 +20,18 @@ namespace Updater
             string debugLog = Path.Combine(Path.GetTempPath(), "updater_debug.log");
             try
             {
-                File.AppendAllText(debugLog, $"[INFO] [{DateTime.Now}] ½ÃÀÛµÊ\n", Encoding.UTF8);
-                File.AppendAllText(debugLog, $"[INFO] ÀüÃ¼ ÀÎÀÚ ¹®ÀÚ¿­: {string.Join(" ", e.Args)}\n", Encoding.UTF8);
-                File.AppendAllText(debugLog, $"[INFO] ÀÎÀÚ °³¼ö: {e.Args.Length}\n", Encoding.UTF8);
+                File.AppendAllText(debugLog, $"[INFO] [{DateTime.Now}] ì‹œì‘ë¨\n", Encoding.UTF8);
+                File.AppendAllText(debugLog, $"[INFO] ì „ì²´ ì¸ì ë¬¸ìì—´: {string.Join(" ", e.Args)}\n", Encoding.UTF8);
+                File.AppendAllText(debugLog, $"[INFO] ì¸ì ê°œìˆ˜: {e.Args.Length}\n", Encoding.UTF8);
 
                 for (int i = 0; i < e.Args.Length; i++)
                 {
-                    File.AppendAllText(debugLog, $"[INFO] ÀÎÀÚ[{i}]: '{e.Args[i]}'\n", Encoding.UTF8);
+                    File.AppendAllText(debugLog, $"[INFO] ì¸ì[{i}]: '{e.Args[i]}'\n", Encoding.UTF8);
                 }
             }
             catch (Exception ex)
             {
-                File.AppendAllText(debugLog, $"[ERROR] ·Î±× ÀÛ¼º ½ÇÆĞ: {ex.Message}\n", Encoding.UTF8);
+                File.AppendAllText(debugLog, $"[ERROR] ë¡œê·¸ ì‘ì„± ì‹¤íŒ¨: {ex.Message}\n", Encoding.UTF8);
             }
 
             var window = new UpdateWindow();
@@ -40,9 +40,9 @@ namespace Updater
 
             if (e.Args.Length < 3)
             {
-                string errorMsg = $"Àß¸øµÈ ÀÎÀÚ °³¼öÀÔ´Ï´Ù. ¿¹»ó: 3°³, ½ÇÁ¦: {e.Args.Length}°³";
+                string errorMsg = $"ì˜ëª»ëœ ì¸ì ê°œìˆ˜ì…ë‹ˆë‹¤. ì˜ˆìƒ: 3ê°œ, ì‹¤ì œ: {e.Args.Length}ê°œ";
                 File.AppendAllText(debugLog, $"[ERROR] {errorMsg}\n", Encoding.UTF8);
-                File.AppendAllText(debugLog, "[ERROR] ÇÊ¿äÇÑ ÀÎÀÚ: <zipPath> <installDir> <targetExe>\n", Encoding.UTF8);
+                File.AppendAllText(debugLog, "[ERROR] í•„ìš”í•œ ì¸ì: <zipPath> <installDir> <targetExe>\n", Encoding.UTF8);
 
                 window.UpdateStatus(errorMsg);
                 Task.Delay(5000).ContinueWith(_ => Shutdown());
@@ -53,7 +53,7 @@ namespace Updater
             string installDir = e.Args[1];
             string targetExe = e.Args[2];
 
-            File.AppendAllText(debugLog, $"[INFO] ÆÄ½ÌµÈ ÀÎÀÚµé:\n", Encoding.UTF8);
+            File.AppendAllText(debugLog, $"[INFO] íŒŒì‹±ëœ ì¸ìë“¤:\n", Encoding.UTF8);
             File.AppendAllText(debugLog, $"[INFO]   zipPath    = '{zipPath}'\n", Encoding.UTF8);
             File.AppendAllText(debugLog, $"[INFO]   installDir = '{installDir}'\n", Encoding.UTF8);
             File.AppendAllText(debugLog, $"[INFO]   targetExe  = '{targetExe}'\n", Encoding.UTF8);
@@ -70,19 +70,19 @@ namespace Updater
                     if (File.Exists(filePath))
                     {
                         File.Delete(filePath);
-                        File.AppendAllText(logFile, $"[INFO] ÆÄÀÏ »èÁ¦ ¼º°ø (½Ãµµ {i + 1}/{maxRetries}): {filePath}\n", Encoding.UTF8);
+                        File.AppendAllText(logFile, $"[INFO] íŒŒì¼ ì‚­ì œ ì„±ê³µ (ì‹œë„ {i + 1}/{maxRetries}): {filePath}\n", Encoding.UTF8);
                     }
                     return true;
                 }
                 catch (Exception ex)
                 {
-                    File.AppendAllText(logFile, $"[WARNING] ÆÄÀÏ »èÁ¦ ½ÇÆĞ (½Ãµµ {i + 1}/{maxRetries}): {ex.Message}\n", Encoding.UTF8);
+                    File.AppendAllText(logFile, $"[WARNING] íŒŒì¼ ì‚­ì œ ì‹¤íŒ¨ (ì‹œë„ {i + 1}/{maxRetries}): {ex.Message}\n", Encoding.UTF8);
 
                     if (i < maxRetries - 1)
                     {
-                        await Task.Delay(1000 * (i + 1)); // Á¡ÁøÀû Áö¿¬: 1ÃÊ, 2ÃÊ, 3ÃÊ...
+                        await Task.Delay(1000 * (i + 1)); // ì ì§„ì  ì§€ì—°: 1ì´ˆ, 2ì´ˆ, 3ì´ˆ...
 
-                        // ÇÁ·Î¼¼½º Á¾·á ´ë±â
+                        // í”„ë¡œì„¸ìŠ¤ ì¢…ë£Œ ëŒ€ê¸°
                         await WaitForProcessesToClose(filePath);
                     }
                 }
@@ -101,16 +101,16 @@ namespace Updater
                 {
                     try
                     {
-                        File.AppendAllText(logFile, $"[INFO] ÇÁ·Î¼¼½º ´ë±â Áß: {proc.ProcessName} (PID: {proc.Id})\n", Encoding.UTF8);
+                        File.AppendAllText(logFile, $"[INFO] í”„ë¡œì„¸ìŠ¤ ëŒ€ê¸° ì¤‘: {proc.ProcessName} (PID: {proc.Id})\n", Encoding.UTF8);
 
-                        if (!proc.WaitForExit(2000)) // 2ÃÊ ´ë±â
+                        if (!proc.WaitForExit(2000)) // 2ì´ˆ ëŒ€ê¸°
                         {
-                            File.AppendAllText(logFile, $"[WARNING] ÇÁ·Î¼¼½º°¡ Á¾·áµÇÁö ¾ÊÀ½: {proc.ProcessName}\n", Encoding.UTF8);
+                            File.AppendAllText(logFile, $"[WARNING] í”„ë¡œì„¸ìŠ¤ê°€ ì¢…ë£Œë˜ì§€ ì•ŠìŒ: {proc.ProcessName}\n", Encoding.UTF8);
                         }
                     }
                     catch (Exception ex)
                     {
-                        File.AppendAllText(logFile, $"[WARNING] ÇÁ·Î¼¼½º ´ë±â ¿À·ù: {ex.Message}\n", Encoding.UTF8);
+                        File.AppendAllText(logFile, $"[WARNING] í”„ë¡œì„¸ìŠ¤ ëŒ€ê¸° ì˜¤ë¥˜: {ex.Message}\n", Encoding.UTF8);
                     }
                     finally
                     {
@@ -120,7 +120,7 @@ namespace Updater
             }
             catch (Exception ex)
             {
-                File.AppendAllText(logFile, $"[WARNING] ÇÁ·Î¼¼½º È®ÀÎ ¿À·ù: {ex.Message}\n", Encoding.UTF8);
+                File.AppendAllText(logFile, $"[WARNING] í”„ë¡œì„¸ìŠ¤ í™•ì¸ ì˜¤ë¥˜: {ex.Message}\n", Encoding.UTF8);
             }
         }
 
@@ -128,32 +128,32 @@ namespace Updater
         {
             try
             {
-                File.AppendAllText(logFile, $"[INFO] Updater ½ÃÀÛ: {DateTime.Now}\n", Encoding.UTF8);
+                File.AppendAllText(logFile, $"[INFO] Updater ì‹œì‘: {DateTime.Now}\n", Encoding.UTF8);
                 File.AppendAllText(logFile, $"[INFO] zipPath    = {zipPath}\n", Encoding.UTF8);
                 File.AppendAllText(logFile, $"[INFO] installDir = {installDir}\n", Encoding.UTF8);
                 File.AppendAllText(logFile, $"[INFO] targetExe  = {targetExe}\n", Encoding.UTF8);
 
                 if (!File.Exists(zipPath))
                 {
-                    string errorMsg = "¾÷µ¥ÀÌÆ® ZIP ÆÄÀÏÀÌ Á¸ÀçÇÏÁö ¾Ê½À´Ï´Ù.";
+                    string errorMsg = "ì—…ë°ì´íŠ¸ ZIP íŒŒì¼ì´ ì¡´ì¬í•˜ì§€ ì•ŠìŠµë‹ˆë‹¤.";
                     window.Dispatcher.Invoke(() => window.UpdateStatus(errorMsg));
                     File.AppendAllText(logFile, $"[ERROR] {errorMsg}: {zipPath}\n", Encoding.UTF8);
                     return;
                 }
 
-                window.Dispatcher.Invoke(() => window.UpdateStatus("¾÷µ¥ÀÌÆ® ÆÄÀÏ ¾ĞÃà ÇØÁ¦ Áß..."));
+                window.Dispatcher.Invoke(() => window.UpdateStatus("ì—…ë°ì´íŠ¸ íŒŒì¼ ì••ì¶• í•´ì œ ì¤‘..."));
 
                 using (var archive = ZipFile.OpenRead(zipPath))
                 {
                     if (archive.Entries.Count == 0)
                     {
-                        string errorMsg = "ZIP ÆÄÀÏÀÌ ºñ¾î ÀÖ½À´Ï´Ù.";
+                        string errorMsg = "ZIP íŒŒì¼ì´ ë¹„ì–´ ìˆìŠµë‹ˆë‹¤.";
                         window.Dispatcher.Invoke(() => window.UpdateStatus(errorMsg));
                         File.AppendAllText(logFile, $"[ERROR] {errorMsg}\n", Encoding.UTF8);
                         return;
                     }
 
-                    File.AppendAllText(logFile, $"[INFO] ZIP ¿£Æ®¸® °³¼ö: {archive.Entries.Count}\n", Encoding.UTF8);
+                    File.AppendAllText(logFile, $"[INFO] ZIP ì—”íŠ¸ë¦¬ ê°œìˆ˜: {archive.Entries.Count}\n", Encoding.UTF8);
 
                     int processedCount = 0;
                     foreach (var entry in archive.Entries)
@@ -162,7 +162,7 @@ namespace Updater
                         {
                             string full = entry.FullName.Replace('\\', '/');
 
-                            // Á¦¿Ü ±ÔÄ¢: tools/, updater/, Updater.exe
+                            // ì œì™¸ ê·œì¹™: tools/, updater/, Updater.exe
                             if (full.StartsWith("tools/", StringComparison.OrdinalIgnoreCase) ||
                                 full.StartsWith("updater/", StringComparison.OrdinalIgnoreCase) ||
                                 string.Equals(Path.GetFileName(full), "Updater.exe", StringComparison.OrdinalIgnoreCase))
@@ -172,58 +172,58 @@ namespace Updater
                             }
 
                             string destinationPath = Path.Combine(installDir, entry.FullName);
-                            File.AppendAllText(logFile, $"[INFO] Ã³¸® Áß: {entry.FullName} -> {destinationPath}\n", Encoding.UTF8);
+                            File.AppendAllText(logFile, $"[INFO] ì²˜ë¦¬ ì¤‘: {entry.FullName} -> {destinationPath}\n", Encoding.UTF8);
 
-                            // Æú´õÀÎ °æ¿ì
+                            // í´ë”ì¸ ê²½ìš°
                             if (string.IsNullOrEmpty(entry.Name))
                             {
                                 if (!Directory.Exists(destinationPath))
                                 {
                                     Directory.CreateDirectory(destinationPath);
-                                    File.AppendAllText(logFile, $"[INFO] Æú´õ »ı¼º: {destinationPath}\n", Encoding.UTF8);
+                                    File.AppendAllText(logFile, $"[INFO] í´ë” ìƒì„±: {destinationPath}\n", Encoding.UTF8);
                                 }
                                 continue;
                             }
 
-                            // ÆÄÀÏÀÎ °æ¿ì
+                            // íŒŒì¼ì¸ ê²½ìš°
                             string? directoryPath = Path.GetDirectoryName(destinationPath);
                             if (!string.IsNullOrEmpty(directoryPath) && !Directory.Exists(directoryPath))
                             {
                                 Directory.CreateDirectory(directoryPath);
-                                File.AppendAllText(logFile, $"[INFO] »óÀ§ Æú´õ »ı¼º: {directoryPath}\n", Encoding.UTF8);
+                                File.AppendAllText(logFile, $"[INFO] ìƒìœ„ í´ë” ìƒì„±: {directoryPath}\n", Encoding.UTF8);
                             }
 
-                            // ±âÁ¸ ÆÄÀÏ »èÁ¦ (Àç½Ãµµ ·ÎÁ÷ Àû¿ë)
+                            // ê¸°ì¡´ íŒŒì¼ ì‚­ì œ (ì¬ì‹œë„ ë¡œì§ ì ìš©)
                             if (File.Exists(destinationPath))
                             {
                                 bool deleted = await TryDeleteFileWithRetry(destinationPath);
                                 if (!deleted)
                                 {
-                                    File.AppendAllText(logFile, $"[ERROR] ÆÄÀÏ »èÁ¦ ÃÖÁ¾ ½ÇÆĞ, °Ç³Ê¶Ü: {destinationPath}\n", Encoding.UTF8);
+                                    File.AppendAllText(logFile, $"[ERROR] íŒŒì¼ ì‚­ì œ ìµœì¢… ì‹¤íŒ¨, ê±´ë„ˆëœ€: {destinationPath}\n", Encoding.UTF8);
                                     continue;
                                 }
                             }
 
-                            // ÆÄÀÏ ¾ĞÃà ÇØÁ¦
+                            // íŒŒì¼ ì••ì¶• í•´ì œ
                             entry.ExtractToFile(destinationPath, true);
-                            File.AppendAllText(logFile, $"[INFO] ÃßÃâ ¿Ï·á: {entry.FullName}\n", Encoding.UTF8);
+                            File.AppendAllText(logFile, $"[INFO] ì¶”ì¶œ ì™„ë£Œ: {entry.FullName}\n", Encoding.UTF8);
                             processedCount++;
 
-                            // UI ¾÷µ¥ÀÌÆ®
+                            // UI ì—…ë°ì´íŠ¸
                             window.Dispatcher.Invoke(() =>
-                                window.UpdateStatus($"ÆÄÀÏ Ã³¸® Áß... ({processedCount}/{archive.Entries.Count})"));
+                                window.UpdateStatus($"íŒŒì¼ ì²˜ë¦¬ ì¤‘... ({processedCount}/{archive.Entries.Count})"));
                         }
                         catch (Exception entryEx)
                         {
-                            File.AppendAllText(logFile, $"[ERROR] ¿£Æ®¸® Ã³¸® ½ÇÆĞ ({entry.FullName}): {entryEx}\n", Encoding.UTF8);
+                            File.AppendAllText(logFile, $"[ERROR] ì—”íŠ¸ë¦¬ ì²˜ë¦¬ ì‹¤íŒ¨ ({entry.FullName}): {entryEx}\n", Encoding.UTF8);
                         }
                     }
                 }
 
-                window.Dispatcher.Invoke(() => window.UpdateStatus("¾÷µ¥ÀÌÆ® ¿Ï·á. ÇÁ·Î±×·¥À» ´Ù½Ã ½ÃÀÛÇÕ´Ï´Ù."));
-                File.AppendAllText(logFile, "[INFO] ¾÷µ¥ÀÌÆ® ¼º°ø\n", Encoding.UTF8);
+                window.Dispatcher.Invoke(() => window.UpdateStatus("ì—…ë°ì´íŠ¸ ì™„ë£Œ. í”„ë¡œê·¸ë¨ì„ ë‹¤ì‹œ ì‹œì‘í•©ë‹ˆë‹¤."));
+                File.AppendAllText(logFile, "[INFO] ì—…ë°ì´íŠ¸ ì„±ê³µ\n", Encoding.UTF8);
 
-                // Àá½Ã ´ë±â ÈÄ ¿ø·¡ ½ÇÇàÆÄÀÏ ´Ù½Ã ½ÇÇà
+                // ì ì‹œ ëŒ€ê¸° í›„ ì›ë˜ ì‹¤í–‰íŒŒì¼ ë‹¤ì‹œ ì‹¤í–‰
                 await Task.Delay(2000);
 
                 if (File.Exists(targetExe))
@@ -236,34 +236,34 @@ namespace Updater
                     };
 
                     Process.Start(startInfo);
-                    File.AppendAllText(logFile, $"[INFO] ÇÁ·Î±×·¥ Àç½ÃÀÛ: {targetExe}\n", Encoding.UTF8);
+                    File.AppendAllText(logFile, $"[INFO] í”„ë¡œê·¸ë¨ ì¬ì‹œì‘: {targetExe}\n", Encoding.UTF8);
                 }
                 else
                 {
-                    File.AppendAllText(logFile, $"[ERROR] ´ë»ó ½ÇÇàÆÄÀÏÀÌ Á¸ÀçÇÏÁö ¾ÊÀ½: {targetExe}\n", Encoding.UTF8);
+                    File.AppendAllText(logFile, $"[ERROR] ëŒ€ìƒ ì‹¤í–‰íŒŒì¼ì´ ì¡´ì¬í•˜ì§€ ì•ŠìŒ: {targetExe}\n", Encoding.UTF8);
                 }
             }
             catch (Exception ex)
             {
-                string errorMsg = $"¿À·ù ¹ß»ı: {ex.Message}";
+                string errorMsg = $"ì˜¤ë¥˜ ë°œìƒ: {ex.Message}";
                 window.Dispatcher.Invoke(() => window.UpdateStatus(errorMsg));
-                File.AppendAllText(logFile, $"[ERROR] ¿¹¿Ü: {ex}\n", Encoding.UTF8);
+                File.AppendAllText(logFile, $"[ERROR] ì˜ˆì™¸: {ex}\n", Encoding.UTF8);
                 File.AppendAllText(logFile, $"[ERROR] StackTrace: {ex.StackTrace}\n", Encoding.UTF8);
             }
             finally
             {
-                // ZIP ÆÄÀÏ Á¤¸®
+                // ZIP íŒŒì¼ ì •ë¦¬
                 try
                 {
                     if (File.Exists(zipPath))
                     {
                         File.Delete(zipPath);
-                        File.AppendAllText(logFile, "[INFO] ÀÓ½Ã ZIP ÆÄÀÏ »èÁ¦ ¿Ï·á\n", Encoding.UTF8);
+                        File.AppendAllText(logFile, "[INFO] ì„ì‹œ ZIP íŒŒì¼ ì‚­ì œ ì™„ë£Œ\n", Encoding.UTF8);
                     }
                 }
                 catch (Exception deleteEx)
                 {
-                    File.AppendAllText(logFile, $"[WARNING] ZIP ÆÄÀÏ »èÁ¦ ½ÇÆĞ: {deleteEx.Message}\n", Encoding.UTF8);
+                    File.AppendAllText(logFile, $"[WARNING] ZIP íŒŒì¼ ì‚­ì œ ì‹¤íŒ¨: {deleteEx.Message}\n", Encoding.UTF8);
                 }
 
                 await Task.Delay(5000);

@@ -81,12 +81,12 @@ jobs:
           
           if (Test-Path dist/ytDownloader/tools) { Remove-Item dist/ytDownloader/tools -Recurse -Force }
           Get-ChildItem dist/ytDownloader -Include *.pdb -Recurse | Remove-Item -Force
-          Compress-Archive -Path dist/ytDownloader/* -DestinationPath yt_downloader_${{ steps.vars.outputs.release_name }}.zip -Force
+          Compress-Archive -Path dist/ytDownloader/* -DestinationPath yt_downloader.zip -Force
 
           # Updater ZIP (여러 파일 포함)
           mkdir dist/Updater
           Copy-Item publish/Updater/* dist/Updater/ -Recurse
-          Compress-Archive -Path dist/Updater/* -DestinationPath yt_updater_${{ steps.vars.outputs.release_name }}.zip -Force
+          Compress-Archive -Path dist/Updater/* -DestinationPath yt_updater.zip -Force
 
       # GitHub Release 생성
       - name: Create GitHub Release
