@@ -240,7 +240,8 @@ namespace ytDownloader
                         FileName = updaterPath,
                         Arguments = $"\"{tempZip}\" \"{baseDir}\" \"{targetExe}\"",
                         WorkingDirectory = baseDir,
-                        UseShellExecute = true
+                        UseShellExecute = true,
+                        Verb = "runas" //관리자 권한
                     };
 
                     AppendOutput("[RunUpdateAsync] Launching Updater.exe");

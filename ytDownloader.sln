@@ -5,7 +5,7 @@ VisualStudioVersion = 17.14.36511.14
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ytDownloader", "ytDownloader\ytDownloader.csproj", "{AA18AE91-A5A9-4A1C-8756-D5B5F75DD4A2}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Updater", "Updater\Updater.csproj", "{423345DD-E4BF-4FD8-9F62-7469D70B0619}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "yt_Updater", "Updater\yt_Updater.csproj", "{423345DD-E4BF-4FD8-9F62-7469D70B0619}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

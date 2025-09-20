@@ -15,10 +15,8 @@ namespace Updater
             string line = $"[{DateTime.Now:yyyy-MM-dd HH:mm:ss}] {msg}";
             File.AppendAllText(LogFile, line + Environment.NewLine);
 
-            if (isError)
-                Console.Error.WriteLine(line);
-            else
-                Console.WriteLine(line);
+            if (isError) Console.Error.WriteLine(line);
+            else Console.WriteLine(line);
         }
 
         static int Main(string[] args)
@@ -59,7 +57,7 @@ namespace Updater
                 }
                 Log("✅ ZIP 유효성 검사 완료");
 
-                // 2) 기존 프로세스 종료 대기
+                // 2) 기존 프로세스 종료
                 string procName = Path.GetFileNameWithoutExtension(targetExe);
                 foreach (var p in Process.GetProcessesByName(procName))
                 {
@@ -76,7 +74,7 @@ namespace Updater
                     }
                 }
 
-                // 3) 압축 해제 (덮어쓰기, tools/ 제외)
+                // 3) 압축 해제 (tools 제외)
                 Log("📂 압축 해제 시작...");
                 using (var archive = ZipFile.OpenRead(zipPath))
                 {
@@ -105,21 +103,26 @@ namespace Updater
                 Log("✅ 압축 해제 완료");
 
                 // 4) 새 프로그램 실행
-                Log("🚀 새 버전 실행 중...");
+                Log("🚀 새 버전 실행 준비...");
                 Process.Start(new ProcessStartInfo
                 {
                     FileName = targetExe,
                     WorkingDirectory = installDir,
-                    UseShellExecute = true
+                    UseShellExecute = true,
+                    Verb = "runas" // ✅ 관리자 권한 요청
                 });
 
-                Log("🎉 업데이트 완료");
+                Log("🎉 업데이트 완료 - 새 버전 실행됨");
                 return 0;
             }
             catch (Exception ex)
             {
                 Log("❌ 업데이트 실패: " + ex, true);
                 return 1;
+            }
+            finally
+            {
+                Log("=== Updater 종료 ===");
             }
         }
     }
