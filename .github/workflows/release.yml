@@ -98,13 +98,25 @@ jobs:
 
       # 📌 GitHub Release 생성
       - name: Create GitHub Release
-        uses: softprops/action-gh-release@v1
-        with:
-          tag_name: v${{ steps.vars.outputs.base_version }}
-          name: Release ${{ steps.vars.outputs.release_name }}
-          files: |
-            yt_downloader_${{ steps.vars.outputs.release_name }}.zip
-            yt_updater_${{ steps.vars.outputs.release_name }}.zip
-          prerelease: ${{ !startsWith(github.ref, 'refs/tags/') }}
+      uses: softprops/action-gh-release@v2
+      with:
+        tag_name: v${{ steps.vars.outputs.base_version }}
+        name: Release ${{ steps.vars.outputs.release_name }}
+        body: |
+          📦 릴리스 안내
+
+          메인 프로그램: yt_downloader_${{ github.ref_name }}.zip  
+          → 실행 파일 및 필요한 DLL 포함 (Updater.exe 제외)
+
+          업데이트 도구: Updater.exe  
+          → 별도 Asset으로 제공됩니다. ZIP에는 포함되지 않습니다.
+
+          ⚠️ 중요: 자동 업데이트 기능은 ZIP만 다운로드합니다.  
+          Updater.exe는 설치 시 고정 배치되며, 필요시 Release에서 수동으로 교체할 수 있습니다.
+        files: |
+          yt_downloader_${{ steps.vars.outputs.release_name }}.zip
+          yt_updater_${{ steps.vars.outputs.release_name }}.zip
+        prerelease: ${{ contains(github.ref, 'beta') || contains(github.ref, 'alpha') || contains(github.ref, 'rc') }}
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
