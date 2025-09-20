@@ -135,16 +135,16 @@ namespace ytDownloader
                     Dispatcher.Invoke(() =>
                     {
                         string preMsg = isPre ? "Pre-release" : "정식 릴리스";
+                        // ...
                         if (MessageBox.Show($"새 {preMsg} {latestTag} 버전이 있습니다. 업데이트 하시겠습니까?",
                             "업데이트 확인", MessageBoxButton.YesNo, MessageBoxImage.Question) == MessageBoxResult.Yes)
                         {
-                            // 메인 ZIP 파일을 선택 (yt_downloader_ 로 시작하는 파일만)
+                            //  메인 ZIP 파일은 항상 yt_downloader.zip 으로 고정
                             var zipAsset = latest["assets"]?
                                 .FirstOrDefault(a =>
                                 {
                                     string assetName = a["name"]?.ToString() ?? "";
-                                    return assetName.StartsWith("yt_downloader_", StringComparison.OrdinalIgnoreCase) &&
-                                           assetName.EndsWith(".zip", StringComparison.OrdinalIgnoreCase);
+                                    return string.Equals(assetName, "yt_downloader.zip", StringComparison.OrdinalIgnoreCase);
                                 });
 
                             if (zipAsset != null)
