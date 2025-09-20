@@ -44,11 +44,14 @@ jobs:
       - name: Build (ytDownloader WPF)
         run: dotnet publish ytDownloader/ytDownloader.csproj -c Release -r win-x64 --self-contained false -o publish/ytDownloader -p:Version=${{ steps.vars.outputs.version }}
 
-      # Updater 빌드 (WPF, 여러 파일 강제)
+      # Updater 빌드 (PowerShell 직접 복사)
       - name: Build (Updater)
-        # run: dotnet publish Updater/Updater.csproj -c Release -r win-x64 --self-contained false -o publish/Updater -p:Version=${{ steps.vars.outputs.version }}
-        run: dotnet publish Updater/Updater.csproj -c Release -r win-x64 --self-contained true -p:PublishSingleFile=false -p:PublishTrimmed=false -o publish/Updater -p:Version=${{ steps.vars.outputs.version }}
-        # run: dotnet publish Updater/Updater.csproj -c Release -r win-x64 --self-contained false -p:PublishSingleFile=false -p:PublishTrimmed=false -o publish/Updater -p:Version=${{ steps.vars.outputs.version }}
+        shell: pwsh
+        run: |
+          dotnet build Updater/Updater.csproj -c Release -p:Version=${{ steps.vars.outputs.version }}
+          New-Item -ItemType Directory -Path publish/Updater -Force
+          Copy-Item "Updater/bin/Release/net8.0-windows/*" -Destination "publish/Updater/" -Recurse
+
       # 빌드 결과 확인 (디버깅용)
       - name: List build output
         shell: pwsh
