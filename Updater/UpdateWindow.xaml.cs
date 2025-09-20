@@ -1,4 +1,4 @@
-using System.Text;
+ï»¿using System.Text;
 using System.Windows;
 
 namespace Updater
@@ -7,13 +7,13 @@ namespace Updater
     {
         public UpdateWindow()
         {
-            // UTF-8 ÀÎÄÚµù ¼³Á¤
+            // UTF-8 ì¸ì½”ë”© ì„¤ì •
             Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
 
             InitializeComponent();
 
-            // À©µµ¿ì ¼Ó¼º ¼³Á¤
-            this.Title = "¾÷µ¥ÀÌÆ® Áß";
+            // ìœˆë„ìš° ì†ì„± ì„¤ì •
+            this.Title = "ì—…ë°ì´íŠ¸ ì¤‘";
             this.WindowStartupLocation = WindowStartupLocation.CenterScreen;
             this.ResizeMode = ResizeMode.NoResize;
             this.Topmost = true;
