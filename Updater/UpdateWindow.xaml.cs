@@ -1,43 +1,20 @@
-using System;
-using System.IO;
 using System.Windows;
 
 namespace Updater
 {
     public partial class UpdateWindow : Window
     {
-        private readonly string logFile;
-
         public UpdateWindow()
         {
             InitializeComponent();
-
-            // ✅ 바탕화면 로그 파일
-            logFile = Path.Combine(
-                Environment.GetFolderPath(Environment.SpecialFolder.DesktopDirectory),
-                "ytDownloader_updater.log"
-            );
-
-            Log("Updater 실행됨");
         }
 
-        public void UpdateProgress(double percent, string speed, string eta)
+        public void UpdateStatus(string message)
         {
-            progressBar.Value = percent;
-            txtProgress.Text = $"{percent:F1}%";
-            txtSpeed.Text = speed;
-            txtEta.Text = eta;
-
-            Log($"진행률 {percent:F1}%, 속도={speed}, ETA={eta}");
-        }
-
-        private void Log(string message)
-        {
-            try
+            Dispatcher.Invoke(() =>
             {
-                File.AppendAllText(logFile, $"[{DateTime.Now:yyyy-MM-dd HH:mm:ss}] {message}\n");
-            }
-            catch { }
+                txtStatus.Text = message;
+            });
         }
     }
 }
