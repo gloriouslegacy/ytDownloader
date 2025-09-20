@@ -12,7 +12,7 @@ namespace Updater
         {
             InitializeComponent();
 
-            // ✅ 바탕화면에 로그 저장
+            // ✅ 바탕화면 로그 파일
             logFile = Path.Combine(
                 Environment.GetFolderPath(Environment.SpecialFolder.DesktopDirectory),
                 "ytDownloader_updater.log"
@@ -37,10 +37,7 @@ namespace Updater
             {
                 File.AppendAllText(logFile, $"[{DateTime.Now:yyyy-MM-dd HH:mm:ss}] {message}\n");
             }
-            catch
-            {
-                // 로그 실패는 무시
-            }
+            catch { }
         }
     }
 }
