@@ -10,7 +10,7 @@ class Program
         string logFile = Path.Combine(Path.GetTempPath(), "ytDownloader_updater.log");
 
         try
-        
+        { 
             Console.WriteLine("업데이트를 시작합니다...");
             File.AppendAllText(logFile, "[Updater] Start update\n");
 
