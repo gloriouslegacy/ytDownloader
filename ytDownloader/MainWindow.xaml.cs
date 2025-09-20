@@ -26,8 +26,8 @@ namespace ytDownloader
             InitializeComponent();
             LoadSettings();
 
-            UpdateYtDlp();     
-            _ = CheckForUpdate();          
+            UpdateYtDlp();
+            _ = CheckForUpdate();
         }
 
         private void UpdateYtDlp()
@@ -217,94 +217,76 @@ namespace ytDownloader
                     await response.Content.CopyToAsync(fs);
                 }
                 AppendOutput($"[INFO] ZIP 다운로드 완료: {tempZip}");
+            }
+            catch (Exception ex)
+            {
+                // 다운로드 실패 → MessageBox 표시
+                MessageBox.Show("업데이트 파일 다운로드 실패: " + ex.Message,
+                    "업데이트 오류", MessageBoxButton.OK, MessageBoxImage.Error);
+                AppendOutput("[ERROR] 다운로드 실패: " + ex);
+                return;
+            }
 
-                // Updater.exe 경로 - updater 서브폴더에서 먼저 찾기
-                string baseDir = AppDomain.CurrentDomain.BaseDirectory;
-                string updaterPath = Path.Combine(baseDir, "updater", "Updater.exe");
+            string baseDir = AppDomain.CurrentDomain.BaseDirectory;
+            string updaterPath = Path.Combine(baseDir, "updater", "Updater.exe");
 
-                // 만약 updater 폴더가 없다면 기본 경로에서 찾기 (하위 호환성)
-                if (!File.Exists(updaterPath))
-                {
-                    updaterPath = Path.Combine(baseDir, "Updater.exe");
-                }
+            if (!File.Exists(updaterPath))
+                updaterPath = Path.Combine(baseDir, "Updater.exe");
 
-                // 현재 실행 중인 exe 경로 - 정규화 및 정리
-                string targetExe = Process.GetCurrentProcess().MainModule!.FileName;
-                targetExe = Path.GetFullPath(targetExe).Trim('"'); // 정규화 및 따옴표 제거
+            string targetExe = Process.GetCurrentProcess().MainModule!.FileName;
+            targetExe = Path.GetFullPath(targetExe).Trim('"');
+            string installDir = Path.GetDirectoryName(targetExe) ?? baseDir;
+            installDir = Path.GetFullPath(installDir).TrimEnd('\\', '/').Trim('"');
 
-                // 설치 경로 - 정규화하고 마지막 구분자 제거, 따옴표 제거
-                string installDir = Path.GetDirectoryName(targetExe) ?? baseDir;
-                installDir = Path.GetFullPath(installDir).TrimEnd('\\', '/').Trim('"');
+            AppendOutput("[INFO] Updater 실행 준비");
+            AppendOutput($"[INFO] baseDir     = '{baseDir}'");
+            AppendOutput($"[INFO] updaterPath = '{updaterPath}'");
+            AppendOutput($"[INFO] installDir  = '{installDir}'");
+            AppendOutput($"[INFO] targetExe   = '{targetExe}'");
 
-                AppendOutput("[INFO] Updater 실행 준비");
-                AppendOutput($"[INFO] baseDir     = '{baseDir}'");
-                AppendOutput($"[INFO] updaterPath = '{updaterPath}'");
-                AppendOutput($"[INFO] installDir  = '{installDir}'");
-                AppendOutput($"[INFO] targetExe   = '{targetExe}'");
+            if (!File.Exists(updaterPath))
+            {
+                // MessageBox 없이 로그만
+                AppendOutput("[ERROR] Updater.exe를 찾을 수 없습니다.");
+                AppendOutput($"[ERROR] 시도 경로 1: {Path.Combine(baseDir, "updater", "Updater.exe")}");
+                AppendOutput($"[ERROR] 시도 경로 2: {Path.Combine(baseDir, "Updater.exe")}");
+                return;
+            }
 
-                // Updater.exe 존재 확인
-                if (!File.Exists(updaterPath))
-                {
-                    AppendOutput($"[ERROR] Updater.exe를 찾을 수 없습니다:");
-                    AppendOutput($"[ERROR]   시도한 경로 1: {Path.Combine(baseDir, "updater", "Updater.exe")}");
-                    AppendOutput($"[ERROR]   시도한 경로 2: {Path.Combine(baseDir, "Updater.exe")}");
-                    MessageBox.Show($"Updater.exe를 찾을 수 없습니다.\n\n확인된 경로:\n1. {Path.Combine(baseDir, "updater", "Updater.exe")}\n2. {Path.Combine(baseDir, "Updater.exe")}",
-                        "업데이트 오류", MessageBoxButton.OK, MessageBoxImage.Error);
-                    return;
-                }
-
-                // updater 폴더에 있는 경우 작업 디렉터리도 설정
+            try
+            {
                 string workingDir = Path.GetDirectoryName(updaterPath) ?? baseDir;
+                string arguments = $"\"{Path.Combine(Path.GetTempPath(), "ytDownloader_update.zip")}\" \"{installDir}\" \"{targetExe}\"";
 
-                // 경로에 공백이 포함된 경우를 대비하여 각각 개별적으로 따옴표 처리
-                string arguments = $"\"{tempZip}\" \"{installDir}\" \"{targetExe}\"";
-
-                // 관리자 권한으로 Updater 실행
                 var psi = new ProcessStartInfo
                 {
                     FileName = updaterPath,
                     Arguments = arguments,
                     UseShellExecute = true,
-                    Verb = "runas", // 관리자 권한 요청
+                    Verb = "runas",
                     WindowStyle = ProcessWindowStyle.Normal,
-                    WorkingDirectory = workingDir // Updater 실행 시 적절한 작업 디렉터리 설정
+                    WorkingDirectory = workingDir
                 };
 
-                AppendOutput($"[INFO] 최종 명령줄: {psi.FileName} {psi.Arguments}");
-                AppendOutput($"[INFO] 작업 디렉터리: {psi.WorkingDirectory}");
-
-                // 명령줄이 올바른지 검증 (디버그용)
-                string[] testArgs = arguments.Split(new[] { "\" \"" }, StringSplitOptions.None);
-                AppendOutput($"[DEBUG] 파싱될 인자 개수: {testArgs.Length}");
-                for (int i = 0; i < testArgs.Length; i++)
-                {
-                    string cleanArg = testArgs[i].Trim('"');
-                    AppendOutput($"[DEBUG] 인자[{i}]: '{cleanArg}'");
-                }
-
+                AppendOutput($"[INFO] Updater 실행: {psi.FileName} {psi.Arguments}");
                 var process = Process.Start(psi);
                 if (process == null)
                 {
                     AppendOutput("[ERROR] Updater 프로세스 시작 실패");
-                    MessageBox.Show("Updater 실행에 실패했습니다.", "업데이트 오류",
-                        MessageBoxButton.OK, MessageBoxImage.Error);
                     return;
                 }
 
                 AppendOutput("[INFO] Updater가 실행되었습니다. 현재 앱을 종료합니다.");
-
-                // 현재 앱 종료
                 await Task.Delay(1000);
                 Application.Current.Shutdown();
             }
             catch (Exception ex)
             {
-                AppendOutput($"[ERROR] RunUpdateAsync 실패: {ex.Message}");
-                AppendOutput($"[ERROR] StackTrace: {ex.StackTrace}");
-                MessageBox.Show("업데이트 실행 실패: " + ex.Message,
-                    "업데이트 오류", MessageBoxButton.OK, MessageBoxImage.Error);
+                // 실행 실패도 로그만
+                AppendOutput("[ERROR] Updater 실행 실패: " + ex);
             }
         }
+
 
 
         private void LoadSettings()
@@ -372,45 +354,45 @@ namespace ytDownloader
 
             StringBuilder args = new StringBuilder();
 
-            if (comboFormat.SelectedIndex == 0)   
+            if (comboFormat.SelectedIndex == 0)
             {
                 string outputTemplate = $"%(title)s_{timestamp}_best.%(ext)s";
                 args.Append($"-o \"{Path.Combine(savePath, outputTemplate)}\" ");
                 args.Append("-f bestvideo+bestaudio ");
             }
-            else if (comboFormat.SelectedIndex == 1)   
+            else if (comboFormat.SelectedIndex == 1)
             {
                 string outputTemplate = $"%(title)s_{timestamp}_1080p.%(ext)s";
                 args.Append($"-o \"{Path.Combine(savePath, outputTemplate)}\" ");
                 args.Append("-f \"bestvideo[height=1080]+bestaudio/best[height=1080]\" ");
             }
-            else if (comboFormat.SelectedIndex == 2)   
+            else if (comboFormat.SelectedIndex == 2)
             {
                 string outputTemplate = $"%(title)s_{timestamp}_720p.%(ext)s";
                 args.Append($"-o \"{Path.Combine(savePath, outputTemplate)}\" ");
                 args.Append("-f \"bestvideo[height=720]+bestaudio/best[height=720]\" ");
             }
-            else if (comboFormat.SelectedIndex == 3)   
+            else if (comboFormat.SelectedIndex == 3)
             {
                 string outputTemplate = $"%(title)s_{timestamp}_480p.%(ext)s";
                 args.Append($"-o \"{Path.Combine(savePath, outputTemplate)}\" ");
                 args.Append("-f \"bestvideo[height=480]+bestaudio/best[height=480]\" ");
             }
-            else if (comboFormat.SelectedIndex == 4)   
+            else if (comboFormat.SelectedIndex == 4)
             {
                 string outputTemplate = $"%(title)s_{timestamp}_audio_mp3.%(ext)s";
                 args.Append($"-o \"{Path.Combine(savePath, outputTemplate)}\" ");
                 args.Append("--extract-audio --audio-format mp3 --audio-quality 0 ");
                 args.Append("--embed-thumbnail --add-metadata ");
             }
-            else if (comboFormat.SelectedIndex == 5)      
+            else if (comboFormat.SelectedIndex == 5)
             {
                 string outputTemplate = $"%(title)s_{timestamp}_audio_best.%(ext)s";
                 args.Append($"-o \"{Path.Combine(savePath, outputTemplate)}\" ");
                 args.Append("--extract-audio --audio-format best ");
                 args.Append("--embed-thumbnail --add-metadata ");
             }
-            else if (comboFormat.SelectedIndex == 6)      
+            else if (comboFormat.SelectedIndex == 6)
             {
                 string outputTemplate = $"%(title)s_{timestamp}_audio_flac.%(ext)s";
                 args.Append($"-o \"{Path.Combine(savePath, outputTemplate)}\" ");

@@ -160,11 +160,14 @@ namespace Updater
                     {
                         try
                         {
-                            // tools 폴더 제외
-                            if (entry.FullName.StartsWith("tools/", StringComparison.OrdinalIgnoreCase) ||
-                                entry.FullName.StartsWith("tools\\", StringComparison.OrdinalIgnoreCase))
+                            string full = entry.FullName.Replace('\\', '/');
+
+                            // 제외 규칙: tools/, updater/, Updater.exe
+                            if (full.StartsWith("tools/", StringComparison.OrdinalIgnoreCase) ||
+                                full.StartsWith("updater/", StringComparison.OrdinalIgnoreCase) ||
+                                string.Equals(Path.GetFileName(full), "Updater.exe", StringComparison.OrdinalIgnoreCase))
                             {
-                                File.AppendAllText(logFile, $"[INFO] Skipped: {entry.FullName} (tools 폴더)\n", Encoding.UTF8);
+                                File.AppendAllText(logFile, $"[INFO] Skipped: {entry.FullName}\n", Encoding.UTF8);
                                 continue;
                             }
 
