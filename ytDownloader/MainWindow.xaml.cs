@@ -151,132 +151,81 @@ namespace ytDownloader
 
 
 
-        string FormatEta(double seconds)
-        {
-            if (seconds < 0) return "--:--";
-            TimeSpan ts = TimeSpan.FromSeconds(seconds);
+        //string FormatEta(double seconds)
+        //{
+        //    if (seconds < 0) return "--:--";
+        //    TimeSpan ts = TimeSpan.FromSeconds(seconds);
 
-            if (ts.TotalHours >= 1)
-                return $"{(int)ts.TotalHours:D2}:{ts.Minutes:D2}:{ts.Seconds:D2}";  
-            else
-                return $"{(int)ts.TotalMinutes:D2}:{ts.Seconds:D2}";  
-        }
+        //    if (ts.TotalHours >= 1)
+        //        return $"{(int)ts.TotalHours:D2}:{ts.Minutes:D2}:{ts.Seconds:D2}";  
+        //    else
+        //        return $"{(int)ts.TotalMinutes:D2}:{ts.Seconds:D2}";  
+        //}
 
-        string FormatSize(double bytes)
-        {
-            if (bytes < 1024) return $"{bytes:F0} B";
-            double kb = bytes / 1024d;
-            if (kb < 1024) return $"{kb:F1} KB";
-            double mb = kb / 1024d;
-            if (mb < 1024) return $"{mb:F1} MB";
-            double gb = mb / 1024d;
-            return $"{gb:F2} GB";
-        }
+        //string FormatSize(double bytes)
+        //{
+        //    if (bytes < 1024) return $"{bytes:F0} B";
+        //    double kb = bytes / 1024d;
+        //    if (kb < 1024) return $"{kb:F1} KB";
+        //    double mb = kb / 1024d;
+        //    if (mb < 1024) return $"{mb:F1} MB";
+        //    double gb = mb / 1024d;
+        //    return $"{gb:F2} GB";
+        //}
 
-        string FormatSpeed(double bps)
-            {
-                if (bps <= 0) return "-";
-                if (bps < 1024) return $"{bps:F0} B/s";
-                if (bps < 1024 * 1024) return $"{bps / 1024:F1} KB/s";
-                return $"{bps / (1024 * 1024):F1} MB/s";
-            }
-       
-        
+        //string FormatSpeed(double bps)
+        //    {
+        //        if (bps <= 0) return "-";
+        //        if (bps < 1024) return $"{bps:F0} B/s";
+        //        if (bps < 1024 * 1024) return $"{bps / 1024:F1} KB/s";
+        //        return $"{bps / (1024 * 1024):F1} MB/s";
+        //    }
+
+
 
         private async Task RunUpdateAsync(string zipUrl)
         {
-            var updateWindow = new UpdateWindow();
-            updateWindow.Show();
-
-            await Task.Run(async () =>
+            try
             {
-                try
+                // 1️⃣ ZIP 먼저 다운로드 → %TEMP% 저장
+                string tempZip = Path.Combine(Path.GetTempPath(), "ytDownloader_update.zip");
+                using (var httpClient = new HttpClient())
+                using (var response = await httpClient.GetAsync(zipUrl))
                 {
-                    using var httpClient = new HttpClient();
-                    string tempZip = Path.Combine(Path.GetTempPath(), "ytDownloader_update.zip");
-
-                    using (var response = await httpClient.GetAsync(zipUrl, HttpCompletionOption.ResponseHeadersRead))
-                    {
-                        response.EnsureSuccessStatusCode();
-                        var contentLength = response.Content.Headers.ContentLength ?? -1L;
-
-                        await using var stream = await response.Content.ReadAsStreamAsync();
-                        await using var fs = new FileStream(tempZip, FileMode.Create, FileAccess.Write, FileShare.None);
-
-                        var buffer = new byte[81920];
-                        long totalRead = 0;
-                        int read;
-                        var sw = Stopwatch.StartNew();
-
-                        while ((read = await stream.ReadAsync(buffer, 0, buffer.Length)) > 0)
-                        {
-                            await fs.WriteAsync(buffer, 0, read);
-                            totalRead += read;
-
-                            if (contentLength > 0)
-                            {
-                                double percent = (double)totalRead / contentLength * 100.0;
-                                double speed = totalRead / sw.Elapsed.TotalSeconds;
-                                double eta = (contentLength - totalRead) / (speed > 0 ? speed : 1);
-
-                                Dispatcher.Invoke(() =>
-                                {
-                                    updateWindow.UpdateProgress(
-                                        percent,
-                                        FormatSpeed(speed),
-                                        $"{FormatEta(eta)} 남음"
-                                    );
-                                });
-                            }
-                        }
-                    }
-
-                    string baseDir = AppDomain.CurrentDomain.BaseDirectory;
-                    string updaterPath = Path.Combine(baseDir, "Updater.exe");
-                    string targetExe = Process.GetCurrentProcess().MainModule!.FileName;
-
-                    var psi = new ProcessStartInfo
-                    {
-                        FileName = updaterPath,
-                        Arguments = $"\"{tempZip}\" \"{baseDir}\" \"{targetExe}\"",
-                        WorkingDirectory = baseDir,
-                        UseShellExecute = false, // 콘솔/로그
-                        CreateNoWindow = false, // 콘솔 창
-                        Verb = "runas" //관리자 권한
-                    };
-
-                    AppendOutput("[RunUpdateAsync] Launching Updater.exe");
-                    AppendOutput($"FileName  = {psi.FileName}");
-                    AppendOutput($"Arguments = {psi.Arguments}");
-                    AppendOutput($"WorkingDir= {psi.WorkingDirectory}");
-
-                    Process.Start(psi);
-
-                    Dispatcher.Invoke(() =>
-                    {
-                        updateWindow.Close();
-                        Application.Current.Shutdown();
-                    });
+                    response.EnsureSuccessStatusCode();
+                    await using var fs = new FileStream(tempZip, FileMode.Create, FileAccess.Write, FileShare.None);
+                    await response.Content.CopyToAsync(fs);
                 }
-                catch (Exception ex)
+
+                // 2️⃣ 실행 경로 지정
+                string updaterPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Updater.exe");
+                string installDir = AppDomain.CurrentDomain.BaseDirectory;
+                string targetExe = Process.GetCurrentProcess().MainModule!.FileName;
+
+                // 3️⃣ 관리자 권한으로 Updater.exe 실행
+                var psi = new ProcessStartInfo
                 {
-                    Dispatcher.Invoke(() =>
-                    {
-                        updateWindow.Close();
-                        MessageBox.Show("업데이트 실패: " + ex.Message,
-                            "업데이트 오류",
-                            MessageBoxButton.OK, MessageBoxImage.Error);
-                    });
+                    FileName = updaterPath,
+                    Arguments = $"\"{tempZip}\" \"{installDir}\" \"{targetExe}\"",
+                    UseShellExecute = true,
+                    Verb = "runas" // ✅ UAC 관리자 권한 요청
+                };
+
+                if (Process.Start(psi) == null)
+                {
+                    MessageBox.Show("❌ Updater 실행에 실패했습니다.");
+                    return;
                 }
-            });
+
+                // 4️⃣ Updater 실행 성공 시, 현재 앱 종료
+                Application.Current.Shutdown();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("업데이트 실행 실패: " + ex.Message, "업데이트 오류",
+                    MessageBoxButton.OK, MessageBoxImage.Error);
+            }
         }
-
-
-                
-
-
-
-
 
 
 
