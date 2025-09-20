@@ -103,19 +103,34 @@ namespace ytDownloader
                 string latestTag = latest["tag_name"]?.ToString() ?? "";
                 bool isPre = latest["prerelease"]?.ToObject<bool>() ?? false;
 
-                string currentVersion = Assembly
+                // 현재 실행 중인 버전
+                string currentVersionStr = Assembly
                     .GetExecutingAssembly()
                     .GetCustomAttribute<AssemblyInformationalVersionAttribute>()?
                     .InformationalVersion ?? "0.0.0";
 
+                // '+' 뒤 빌드 메타데이터 제거
+                int plusIdx = currentVersionStr.IndexOf('+');
+                if (plusIdx >= 0)
+                    currentVersionStr = currentVersionStr.Substring(0, plusIdx);
+
+                // GitHub 태그에서 'v' 제거
                 string latestTagClean = latestTag.StartsWith("v", StringComparison.OrdinalIgnoreCase)
                     ? latestTag.Substring(1)
                     : latestTag;
 
-                AppendOutput($"[INFO] 현재 버전: {currentVersion}");
-                AppendOutput($"[INFO] 최신 버전: {latestTagClean}");
+                // 문자열을 Version 객체로 변환
+                Version currentV, latestV;
+                if (!Version.TryParse(currentVersionStr, out currentV))
+                    currentV = new Version(0, 0, 0);
 
-                if (latestTagClean != currentVersion)
+                if (!Version.TryParse(latestTagClean, out latestV))
+                    latestV = new Version(0, 0, 0);
+
+                AppendOutput($"[INFO] 현재 버전: {currentV}");
+                AppendOutput($"[INFO] 최신 버전: {latestV}");
+
+                if (currentV < latestV)
                 {
                     Dispatcher.Invoke(() =>
                     {
@@ -123,7 +138,7 @@ namespace ytDownloader
                         if (MessageBox.Show($"새 {preMsg} {latestTag} 버전이 있습니다. 업데이트 하시겠습니까?",
                             "업데이트 확인", MessageBoxButton.YesNo, MessageBoxImage.Question) == MessageBoxResult.Yes)
                         {
-                            // 메인 ZIP 파일을 명확히 선택 (yt_downloader_로 시작하는 파일)
+                            // 메인 ZIP 파일을 선택 (yt_downloader_ 로 시작하는 파일만)
                             var zipAsset = latest["assets"]?
                                 .FirstOrDefault(a =>
                                 {
@@ -167,6 +182,8 @@ namespace ytDownloader
                 AppendOutput($"❌ 업데이트 확인 실패: {ex.Message}");
             }
         }
+
+
 
 
         //string FormatEta(double seconds)

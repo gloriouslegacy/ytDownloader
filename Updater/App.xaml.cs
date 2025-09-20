@@ -266,7 +266,7 @@ namespace Updater
                     File.AppendAllText(logFile, $"[WARNING] ZIP 파일 삭제 실패: {deleteEx.Message}\n", Encoding.UTF8);
                 }
 
-                await Task.Delay(3000);
+                await Task.Delay(5000);
                 Dispatcher.Invoke(() => Shutdown());
             }
         }
