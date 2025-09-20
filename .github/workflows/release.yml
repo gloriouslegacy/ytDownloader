@@ -53,9 +53,14 @@ jobs:
         shell: pwsh
         run: |
           mkdir dist
-          # ytDownloader ZIP (Updater 제외)
+          # ytDownloader ZIP (Updater 포함)
           mkdir dist/ytDownloader
           Copy-Item publish/ytDownloader/* dist/ytDownloader/ -Recurse
+          
+          # Updater 파일들을 updater 서브폴더에 복사
+          mkdir dist/ytDownloader/updater
+          Copy-Item publish/Updater/* dist/ytDownloader/updater/ -Recurse
+          
           if (Test-Path dist/ytDownloader/tools) { Remove-Item dist/ytDownloader/tools -Recurse -Force }
           Get-ChildItem dist/ytDownloader -Include *.pdb -Recurse | Remove-Item -Force
           Compress-Archive -Path dist/ytDownloader/* -DestinationPath yt_downloader_${{ steps.vars.outputs.release_name }}.zip -Force
@@ -75,13 +80,13 @@ jobs:
             📦 릴리스 안내
 
             메인 프로그램: yt_downloader_${{ steps.vars.outputs.release_name }}.zip  
-            → 실행 파일 및 필요한 DLL 포함 (Updater 제외)
+            → 실행 파일, 필요한 DLL 및 updater 폴더 포함
 
             업데이트 도구: yt_updater_${{ steps.vars.outputs.release_name }}.zip  
-            → Updater.exe 및 실행에 필요한 DLL 포함 (자동 업데이트 ZIP에는 포함되지 않음)
+            → Updater.exe 및 실행에 필요한 DLL 포함 (수동 업데이트용)
 
-            ⚠️ 중요: 자동 업데이트 기능은 메인 ZIP만 다운로드합니다.  
-            Updater는 수동으로 교체할 수 있습니다.
+            ⚠️ 중요: 자동 업데이트 기능은 메인 ZIP의 updater 폴더를 사용합니다.  
+            별도 Updater ZIP은 수동 교체 시에만 사용하세요.
           files: |
             yt_downloader_${{ steps.vars.outputs.release_name }}.zip
             yt_updater_${{ steps.vars.outputs.release_name }}.zip

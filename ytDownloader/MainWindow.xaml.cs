@@ -276,39 +276,18 @@ namespace ytDownloader
                 // Updater.exe 경로
                 string updaterPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Updater.exe");
 
-                // 현재 실행 중인 exe
+                // 현재 실행 중인 exe 경로 - 정규화
                 string targetExe = Process.GetCurrentProcess().MainModule!.FileName;
+                targetExe = Path.GetFullPath(targetExe); // 정규화
 
-                // 설치 경로 (정확한 디렉토리 경로)
+                // 설치 경로 - 정규화하고 마지막 구분자 제거
                 string installDir = Path.GetDirectoryName(targetExe) ?? AppDomain.CurrentDomain.BaseDirectory;
-
-                // 경로에서 마지막 백슬래시 제거 (필요한 경우)
-                installDir = installDir.TrimEnd('\\', '/');
+                installDir = Path.GetFullPath(installDir).TrimEnd('\\', '/');
 
                 AppendOutput("[INFO] Updater 실행 준비");
-                AppendOutput($"[INFO] updaterPath = {updaterPath}");
-                AppendOutput($"[INFO] installDir  = {installDir}");
-                AppendOutput($"[INFO] targetExe   = {targetExe}");
-
-                // 인자 검증 및 로깅
-                string[] args = { tempZip, installDir, targetExe };
-                AppendOutput($"[INFO] 전달할 인자 개수: {args.Length}");
-                for (int i = 0; i < args.Length; i++)
-                {
-                    AppendOutput($"[INFO] 인자 {i}: '{args[i]}'");
-                }
-
-                // 관리자 권한으로 Updater 실행
-                var psi = new ProcessStartInfo
-                {
-                    FileName = updaterPath,
-                    Arguments = $"\"{tempZip}\" \"{installDir}\" \"{targetExe}\"",
-                    UseShellExecute = true,
-                    Verb = "runas", // 관리자 권한 요청
-                    WindowStyle = ProcessWindowStyle.Normal
-                };
-
-                AppendOutput($"[INFO] 최종 명령줄: {psi.FileName} {psi.Arguments}");
+                AppendOutput($"[INFO] updaterPath = '{updaterPath}'");
+                AppendOutput($"[INFO] installDir  = '{installDir}'");
+                AppendOutput($"[INFO] targetExe   = '{targetExe}'");
 
                 // Updater.exe 존재 확인
                 if (!File.Exists(updaterPath))
@@ -317,6 +296,30 @@ namespace ytDownloader
                     MessageBox.Show($"Updater.exe를 찾을 수 없습니다.\n경로: {updaterPath}",
                         "업데이트 오류", MessageBoxButton.OK, MessageBoxImage.Error);
                     return;
+                }
+
+                // 경로에 공백이 포함된 경우를 대비하여 각각 개별적으로 따옴표 처리
+                string arguments = $"\"{tempZip}\" \"{installDir}\" \"{targetExe}\"";
+
+                // 관리자 권한으로 Updater 실행
+                var psi = new ProcessStartInfo
+                {
+                    FileName = updaterPath,
+                    Arguments = arguments,
+                    UseShellExecute = true,
+                    Verb = "runas", // 관리자 권한 요청
+                    WindowStyle = ProcessWindowStyle.Normal
+                };
+
+                AppendOutput($"[INFO] 최종 명령줄: {psi.FileName} {psi.Arguments}");
+
+                // 명령줄이 올바른지 검증
+                string[] testArgs = arguments.Split(new[] { "\" \"" }, StringSplitOptions.None);
+                AppendOutput($"[DEBUG] 파싱될 인자 개수: {testArgs.Length}");
+                for (int i = 0; i < testArgs.Length; i++)
+                {
+                    string cleanArg = testArgs[i].Trim('"');
+                    AppendOutput($"[DEBUG] 인자[{i}]: '{cleanArg}'");
                 }
 
                 var process = Process.Start(psi);
@@ -342,7 +345,6 @@ namespace ytDownloader
                     "업데이트 오류", MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
-
 
 
         private void LoadSettings()
