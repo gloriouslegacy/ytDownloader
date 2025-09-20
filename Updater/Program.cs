@@ -10,7 +10,12 @@ namespace Updater
     {
         static int Main(string[] args)
         {
-            string logFile = Path.Combine(Path.GetTempPath(), "ytDownloader_updater.log");
+            //string logFile = Path.Combine(Path.GetTempPath(), "ytDownloader_updater.log");
+            // 항상 현재 사용자 Desktop에 로그 저장
+            string logFile = Path.Combine(
+                Environment.GetFolderPath(Environment.SpecialFolder.DesktopDirectory),
+                "ytDownloader_updater.log"
+            );
 
             try
             {
