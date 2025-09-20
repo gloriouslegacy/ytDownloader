@@ -279,43 +279,69 @@ namespace ytDownloader
                 // 현재 실행 중인 exe
                 string targetExe = Process.GetCurrentProcess().MainModule!.FileName;
 
-                // 설치 경로 (마지막 \ 제거)
-                //string installDir = AppDomain.CurrentDomain.BaseDirectory.TrimEnd('\\');
+                // 설치 경로 (정확한 디렉토리 경로)
                 string installDir = Path.GetDirectoryName(targetExe) ?? AppDomain.CurrentDomain.BaseDirectory;
 
-                // 인자 문자열
-                //string args = $"\"{tempZip}\" \"{installDir}\" \"{targetExe}\"";
-                string args = $"\"{tempZip}\" \"{installDir}\" \"{targetExe}\"";
+                // 경로에서 마지막 백슬래시 제거 (필요한 경우)
+                installDir = installDir.TrimEnd('\\', '/');
 
                 AppendOutput("[INFO] Updater 실행 준비");
                 AppendOutput($"[INFO] updaterPath = {updaterPath}");
                 AppendOutput($"[INFO] installDir  = {installDir}");
                 AppendOutput($"[INFO] targetExe   = {targetExe}");
-                AppendOutput($"[INFO] args        = {args}");
+
+                // 인자 검증 및 로깅
+                string[] args = { tempZip, installDir, targetExe };
+                AppendOutput($"[INFO] 전달할 인자 개수: {args.Length}");
+                for (int i = 0; i < args.Length; i++)
+                {
+                    AppendOutput($"[INFO] 인자 {i}: '{args[i]}'");
+                }
 
                 // 관리자 권한으로 Updater 실행
                 var psi = new ProcessStartInfo
                 {
                     FileName = updaterPath,
-                    Arguments = args,
+                    Arguments = $"\"{tempZip}\" \"{installDir}\" \"{targetExe}\"",
                     UseShellExecute = true,
                     Verb = "runas", // 관리자 권한 요청
                     WindowStyle = ProcessWindowStyle.Normal
                 };
 
-                Process.Start(psi);
+                AppendOutput($"[INFO] 최종 명령줄: {psi.FileName} {psi.Arguments}");
+
+                // Updater.exe 존재 확인
+                if (!File.Exists(updaterPath))
+                {
+                    AppendOutput($"[ERROR] Updater.exe를 찾을 수 없습니다: {updaterPath}");
+                    MessageBox.Show($"Updater.exe를 찾을 수 없습니다.\n경로: {updaterPath}",
+                        "업데이트 오류", MessageBoxButton.OK, MessageBoxImage.Error);
+                    return;
+                }
+
+                var process = Process.Start(psi);
+                if (process == null)
+                {
+                    AppendOutput("[ERROR] Updater 프로세스 시작 실패");
+                    MessageBox.Show("Updater 실행에 실패했습니다.", "업데이트 오류",
+                        MessageBoxButton.OK, MessageBoxImage.Error);
+                    return;
+                }
+
+                AppendOutput("[INFO] Updater가 실행되었습니다. 현재 앱을 종료합니다.");
 
                 // 현재 앱 종료
+                await Task.Delay(1000);
                 Application.Current.Shutdown();
             }
             catch (Exception ex)
             {
                 AppendOutput($"[ERROR] RunUpdateAsync 실패: {ex.Message}");
+                AppendOutput($"[ERROR] StackTrace: {ex.StackTrace}");
                 MessageBox.Show("업데이트 실행 실패: " + ex.Message,
                     "업데이트 오류", MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
-
 
 
 

@@ -1,13 +1,17 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
 	<PropertyGroup>
+		<!-- WPF 실행 파일 -->
 		<OutputType>WinExe</OutputType>
 		<TargetFramework>net8.0-windows</TargetFramework>
 		<UseWPF>true</UseWPF>
 		<Nullable>enable</Nullable>
 		<AssemblyName>Updater</AssemblyName>
+
+		<!-- 단일 파일 빌드 옵션 제거 -->
+		<SelfContained>false</SelfContained>
 		<PublishSingleFile>false</PublishSingleFile>
-		<!-- 여러 파일로 출력 -->
+		<PublishTrimmed>false</PublishTrimmed>
 	</PropertyGroup>
 
 </Project>

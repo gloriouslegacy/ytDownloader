@@ -22,7 +22,14 @@ namespace Updater
             {
                 // UTF-8로 로그 파일 작성
                 File.AppendAllText(debugLog, $"[INFO] [{DateTime.Now}] 시작됨\n", Encoding.UTF8);
-                File.AppendAllText(debugLog, $"[INFO] Args: {string.Join(" ", e.Args)}\n", Encoding.UTF8);
+                File.AppendAllText(debugLog, $"[INFO] 전체 인자 문자열: {string.Join(" ", e.Args)}\n", Encoding.UTF8);
+                File.AppendAllText(debugLog, $"[INFO] 인자 개수: {e.Args.Length}\n", Encoding.UTF8);
+
+                // 각 인자를 개별적으로 로깅
+                for (int i = 0; i < e.Args.Length; i++)
+                {
+                    File.AppendAllText(debugLog, $"[INFO] 인자[{i}]: '{e.Args[i]}'\n", Encoding.UTF8);
+                }
             }
             catch (Exception ex)
             {
@@ -35,9 +42,12 @@ namespace Updater
 
             if (e.Args.Length < 3)
             {
-                File.AppendAllText(debugLog, $"[ERROR] 잘못된 인자: {string.Join(", ", e.Args)}\n", Encoding.UTF8);
-                window.UpdateStatus("잘못된 실행 인자입니다.");
-                Task.Delay(3000).ContinueWith(_ => Shutdown());
+                string errorMsg = $"잘못된 인자 개수입니다. 예상: 3개, 실제: {e.Args.Length}개";
+                File.AppendAllText(debugLog, $"[ERROR] {errorMsg}\n", Encoding.UTF8);
+                File.AppendAllText(debugLog, "[ERROR] 필요한 인자: <zipPath> <installDir> <targetExe>\n", Encoding.UTF8);
+
+                window.UpdateStatus(errorMsg);
+                Task.Delay(5000).ContinueWith(_ => Shutdown()); // 더 긴 시간으로 변경하여 오류 메시지를 볼 수 있도록
                 return;
             }
 
@@ -45,9 +55,14 @@ namespace Updater
             string installDir = e.Args[1];
             string targetExe = e.Args[2];
 
+            // 인자 유효성 검사 및 로깅
+            File.AppendAllText(debugLog, $"[INFO] 파싱된 인자들:\n", Encoding.UTF8);
+            File.AppendAllText(debugLog, $"[INFO]   zipPath    = '{zipPath}'\n", Encoding.UTF8);
+            File.AppendAllText(debugLog, $"[INFO]   installDir = '{installDir}'\n", Encoding.UTF8);
+            File.AppendAllText(debugLog, $"[INFO]   targetExe  = '{targetExe}'\n", Encoding.UTF8);
+
             Task.Run(() => RunUpdaterAsync(zipPath, installDir, targetExe, window));
         }
-
         private async Task RunUpdaterAsync(string zipPath, string installDir, string targetExe, UpdateWindow window)
         {
             try
