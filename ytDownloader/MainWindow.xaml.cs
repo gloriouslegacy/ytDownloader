@@ -10,6 +10,8 @@ using System.Windows;
 using System.Windows.Navigation;
 using ytDownloader.Properties;
 
+// 2025-09-21 .NET 8.0, C# 12.0
+
 namespace ytDownloader
 {
     public partial class MainWindow : Window
