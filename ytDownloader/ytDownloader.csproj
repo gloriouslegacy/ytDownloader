@@ -7,17 +7,16 @@
 		<UseWPF>true</UseWPF>
 		<ImplicitUsings>enable</ImplicitUsings>
 		<ApplicationIcon>icon_ytDownloader.ico</ApplicationIcon>
-		<!-- 버전 정보 추가 -->
-		<Version>0.5.2</Version>
-		<AssemblyVersion>0.5.2.0</AssemblyVersion>
-		<FileVersion>0.5.2.0</FileVersion>
-		<InformationalVersion>0.5.2</InformationalVersion>	
-	</PropertyGroup>
 
+		<!-- 버전은 GitHub Actions에서 -p:Version으로 주입됨 -->
+		<Version>0.0.0</Version>
+		<AssemblyName>ytDownloader</AssemblyName>
+	</PropertyGroup>
 
 	<!-- WPF용 외부 패키지 -->
 	<ItemGroup>
 		<PackageReference Include="Ookii.Dialogs.Wpf" Version="5.0.1" />
+		<PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
 	</ItemGroup>
 
 	<!-- Settings.settings & Settings.Designer.cs -->
@@ -32,7 +31,6 @@
 			<LastGenOutput>Settings.Designer.cs</LastGenOutput>
 		</None>
 		<Resource Include="Assets\logo.png" />
-		<PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
 	</ItemGroup>
 
 </Project>

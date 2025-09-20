@@ -22,7 +22,7 @@ jobs:
         with:
           dotnet-version: 8.0.x
 
-      # 버전 계산
+      # 태그에서 버전 추출
       - name: Determine version
         id: vars
         shell: bash
@@ -40,11 +40,11 @@ jobs:
           echo "base_version=$base_version" >> $GITHUB_OUTPUT
           echo "release_name=$release_name" >> $GITHUB_OUTPUT
 
-      # WPF 앱 빌드
+      # WPF 앱 빌드 (버전 주입)
       - name: Build (ytDownloader WPF)
         run: dotnet publish ytDownloader/ytDownloader.csproj -c Release -r win-x64 --self-contained false -o publish/ytDownloader -p:Version=${{ steps.vars.outputs.version }}
 
-      # Updater 빌드 (PowerShell 직접 복사)
+      # Updater 빌드
       - name: Build (Updater)
         shell: pwsh
         run: |
@@ -67,7 +67,6 @@ jobs:
         shell: pwsh
         run: |
           mkdir dist
-          # ytDownloader ZIP (Updater 포함)
           mkdir dist/ytDownloader
           Copy-Item publish/ytDownloader/* dist/ytDownloader/ -Recurse
           
@@ -75,15 +74,13 @@ jobs:
           mkdir dist/ytDownloader/updater
           Copy-Item publish/Updater/* dist/ytDownloader/updater/ -Recurse
           
-          # 최종 구조 확인
-          Write-Host "=== 최종 패키징 구조 ==="
-          Get-ChildItem dist/ytDownloader -Recurse | Format-Table Name, Length, FullName
-          
+          # 불필요한 파일 제거
           if (Test-Path dist/ytDownloader/tools) { Remove-Item dist/ytDownloader/tools -Recurse -Force }
           Get-ChildItem dist/ytDownloader -Include *.pdb -Recurse | Remove-Item -Force
+          
+          # ✅ zip 이름 항상 고정
           Compress-Archive -Path dist/ytDownloader/* -DestinationPath yt_downloader.zip -Force
 
-          # Updater ZIP (여러 파일 포함)
           mkdir dist/Updater
           Copy-Item publish/Updater/* dist/Updater/ -Recurse
           Compress-Archive -Path dist/Updater/* -DestinationPath yt_updater.zip -Force
@@ -97,17 +94,17 @@ jobs:
           body: |
             📦 릴리스 안내
 
-            메인 프로그램: yt_downloader_${{ steps.vars.outputs.release_name }}.zip  
-            → 실행 파일, 필요한 DLL 및 updater 폴더 포함
+            메인 프로그램: **yt_downloader.zip**  
+            → 실행 파일(ytDownloader.exe), DLL, updater 폴더 포함
 
-            업데이트 도구: yt_updater_${{ steps.vars.outputs.release_name }}.zip  
-            → Updater.exe 및 실행에 필요한 DLL 포함 (수동 업데이트용)
+            업데이트 도구: **yt_updater.zip**  
+            → Updater.exe 및 DLL 포함 (수동 업데이트용)
 
-            ⚠️ 중요: 자동 업데이트 기능은 메인 ZIP의 updater 폴더를 사용합니다.  
+            ⚠️ 자동 업데이트는 메인 ZIP의 `updater` 폴더를 사용합니다.  
             별도 Updater ZIP은 수동 교체 시에만 사용하세요.
           files: |
-            yt_downloader_${{ steps.vars.outputs.release_name }}.zip
-            yt_updater_${{ steps.vars.outputs.release_name }}.zip
+            yt_downloader.zip
+            yt_updater.zip
           prerelease: ${{ !startsWith(github.ref, 'refs/tags/') }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
