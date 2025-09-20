@@ -3,43 +3,48 @@ name: Build and Release
 on:
   push:
     branches:
-      - main          # main 브랜치 push → Pre-release
+      - main      # main push → Pre-release
     tags:
-      - "v*"          # 태그 push (예: v1.0.0) → 정식 Release
+      - "v*"      # tag push (ex: v1.0.0) → Release
 
 jobs:
   build:
     runs-on: windows-latest
     permissions:
-      contents: write   # 릴리스/태그 작성 권한 필요
+      contents: write
 
     steps:
-      # 1. 코드 체크아웃
       - name: Checkout repository
         uses: actions/checkout@v3
 
-      # 2. .NET SDK 설정
       - name: Setup .NET
         uses: actions/setup-dotnet@v3
         with:
           dotnet-version: 8.0.x
 
-      # 3. ytDownloader 빌드 (WPF 앱)
-      - name: Build ytDownloader (WPF)
+      # WPF 메인 앱 빌드
+      - name: Build ytDownloader
         run: dotnet publish ytDownloader/ytDownloader.csproj -c Release -r win-x64 --self-contained false -o publish/ytDownloader
 
-      # 4. Updater 빌드 (단독 exe)
+      # Updater 빌드 (여러 파일 출력)
       - name: Build Updater
         run: dotnet publish Updater/Updater.csproj -c Release -r win-x64 --self-contained false -o publish/Updater
 
-      # 5. 아카이브 생성
-      - name: Package ytDownloader
-        run: Compress-Archive -Path publish/ytDownloader/* -DestinationPath yt_downloader_${{ github.ref_name }}.zip
+      # 릴리스 패키지 준비
+      - name: Prepare packages
+        shell: pwsh
+        run: |
+          mkdir dist
 
-      - name: Package Updater
-        run: Compress-Archive -Path publish/Updater/Updater.exe -DestinationPath yt_updater_${{ github.ref_name }}.zip
+          # ytDownloader 압축 (Updater.exe는 제외)
+          Copy-Item publish/ytDownloader/* dist/ytDownloader/ -Recurse
+          if (Test-Path dist/ytDownloader/Updater.exe) { Remove-Item dist/ytDownloader/Updater.exe }
+          Compress-Archive -Path dist/ytDownloader/* -DestinationPath yt_downloader_${{ github.ref_name }}.zip -Force
 
-      # 6. GitHub Release 생성
+          # Updater 압축 (여러 파일 포함)
+          Compress-Archive -Path publish/Updater/* -DestinationPath yt_updater_${{ github.ref_name }}.zip -Force
+
+      # GitHub Release
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:
@@ -49,15 +54,16 @@ jobs:
             📦 릴리스 안내
 
             메인 프로그램: yt_downloader_${{ github.ref_name }}.zip  
-            → 실행 파일 및 필요한 DLL 포함 (Updater.exe 제외)
+            → 실행 파일 및 DLL 포함 (Updater.exe 제외)
 
-            업데이트 도구: Updater.exe  
-            → 별도 Asset으로 제공됩니다. ZIP에는 포함되지 않습니다.
+            업데이트 도구: yt_updater_${{ github.ref_name }}.zip  
+            → Updater.exe + DLL + json 등 필요한 모든 파일 포함 (별도 Asset)
 
-            ⚠️ 중요: 자동 업데이트 기능은 ZIP만 다운로드합니다.  
-            Updater.exe는 설치 시 고정 배치되며, 필요시 Release에서 수동으로 교체할 수 있습니다.
+            ⚠️ 자동 업데이트는 메인 ZIP만 다운로드합니다.  
+            Updater는 설치 폴더에 항상 유지되며, 필요 시 교체하세요.
           files: |
             yt_downloader_${{ github.ref_name }}.zip
             yt_updater_${{ github.ref_name }}.zip
-          prerelease: ${{ github.ref_type == 'branch' }}
-
+          prerelease: ${{ !startsWith(github.ref, 'refs/tags/') }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
