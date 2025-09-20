@@ -82,43 +82,29 @@ jobs:
       - name: Build (Updater)
         run: dotnet publish Updater/Updater.csproj -c Release -r win-x64 --self-contained false -o publish/Updater
 
-      # 📌 릴리스 패키지 준비 (Updater.exe는 포함하지 않음)
+      # 📌 릴리스 패키지 준비 (Windows PowerShell 기반)
       - name: Prepare release package
         shell: pwsh
         run: |
           mkdir dist
+          # ytDownloader 패키지 (Updater.exe 제외)
           Copy-Item publish/ytDownloader/* dist/ -Recurse
-          # ❌ Updater.exe는 복사하지 않음 (별도 업로드 예정)
           if (Test-Path dist/tools) { Remove-Item dist/tools -Recurse -Force }
           Get-ChildItem dist -Include *.pdb -Recurse | Remove-Item -Force
           Compress-Archive -Path dist/* -DestinationPath yt_downloader_${{ steps.vars.outputs.release_name }}.zip -Force
 
-      # 📌 GitHub Release 생성 (메인 ZIP 업로드)
+          # Updater 전용 패키지 (Updater.exe 단독)
+          Compress-Archive -Path publish/Updater/Updater.exe -DestinationPath yt_updater_${{ steps.vars.outputs.release_name }}.zip -Force
+
+      # 📌 GitHub Release 생성
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v1
         with:
           tag_name: v${{ steps.vars.outputs.base_version }}
           name: Release ${{ steps.vars.outputs.release_name }}
-          files: yt_downloader_${{ steps.vars.outputs.release_name }}.zip
+          files: |
+            yt_downloader_${{ steps.vars.outputs.release_name }}.zip
+            yt_updater_${{ steps.vars.outputs.release_name }}.zip
           prerelease: ${{ !startsWith(github.ref, 'refs/tags/') }}
-          body: |
-            ## 📦 릴리스 안내
-
-            - 메인 프로그램: `yt_downloader_${{ steps.vars.outputs.release_name }}.zip`
-              → 실행 파일 및 필요한 DLL 포함 (Updater.exe 제외)
-            - 업데이트 도구: `Updater.exe`
-              → 별도 Asset으로 제공됩니다. ZIP에는 포함되지 않습니다.
-
-            ⚠️ **중요:** 자동 업데이트 기능은 ZIP만 다운로드합니다.  
-            `Updater.exe`는 설치 시 고정 배치되며, 필요시 Release에서 수동으로 교체할 수 있습니다.
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-      # 📌 Updater.exe 별도 업로드
-      - name: Upload Updater.exe
-        uses: softprops/action-gh-release@v1
-        with:
-          tag_name: v${{ steps.vars.outputs.base_version }}
-          files: publish/Updater/Updater.exe
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
