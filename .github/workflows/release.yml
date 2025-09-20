@@ -46,7 +46,8 @@ jobs:
 
       # Updater 빌드 (WPF, 여러 파일 강제)
       - name: Build (Updater)
-        run: dotnet publish Updater/Updater.csproj -c Release -r win-x64 --self-contained false -o publish/Updater -p:Version=${{ steps.vars.outputs.version }}
+        # run: dotnet publish Updater/Updater.csproj -c Release -r win-x64 --self-contained false -o publish/Updater -p:Version=${{ steps.vars.outputs.version }}
+        run: dotnet publish Updater/Updater.csproj -c Release -r win-x64 --self-contained true -p:PublishSingleFile=false -p:PublishTrimmed=false -o publish/Updater -p:Version=${{ steps.vars.outputs.version }}
         # run: dotnet publish Updater/Updater.csproj -c Release -r win-x64 --self-contained false -p:PublishSingleFile=false -p:PublishTrimmed=false -o publish/Updater -p:Version=${{ steps.vars.outputs.version }}
       # 빌드 결과 확인 (디버깅용)
       - name: List build output
