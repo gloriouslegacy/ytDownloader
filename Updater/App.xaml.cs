@@ -103,7 +103,7 @@ namespace Updater
                     {
                         File.AppendAllText(logFile, $"[INFO] 프로세스 대기 중: {proc.ProcessName} (PID: {proc.Id})\n", Encoding.UTF8);
 
-                        if (!proc.WaitForExit(2000)) // 2초 대기
+                        if (!proc.WaitForExit(4000)) // 4초 대기
                         {
                             File.AppendAllText(logFile, $"[WARNING] 프로세스가 종료되지 않음: {proc.ProcessName}\n", Encoding.UTF8);
                         }
