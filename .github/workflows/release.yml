@@ -44,9 +44,19 @@ jobs:
       - name: Build (ytDownloader WPF)
         run: dotnet publish ytDownloader/ytDownloader.csproj -c Release -r win-x64 --self-contained false -o publish/ytDownloader -p:Version=${{ steps.vars.outputs.version }}
 
-      # Updater 빌드 (WPF, 여러 파일 필요)
+      # Updater 빌드 (WPF, 여러 파일 강제)
       - name: Build (Updater)
-        run: dotnet publish Updater/Updater.csproj -c Release -r win-x64 --self-contained false -o publish/Updater -p:Version=${{ steps.vars.outputs.version }}
+        run: dotnet publish Updater/Updater.csproj -c Release -r win-x64 --self-contained false -p:PublishSingleFile=false -p:PublishTrimmed=false -o publish/Updater -p:Version=${{ steps.vars.outputs.version }}
+
+      # 빌드 결과 확인 (디버깅용)
+      - name: List build output
+        shell: pwsh
+        run: |
+          Write-Host "=== ytDownloader 빌드 결과 ==="
+          Get-ChildItem publish/ytDownloader -Recurse | Format-Table Name, Length, FullName
+          
+          Write-Host "`n=== Updater 빌드 결과 ==="
+          Get-ChildItem publish/Updater -Recurse | Format-Table Name, Length, FullName
 
       # 릴리스 패키지 준비
       - name: Prepare dist
@@ -60,6 +70,10 @@ jobs:
           # Updater 파일들을 updater 서브폴더에 복사
           mkdir dist/ytDownloader/updater
           Copy-Item publish/Updater/* dist/ytDownloader/updater/ -Recurse
+          
+          # 최종 구조 확인
+          Write-Host "=== 최종 패키징 구조 ==="
+          Get-ChildItem dist/ytDownloader -Recurse | Format-Table Name, Length, FullName
           
           if (Test-Path dist/ytDownloader/tools) { Remove-Item dist/ytDownloader/tools -Recurse -Force }
           Get-ChildItem dist/ytDownloader -Include *.pdb -Recurse | Remove-Item -Force

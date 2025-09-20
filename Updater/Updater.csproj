@@ -8,10 +8,15 @@
 		<Nullable>enable</Nullable>
 		<AssemblyName>Updater</AssemblyName>
 
-		<!-- 단일 파일 빌드 옵션 제거 -->
+		<!-- 명시적으로 여러 파일 빌드 설정 -->
 		<SelfContained>false</SelfContained>
 		<PublishSingleFile>false</PublishSingleFile>
 		<PublishTrimmed>false</PublishTrimmed>
+
+		<!-- 런타임 의존성 복사 강제 
+		<CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
+		<PreserveCompilationContext>true</PreserveCompilationContext> -->
+
 	</PropertyGroup>
 
 </Project>
