@@ -208,7 +208,7 @@ namespace ytDownloader
                     FileName = updaterPath,
                     Arguments = $"\"{tempZip}\" \"{installDir}\" \"{targetExe}\"",
                     UseShellExecute = true,
-                    Verb = "runas" // ✅ UAC 관리자 권한 요청
+                    Verb = "runas" // UAC 관리자 권한 요청
                 };
 
                 if (Process.Start(psi) == null)
