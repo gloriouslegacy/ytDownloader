@@ -7,11 +7,27 @@ namespace Updater
 {
     internal class Program
     {
+        private static readonly string LogFile =
+            Path.Combine(Path.GetTempPath(), "ytDownloader_updater.log");
+
+        static void Log(string msg, bool isError = false)
+        {
+            string line = $"[{DateTime.Now:yyyy-MM-dd HH:mm:ss}] {msg}";
+            File.AppendAllText(LogFile, line + Environment.NewLine);
+
+            if (isError)
+                Console.Error.WriteLine(line);
+            else
+                Console.WriteLine(line);
+        }
+
         static int Main(string[] args)
         {
+            Log("=== Updater 시작 ===");
+
             if (args.Length < 3)
             {
-                Console.Error.WriteLine("Usage: Updater <zipPath> <installDir> <targetExe>");
+                Log("❌ 인자가 부족합니다. (Usage: Updater <zipPath> <installDir> <targetExe>)", true);
                 return 1;
             }
 
@@ -19,42 +35,90 @@ namespace Updater
             string installDir = args[1];
             string targetExe = args[2];
 
+            Log($"zipPath   = {zipPath}");
+            Log($"installDir= {installDir}");
+            Log($"targetExe = {targetExe}");
+
             try
             {
-                Console.WriteLine("[Updater] 업데이트 시작...");
                 if (!File.Exists(zipPath))
                 {
-                    Console.Error.WriteLine("[Updater] ZIP 파일이 존재하지 않습니다: " + zipPath);
+                    Log("❌ ZIP 파일을 찾을 수 없습니다.", true);
                     return 1;
                 }
 
-                // ZIP 유효성 검사
+                // 1) ZIP 유효성 검사
+                Log("📦 ZIP 유효성 검사 중...");
                 using (var archive = ZipFile.OpenRead(zipPath))
                 {
                     if (archive.Entries.Count == 0)
                     {
-                        Console.Error.WriteLine("[Updater] ZIP 파일이 비어 있습니다.");
+                        Log("❌ ZIP 파일이 비어 있습니다.", true);
                         return 1;
                     }
                 }
+                Log("✅ ZIP 유효성 검사 완료");
 
-                // 기존 파일들 덮어쓰기
-                ZipFile.ExtractToDirectory(zipPath, installDir, overwriteFiles: true);
-                Console.WriteLine("[Updater] 압축 해제 완료");
+                // 2) 기존 프로세스 종료 대기
+                string procName = Path.GetFileNameWithoutExtension(targetExe);
+                foreach (var p in Process.GetProcessesByName(procName))
+                {
+                    try
+                    {
+                        Log($"⏳ 기존 프로세스 종료 대기: {p.ProcessName} (PID {p.Id})");
+                        p.Kill();
+                        p.WaitForExit();
+                        Log("✅ 기존 프로세스 종료됨");
+                    }
+                    catch (Exception ex)
+                    {
+                        Log("⚠ 기존 프로세스 종료 실패: " + ex.Message, true);
+                    }
+                }
 
-                // 프로그램 다시 실행
+                // 3) 압축 해제 (덮어쓰기, tools/ 제외)
+                Log("📂 압축 해제 시작...");
+                using (var archive = ZipFile.OpenRead(zipPath))
+                {
+                    foreach (var entry in archive.Entries)
+                    {
+                        var name = entry.FullName.Replace('\\', '/');
+                        if (name.StartsWith("tools/", StringComparison.OrdinalIgnoreCase))
+                        {
+                            Log($"➡️  제외됨: {entry.FullName}");
+                            continue;
+                        }
+
+                        string dest = Path.Combine(installDir, entry.FullName);
+
+                        if (string.IsNullOrEmpty(entry.Name))
+                        {
+                            Directory.CreateDirectory(dest);
+                            continue;
+                        }
+
+                        Directory.CreateDirectory(Path.GetDirectoryName(dest)!);
+                        entry.ExtractToFile(dest, true);
+                        Log($"📄 교체됨: {entry.FullName}");
+                    }
+                }
+                Log("✅ 압축 해제 완료");
+
+                // 4) 새 프로그램 실행
+                Log("🚀 새 버전 실행 중...");
                 Process.Start(new ProcessStartInfo
                 {
                     FileName = targetExe,
-                    WorkingDirectory = installDir
+                    WorkingDirectory = installDir,
+                    UseShellExecute = true
                 });
 
-                Console.WriteLine("[Updater] 업데이트가 완료되었습니다.");
+                Log("🎉 업데이트 완료");
                 return 0;
             }
             catch (Exception ex)
             {
-                Console.Error.WriteLine("[Updater] 업데이트 실패: " + ex.Message);
+                Log("❌ 업데이트 실패: " + ex, true);
                 return 1;
             }
         }

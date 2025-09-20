@@ -26,8 +26,8 @@ namespace ytDownloader
             InitializeComponent();
             LoadSettings();
 
-            UpdateYtDlp(); // 실행 시 자동 업데이트
-            _ = CheckForUpdate();   // GitHub Release 최신 버전 확인 (비동기 실행)
+            UpdateYtDlp();     
+            _ = CheckForUpdate();          
         }
 
         private void UpdateYtDlp()
@@ -83,7 +83,6 @@ namespace ytDownloader
                 using var httpClient = new HttpClient();
                 httpClient.DefaultRequestHeaders.UserAgent.ParseAdd("ytDownloader/1.0");
 
-                // 📌 GitHub Release API 호출 (정식 + Pre-release 포함)
                 var response = await httpClient.GetAsync("https://api.github.com/repos/gloriouslegacy/ytDownloader/releases");
                 if (!response.IsSuccessStatusCode)
                 {
@@ -92,7 +91,7 @@ namespace ytDownloader
                 }
 
                 var json = await response.Content.ReadAsStringAsync();
-                var releases = JArray.Parse(json); // ✅ JSON 배열 파싱
+                var releases = JArray.Parse(json);     
 
                 if (releases == null || releases.Count == 0)
                 {
@@ -100,18 +99,15 @@ namespace ytDownloader
                     return;
                 }
 
-                // 최신 Release (첫 번째 항목이 최신)
                 var latest = releases[0];
                 string latestTag = latest["tag_name"]?.ToString() ?? "";
                 bool isPre = latest["prerelease"]?.ToObject<bool>() ?? false;
 
-                // 현재 실행 중인 어셈블리 버전 가져오기
                 string currentVersion = Assembly
                     .GetExecutingAssembly()
                     .GetCustomAttribute<AssemblyInformationalVersionAttribute>()?
                     .InformationalVersion ?? "0.0.0";
 
-                // v 접두사 제거 후 비교
                 string latestTagClean = latestTag.StartsWith("v", StringComparison.OrdinalIgnoreCase)
                     ? latestTag.Substring(1)
                     : latestTag;
@@ -124,7 +120,6 @@ namespace ytDownloader
                         if (MessageBox.Show($"새 {preMsg} {latestTag} 버전이 있습니다. 업데이트 하시겠습니까?",
                             "업데이트 확인", MessageBoxButton.YesNo, MessageBoxImage.Question) == MessageBoxResult.Yes)
                         {
-                            // 최신 릴리스 ZIP 다운로드 링크 (zip 필터링)
                             var zipAsset = latest["assets"]?
                                 .FirstOrDefault(a => a["name"]?.ToString().EndsWith(".zip", StringComparison.OrdinalIgnoreCase) == true);
 
@@ -133,7 +128,7 @@ namespace ytDownloader
                                 string assetUrl = zipAsset["browser_download_url"]?.ToString();
                                 if (!string.IsNullOrEmpty(assetUrl))
                                 {
-                                    _ = RunUpdateAsync(assetUrl); // 📌 업데이트 실행
+                                    _ = RunUpdateAsync(assetUrl);    
                                 }
                             }
                             else
@@ -156,19 +151,17 @@ namespace ytDownloader
 
 
 
-        // ETA 계산 → "hh:mm:ss" 또는 "mm:ss" 포맷
         string FormatEta(double seconds)
         {
             if (seconds < 0) return "--:--";
             TimeSpan ts = TimeSpan.FromSeconds(seconds);
 
             if (ts.TotalHours >= 1)
-                return $"{(int)ts.TotalHours:D2}:{ts.Minutes:D2}:{ts.Seconds:D2}"; // hh:mm:ss
+                return $"{(int)ts.TotalHours:D2}:{ts.Minutes:D2}:{ts.Seconds:D2}";  
             else
-                return $"{(int)ts.TotalMinutes:D2}:{ts.Seconds:D2}"; // mm:ss
+                return $"{(int)ts.TotalMinutes:D2}:{ts.Seconds:D2}";  
         }
 
-        // 용량 자동 변환 (B, KB, MB, GB)
         string FormatSize(double bytes)
         {
             if (bytes < 1024) return $"{bytes:F0} B";
@@ -180,12 +173,18 @@ namespace ytDownloader
             return $"{gb:F2} GB";
         }
 
-        // 속도 자동 변환 (B/s, KB/s, MB/s, GB/s)
+        string FormatSpeed(double bps)
+            {
+                if (bps <= 0) return "-";
+                if (bps < 1024) return $"{bps:F0} B/s";
+                if (bps < 1024 * 1024) return $"{bps / 1024:F1} KB/s";
+                return $"{bps / (1024 * 1024):F1} MB/s";
+            }
+       
+        
+
         private async Task RunUpdateAsync(string zipUrl)
         {
-            string logFile = Path.Combine(Path.GetTempPath(), "ytDownloader_update_launcher.log");
-            void Log(string m) => File.AppendAllText(logFile, $"[{DateTime.Now:HH:mm:ss}] {m}\r\n");
-
             var updateWindow = new UpdateWindow();
             updateWindow.Show();
 
@@ -193,72 +192,64 @@ namespace ytDownloader
             {
                 try
                 {
-                    using var http = new HttpClient();
-                    http.DefaultRequestHeaders.UserAgent.ParseAdd("ytDownloader-Updater");
-
+                    using var httpClient = new HttpClient();
                     string tempZip = Path.Combine(Path.GetTempPath(), "ytDownloader_update.zip");
-                    Log($"zipUrl     = {zipUrl}");
-                    Log($"tempZip    = {tempZip}");
 
-                    // ── 1) ZIP 스트리밍 다운로드 (진행바/속도/ETA 갱신)
-                    using var resp = await http.GetAsync(zipUrl, HttpCompletionOption.ResponseHeadersRead);
-                    resp.EnsureSuccessStatusCode();
-
-                    var total = resp.Content.Headers.ContentLength ?? -1L;
-                    var buffer = new byte[81920];
-                    long readTotal = 0;
-                    var sw = Stopwatch.StartNew();
-
-                    await using var src = await resp.Content.ReadAsStreamAsync();
-                    await using var dst = new FileStream(tempZip, FileMode.Create, FileAccess.Write, FileShare.None);
-
-                    int read;
-                    while ((read = await src.ReadAsync(buffer, 0, buffer.Length)) > 0)
+                    using (var response = await httpClient.GetAsync(zipUrl, HttpCompletionOption.ResponseHeadersRead))
                     {
-                        await dst.WriteAsync(buffer, 0, read);
-                        readTotal += read;
+                        response.EnsureSuccessStatusCode();
+                        var contentLength = response.Content.Headers.ContentLength ?? -1L;
 
-                        if (total > 0)
+                        await using var stream = await response.Content.ReadAsStreamAsync();
+                        await using var fs = new FileStream(tempZip, FileMode.Create, FileAccess.Write, FileShare.None);
+
+                        var buffer = new byte[81920];
+                        long totalRead = 0;
+                        int read;
+                        var sw = Stopwatch.StartNew();
+
+                        while ((read = await stream.ReadAsync(buffer, 0, buffer.Length)) > 0)
                         {
-                            double pct = readTotal * 100.0 / total;
-                            double spd = readTotal / Math.Max(0.001, sw.Elapsed.TotalSeconds); // B/s
-                            double eta = (total - readTotal) / Math.Max(1, spd);
+                            await fs.WriteAsync(buffer, 0, read);
+                            totalRead += read;
 
-                            Dispatcher.Invoke(() =>
+                            if (contentLength > 0)
                             {
-                                updateWindow.UpdateProgress(pct, FormatSpeed(spd),
-                                    $"{TimeSpan.FromSeconds(eta):mm\\:ss}");
-                            });
+                                double percent = (double)totalRead / contentLength * 100.0;
+                                double speed = totalRead / sw.Elapsed.TotalSeconds;
+                                double eta = (contentLength - totalRead) / (speed > 0 ? speed : 1);
+
+                                Dispatcher.Invoke(() =>
+                                {
+                                    updateWindow.UpdateProgress(
+                                        percent,
+                                        FormatSpeed(speed),
+                                        $"{FormatEta(eta)} 남음"
+                                    );
+                                });
+                            }
                         }
                     }
 
-                    // 2) 다운로드 완료 UI
-                    Dispatcher.Invoke(() =>
-                    {
-                        updateWindow.UpdateProgress(100, "-", "-");
-                        updateWindow.SetStatus("다운로드 완료. 업데이트 적용 중...");
-                    });
-
-                    // ── 3) Updater.exe 실행(관리자) → 파일 교체 & 완료 알림은 Updater에서
                     string baseDir = AppDomain.CurrentDomain.BaseDirectory;
-                    string updaterExe = Path.Combine(baseDir, "Updater.exe");
+                    string updaterPath = Path.Combine(baseDir, "Updater.exe");
                     string targetExe = Process.GetCurrentProcess().MainModule!.FileName;
-
-                    Log($"updaterExe = {updaterExe}");
-                    Log($"installDir = {baseDir}");
-                    Log($"targetExe  = {targetExe}");
 
                     var psi = new ProcessStartInfo
                     {
-                        FileName = updaterExe,
+                        FileName = updaterPath,
                         Arguments = $"\"{tempZip}\" \"{baseDir}\" \"{targetExe}\"",
-                        UseShellExecute = true,
-                        Verb = "runas",                 // UAC
-                        WorkingDirectory = baseDir
+                        WorkingDirectory = baseDir,
+                        UseShellExecute = true
                     };
+
+                    AppendOutput("[RunUpdateAsync] Launching Updater.exe");
+                    AppendOutput($"FileName  = {psi.FileName}");
+                    AppendOutput($"Arguments = {psi.Arguments}");
+                    AppendOutput($"WorkingDir= {psi.WorkingDirectory}");
+
                     Process.Start(psi);
 
-                    // 4) 메인앱 종료 (Updater가 교체 후 재실행)
                     Dispatcher.Invoke(() =>
                     {
                         updateWindow.Close();
@@ -267,25 +258,19 @@ namespace ytDownloader
                 }
                 catch (Exception ex)
                 {
-                    Log("RunUpdateAsync error: " + ex);
                     Dispatcher.Invoke(() =>
                     {
                         updateWindow.Close();
                         MessageBox.Show("업데이트 실패: " + ex.Message,
-                            "업데이트 오류", MessageBoxButton.OK, MessageBoxImage.Error);
+                            "업데이트 오류",
+                            MessageBoxButton.OK, MessageBoxImage.Error);
                     });
                 }
             });
-
-            // 보조 포맷 함수들
-            string FormatSpeed(double bps)
-            {
-                if (bps <= 0) return "-";
-                if (bps < 1024) return $"{bps:F0} B/s";
-                if (bps < 1024 * 1024) return $"{bps / 1024:F1} KB/s";
-                return $"{bps / (1024 * 1024):F1} MB/s";
-            }
         }
+
+
+                
 
 
 
@@ -355,51 +340,49 @@ namespace ytDownloader
 
             Directory.CreateDirectory(savePath);
 
-            // 날짜/시간 태그 생성
             string timestamp = DateTime.Now.ToString("yyyyMMdd_HHmmss");
 
             StringBuilder args = new StringBuilder();
 
-            // 포맷에 따라 파일명 패턴 다르게 지정
-            if (comboFormat.SelectedIndex == 0) // 영상 (최고화질)
+            if (comboFormat.SelectedIndex == 0)   
             {
                 string outputTemplate = $"%(title)s_{timestamp}_best.%(ext)s";
                 args.Append($"-o \"{Path.Combine(savePath, outputTemplate)}\" ");
                 args.Append("-f bestvideo+bestaudio ");
             }
-            else if (comboFormat.SelectedIndex == 1) // 영상 (1080p)
+            else if (comboFormat.SelectedIndex == 1)   
             {
                 string outputTemplate = $"%(title)s_{timestamp}_1080p.%(ext)s";
                 args.Append($"-o \"{Path.Combine(savePath, outputTemplate)}\" ");
                 args.Append("-f \"bestvideo[height=1080]+bestaudio/best[height=1080]\" ");
             }
-            else if (comboFormat.SelectedIndex == 2) // 영상 (720p)
+            else if (comboFormat.SelectedIndex == 2)   
             {
                 string outputTemplate = $"%(title)s_{timestamp}_720p.%(ext)s";
                 args.Append($"-o \"{Path.Combine(savePath, outputTemplate)}\" ");
                 args.Append("-f \"bestvideo[height=720]+bestaudio/best[height=720]\" ");
             }
-            else if (comboFormat.SelectedIndex == 3) // 영상 (480p)
+            else if (comboFormat.SelectedIndex == 3)   
             {
                 string outputTemplate = $"%(title)s_{timestamp}_480p.%(ext)s";
                 args.Append($"-o \"{Path.Combine(savePath, outputTemplate)}\" ");
                 args.Append("-f \"bestvideo[height=480]+bestaudio/best[height=480]\" ");
             }
-            else if (comboFormat.SelectedIndex == 4) // 음악 (MP3)
+            else if (comboFormat.SelectedIndex == 4)   
             {
                 string outputTemplate = $"%(title)s_{timestamp}_audio_mp3.%(ext)s";
                 args.Append($"-o \"{Path.Combine(savePath, outputTemplate)}\" ");
                 args.Append("--extract-audio --audio-format mp3 --audio-quality 0 ");
                 args.Append("--embed-thumbnail --add-metadata ");
             }
-            else if (comboFormat.SelectedIndex == 5) // 음악 (Best - 원본 유지)
+            else if (comboFormat.SelectedIndex == 5)      
             {
                 string outputTemplate = $"%(title)s_{timestamp}_audio_best.%(ext)s";
                 args.Append($"-o \"{Path.Combine(savePath, outputTemplate)}\" ");
                 args.Append("--extract-audio --audio-format best ");
                 args.Append("--embed-thumbnail --add-metadata ");
             }
-            else if (comboFormat.SelectedIndex == 6) // 음악 (FLAC - 무손실 변환)
+            else if (comboFormat.SelectedIndex == 6)      
             {
                 string outputTemplate = $"%(title)s_{timestamp}_audio_flac.%(ext)s";
                 args.Append($"-o \"{Path.Combine(savePath, outputTemplate)}\" ");
@@ -417,7 +400,6 @@ namespace ytDownloader
 
             if (ChkStructuredFolders.IsChecked == true)
             {
-                // 구조적 폴더를 사용할 경우에도 동일하게 timestamp 적용
                 string structuredTemplate = $"%(uploader)s/%(playlist)s/%(title)s_{timestamp}_%(ext)s.%(ext)s";
                 args.Append($"-o \"{Path.Combine(savePath, structuredTemplate)}\" ");
             }
@@ -554,7 +536,6 @@ namespace ytDownloader
             SubtitleLangComboBox.Items.Add("de");
             SubtitleLangComboBox.SelectedIndex = 0;
 
-            // 자막 포맷 목록
             SubtitleFormatComboBox.Items.Clear();
             SubtitleFormatComboBox.Items.Add("srt");
             SubtitleFormatComboBox.Items.Add("vtt");
