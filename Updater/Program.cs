@@ -10,7 +10,7 @@ namespace Updater
         private static readonly string LogFile =
             Path.Combine(Path.GetTempPath(), "ytDownloader_updater.log");
 
-        static void Log(string msg, bool isError = false)
+        private static void Log(string msg, bool isError = false)
         {
             string line = $"[{DateTime.Now:yyyy-MM-dd HH:mm:ss}] {msg}";
             File.AppendAllText(LogFile, line + Environment.NewLine);
@@ -21,32 +21,35 @@ namespace Updater
 
         static int Main(string[] args)
         {
-            Log("=== Updater 시작 ===");
-
-            if (args.Length < 3)
-            {
-                Log("❌ 인자가 부족합니다. (Usage: Updater <zipPath> <installDir> <targetExe>)", true);
-                return 1;
-            }
-
-            string zipPath = args[0];
-            string installDir = args[1];
-            string targetExe = args[2];
-
-            Log($"zipPath   = {zipPath}");
-            Log($"installDir= {installDir}");
-            Log($"targetExe = {targetExe}");
-
             try
             {
-                if (!File.Exists(zipPath))
+                // 무조건 진입 로그
+                Log("=== Updater 진입 ===");
+                Log($"args.Length = {args.Length}, args = {string.Join(" | ", args)}");
+
+                if (args.Length < 3)
                 {
-                    Log("❌ ZIP 파일을 찾을 수 없습니다.", true);
+                    Log("❌ 인자가 부족합니다. (Usage: Updater <zipPath> <installDir> <targetExe>)", true);
                     return 1;
                 }
 
-                // 1) ZIP 유효성 검사
-                Log("📦 ZIP 유효성 검사 중...");
+                string zipPath = args[0];
+                string installDir = args[1];
+                string targetExe = args[2];
+
+                Log($"zipPath   = {zipPath}");
+                Log($"installDir= {installDir}");
+                Log($"targetExe = {targetExe}");
+
+                // 1) ZIP 파일 존재 확인
+                if (!File.Exists(zipPath))
+                {
+                    Log("❌ ZIP 파일이 존재하지 않습니다.", true);
+                    return 1;
+                }
+
+                // 2) ZIP 유효성 검사
+                Log("📦 ZIP 유효성 검사...");
                 using (var archive = ZipFile.OpenRead(zipPath))
                 {
                     if (archive.Entries.Count == 0)
@@ -57,7 +60,7 @@ namespace Updater
                 }
                 Log("✅ ZIP 유효성 검사 완료");
 
-                // 2) 기존 프로세스 종료
+                // 3) 기존 프로세스 종료
                 string procName = Path.GetFileNameWithoutExtension(targetExe);
                 foreach (var p in Process.GetProcessesByName(procName))
                 {
@@ -74,7 +77,7 @@ namespace Updater
                     }
                 }
 
-                // 3) 압축 해제 (tools 제외)
+                // 4) 압축 해제 (tools 제외)
                 Log("📂 압축 해제 시작...");
                 using (var archive = ZipFile.OpenRead(zipPath))
                 {
@@ -102,14 +105,14 @@ namespace Updater
                 }
                 Log("✅ 압축 해제 완료");
 
-                // 4) 새 프로그램 실행
-                Log("🚀 새 버전 실행 준비...");
+                // 5) 새 프로그램 실행
+                Log("🚀 새 버전 실행...");
                 Process.Start(new ProcessStartInfo
                 {
                     FileName = targetExe,
                     WorkingDirectory = installDir,
                     UseShellExecute = true,
-                    Verb = "runas" // ✅ 관리자 권한 요청
+                    Verb = "runas" // 관리자 권한 요청
                 });
 
                 Log("🎉 업데이트 완료 - 새 버전 실행됨");
@@ -117,7 +120,7 @@ namespace Updater
             }
             catch (Exception ex)
             {
-                Log("❌ 업데이트 실패: " + ex, true);
+                Log("❌ 업데이트 중 예외 발생: " + ex, true);
                 return 1;
             }
             finally
