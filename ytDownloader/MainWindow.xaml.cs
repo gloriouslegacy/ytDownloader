@@ -276,13 +276,15 @@ namespace ytDownloader
                 // Updater.exe 경로
                 string updaterPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Updater.exe");
 
-                // 설치 경로 (마지막 \ 제거)
-                string installDir = AppDomain.CurrentDomain.BaseDirectory.TrimEnd('\\');
-
                 // 현재 실행 중인 exe
                 string targetExe = Process.GetCurrentProcess().MainModule!.FileName;
 
+                // 설치 경로 (마지막 \ 제거)
+                //string installDir = AppDomain.CurrentDomain.BaseDirectory.TrimEnd('\\');
+                string installDir = Path.GetDirectoryName(targetExe) ?? AppDomain.CurrentDomain.BaseDirectory;
+
                 // 인자 문자열
+                //string args = $"\"{tempZip}\" \"{installDir}\" \"{targetExe}\"";
                 string args = $"\"{tempZip}\" \"{installDir}\" \"{targetExe}\"";
 
                 AppendOutput("[INFO] Updater 실행 준비");

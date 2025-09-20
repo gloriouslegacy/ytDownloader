@@ -3,15 +3,15 @@ name: Build and Release
 on:
   push:
     branches:
-      - main      # main 브랜치 push → Pre-release
+      - main
     tags:
-      - "v*"      # 태그 push (예: v1.0.0) → 정식 Release
+      - "v*"
 
 jobs:
   build:
     runs-on: windows-latest
     permissions:
-      contents: write   # 릴리스/태그 작성 권한 필요
+      contents: write
 
     steps:
       - name: Checkout repository
@@ -22,51 +22,69 @@ jobs:
         with:
           dotnet-version: 8.0.x
 
-      # ytDownloader 빌드
-      - name: Build ytDownloader (WPF)
-        run: dotnet publish ytDownloader/ytDownloader.csproj -c Release -r win-x64 --self-contained false -o publish/ytDownloader
+      # 버전 계산
+      - name: Determine version
+        id: vars
+        shell: bash
+        run: |
+          if [[ "${GITHUB_REF}" == refs/tags/* ]]; then
+            base_version="${GITHUB_REF#refs/tags/v}"
+            version="$base_version"
+            release_name="$base_version"
+          else
+            version="0.0.0-dev-$(date +%Y%m%d)"
+            base_version="0.0.0-dev"
+            release_name="$version"
+          fi
+          echo "version=$version" >> $GITHUB_OUTPUT
+          echo "base_version=$base_version" >> $GITHUB_OUTPUT
+          echo "release_name=$release_name" >> $GITHUB_OUTPUT
 
-      # Updater 빌드
-      - name: Build Updater
-        run: dotnet publish Updater/Updater.csproj -c Release -r win-x64 --self-contained false -o publish/Updater
+      # WPF 앱 빌드
+      - name: Build (ytDownloader WPF)
+        run: dotnet publish ytDownloader/ytDownloader.csproj -c Release -r win-x64 --self-contained false -o publish/ytDownloader -p:Version=${{ steps.vars.outputs.version }}
 
-      # 패키징 준비
-      - name: Prepare packages
+      # Updater 빌드 (WPF, 여러 파일 필요)
+      - name: Build (Updater)
+        run: dotnet publish Updater/Updater.csproj -c Release -r win-x64 --self-contained false -o publish/Updater -p:Version=${{ steps.vars.outputs.version }}
+
+      # 릴리스 패키지 준비
+      - name: Prepare dist
+        shell: pwsh
         run: |
           mkdir dist
+          # ytDownloader ZIP (Updater 제외)
           mkdir dist/ytDownloader
-          mkdir dist/Updater
           Copy-Item publish/ytDownloader/* dist/ytDownloader/ -Recurse
+          if (Test-Path dist/ytDownloader/tools) { Remove-Item dist/ytDownloader/tools -Recurse -Force }
+          Get-ChildItem dist/ytDownloader -Include *.pdb -Recurse | Remove-Item -Force
+          Compress-Archive -Path dist/ytDownloader/* -DestinationPath yt_downloader_${{ steps.vars.outputs.release_name }}.zip -Force
+
+          # Updater ZIP (여러 파일 포함)
+          mkdir dist/Updater
           Copy-Item publish/Updater/* dist/Updater/ -Recurse
+          Compress-Archive -Path dist/Updater/* -DestinationPath yt_updater_${{ steps.vars.outputs.release_name }}.zip -Force
 
-      # 압축 (ytDownloader 전용)
-      - name: Zip ytDownloader
-        run: Compress-Archive -Path dist/ytDownloader/* -DestinationPath yt_downloader_${{ github.ref_name }}.zip
-
-      # 압축 (Updater 전용)
-      - name: Zip Updater
-        run: Compress-Archive -Path dist/Updater/* -DestinationPath yt_updater_${{ github.ref_name }}.zip
-
-      # 📌 GitHub Release 생성
+      # GitHub Release 생성
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: ${{ github.ref_name }}
-          name: Release ${{ github.ref_name }}
+          tag_name: v${{ steps.vars.outputs.base_version }}
+          name: Release ${{ steps.vars.outputs.release_name }}
           body: |
             📦 릴리스 안내
 
-            메인 프로그램: yt_downloader_${{ github.ref_name }}.zip  
-            → 실행 파일 및 필요한 DLL 포함 (Updater.exe 제외)
+            메인 프로그램: yt_downloader_${{ steps.vars.outputs.release_name }}.zip  
+            → 실행 파일 및 필요한 DLL 포함 (Updater 제외)
 
-            업데이트 도구: Updater.exe  
-            → 별도 Asset으로 제공됩니다. ZIP에는 포함되지 않습니다.
+            업데이트 도구: yt_updater_${{ steps.vars.outputs.release_name }}.zip  
+            → Updater.exe 및 실행에 필요한 DLL 포함 (자동 업데이트 ZIP에는 포함되지 않음)
 
-            ⚠️ 중요: 자동 업데이트 기능은 ZIP만 다운로드합니다.  
-            Updater.exe는 설치 시 고정 배치되며, 필요시 Release에서 수동으로 교체할 수 있습니다.
+            ⚠️ 중요: 자동 업데이트 기능은 메인 ZIP만 다운로드합니다.  
+            Updater는 수동으로 교체할 수 있습니다.
           files: |
-            yt_downloader_${{ github.ref_name }}.zip
-            yt_updater_${{ github.ref_name }}.zip
+            yt_downloader_${{ steps.vars.outputs.release_name }}.zip
+            yt_updater_${{ steps.vars.outputs.release_name }}.zip
           prerelease: ${{ !startsWith(github.ref, 'refs/tags/') }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
