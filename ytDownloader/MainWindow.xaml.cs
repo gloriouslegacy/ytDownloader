@@ -11,6 +11,16 @@ using System.Windows.Navigation;
 using ytDownloader.Properties;
 
 // 2025-09-21 .NET 8.0, C# 12.0
+// ✅ 자동 업데이트
+// ❌ 웹뷰 내장
+// ❌ 채널 예약 다운로드
+// ❌ 라이트 / 다크 모드 전환
+// ❌ 드래그 앤 드롭 
+// ❌ 다운로드 일시정지/재개
+// ❌ 다운로드 후 알림
+// ❌ 다국어 지원
+
+
 
 namespace ytDownloader
 {
