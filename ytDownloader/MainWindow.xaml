@@ -149,7 +149,7 @@
                             <Button
                                 Width="160"
                                 Click="btnChannelDownload_Click"
-                                Content="채널/재생목록 다운로드" />
+                                Content="채널 / 재생목록 다운로드" />
                         </DockPanel>
                         <TextBox
                             Name="txtChannelUrl"
