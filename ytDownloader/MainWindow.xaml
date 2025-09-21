@@ -121,6 +121,10 @@
                                 Width="80"
                                 Click="btnUrlsClear_Click"
                                 Content="지우기" />
+                            <Button
+                                Width="160"
+                                Click="btnDownload_Click"
+                                Content="URL 다운로드" />
                         </DockPanel>
                         <TextBox
                             Name="txtUrls"
@@ -142,6 +146,10 @@
                                 Width="80"
                                 Click="btnChannelClear_Click"
                                 Content="지우기" />
+                            <Button
+                                Width="160"
+                                Click="btnChannelDownload_Click"
+                                Content="채널/재생목록 다운로드" />
                         </DockPanel>
                         <TextBox
                             Name="txtChannelUrl"
@@ -189,7 +197,7 @@
 
                         <CheckBox Name="ChkSingleVideo" Content="단일 다운로드(재생목록 무시)" />
 
-                        <!--  다운로드 버튼을 우측 패널 하단에 배치  -->
+                        <!--  다운로드 버튼을 우측 패널 하단에 배치
                         <StackPanel
                             Margin="5,20,0,0"
                             HorizontalAlignment="Right"
@@ -202,7 +210,7 @@
                                 Width="140"
                                 Click="btnChannelDownload_Click"
                                 Content="채널 다운로드" />
-                        </StackPanel>
+                        </StackPanel>-->
                     </StackPanel>
                 </Grid>
 
