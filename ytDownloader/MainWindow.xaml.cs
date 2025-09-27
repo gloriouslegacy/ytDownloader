@@ -1,4 +1,4 @@
-﻿using Newtonsoft.Json.Linq;
+﻿﻿using Newtonsoft.Json.Linq;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
@@ -383,6 +383,9 @@ namespace ytDownloader
 
             StringBuilder args = new StringBuilder();
 
+            // 한글 출력을 위한 환경 변수 설정을 위해 args에 추가
+            args.Append("--encoding utf-8 ");
+
             if (comboFormat.SelectedIndex == 0)
             {
                 string outputTemplate = $"%(title)s_{timestamp}_best.%(ext)s";
@@ -428,6 +431,7 @@ namespace ytDownloader
                 args.Append("--extract-audio --audio-format flac ");
                 args.Append("--embed-thumbnail --add-metadata ");
             }
+
             if (ChkSingleVideo.IsChecked == true)
                 args.Append("--no-playlist ");
 
@@ -475,6 +479,10 @@ namespace ytDownloader
                         StandardErrorEncoding = Encoding.UTF8
                     };
 
+                    // 환경 변수 설정으로 UTF-8 출력 강제
+                    psi.EnvironmentVariables["PYTHONIOENCODING"] = "utf-8";
+                    psi.EnvironmentVariables["PYTHONUTF8"] = "1";
+
                     using (Process proc = new Process())
                     {
                         proc.StartInfo = psi;
@@ -482,9 +490,23 @@ namespace ytDownloader
                         {
                             if (!string.IsNullOrEmpty(e.Data))
                             {
-                                AppendOutput(e.Data);
+                                // UTF-8로 다시 디코딩 시도
+                                string decodedData = e.Data;
+                                try
+                                {
+                                    // CP949로 인코딩된 바이트를 UTF-8로 재해석
+                                    byte[] bytes = Encoding.GetEncoding("CP949").GetBytes(e.Data);
+                                    decodedData = Encoding.UTF8.GetString(bytes);
+                                }
+                                catch
+                                {
+                                    // 변환 실패시 원본 사용
+                                    decodedData = e.Data;
+                                }
 
-                                var match = Regex.Match(e.Data, @"(\d+(?:\.\d+)?)%.*?of.*?at\s+([0-9.]+\w+/s).*?ETA\s+([\d:]+)");
+                                AppendOutput(decodedData);
+
+                                var match = Regex.Match(decodedData, @"(\d+(?:\.\d+)?)%.*?of.*?at\s+([0-9.]+\w+/s).*?ETA\s+([\d:]+)");
                                 if (match.Success)
                                 {
                                     double percent = double.Parse(match.Groups[1].Value);
@@ -500,7 +522,25 @@ namespace ytDownloader
                                 }
                             }
                         };
-                        proc.ErrorDataReceived += (s, e) => { if (!string.IsNullOrEmpty(e.Data)) AppendOutput(e.Data); };
+
+                        proc.ErrorDataReceived += (s, e) =>
+                        {
+                            if (!string.IsNullOrEmpty(e.Data))
+                            {
+                                // 에러 출력도 동일하게 처리
+                                string decodedData = e.Data;
+                                try
+                                {
+                                    byte[] bytes = Encoding.GetEncoding("CP949").GetBytes(e.Data);
+                                    decodedData = Encoding.UTF8.GetString(bytes);
+                                }
+                                catch
+                                {
+                                    decodedData = e.Data;
+                                }
+                                AppendOutput(decodedData);
+                            }
+                        };
 
                         proc.Start();
                         proc.BeginOutputReadLine();
