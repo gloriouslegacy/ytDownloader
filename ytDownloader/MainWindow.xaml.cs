@@ -16,7 +16,7 @@ using ytDownloader.Properties;
 // ❌ 채널 예약 다운로드
 // ❌ 라이트 / 다크 모드 전환
 // ❌ 드래그 앤 드롭 
-// ❌ 다운로드 일시정지/재개
+// ❌ 다운로드 정지/일시정지/재개
 // ❌ 다운로드 후 알림
 // ❌ 다국어 지원
 
@@ -631,6 +631,34 @@ namespace ytDownloader
             });
             e.Handled = true;
         }
+
+        private void pgRestart_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                string exePath = Process.GetCurrentProcess().MainModule?.FileName ?? "";
+                if (string.IsNullOrWhiteSpace(exePath))
+                {
+                    MessageBox.Show("실행 파일 경로를 찾을 수 없습니다.", "오류", MessageBoxButton.OK, MessageBoxImage.Error);
+                    return;
+                }
+
+                // 현재 프로그램 다시 실행
+                Process.Start(new ProcessStartInfo
+                {
+                    FileName = exePath,
+                    UseShellExecute = true
+                });
+
+                // 현재 인스턴스 종료
+                Application.Current.Shutdown();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("프로그램 재시작 실패: " + ex.Message, "오류", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+        }
+
 
 
         private void Window_Closing(object sender, CancelEventArgs e) => SaveSettings();

@@ -211,6 +211,16 @@
                                 Click="btnChannelDownload_Click"
                                 Content="채널 다운로드" />
                         </StackPanel>-->
+                        <StackPanel
+                            Grid.Row="1"
+                            Margin="0,20,0,0"
+                            HorizontalAlignment="Right"
+                            Orientation="Horizontal">
+                            <Button
+                                Width="140"
+                                Click="pgRestart_Click"
+                                Content="프로그램 재시작" />
+                        </StackPanel>
                     </StackPanel>
                 </Grid>
 
