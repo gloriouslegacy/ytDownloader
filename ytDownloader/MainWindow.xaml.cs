@@ -40,6 +40,7 @@ namespace ytDownloader
             LoadSettings();
 
             UpdateYtDlp();
+            _ = UpdateFfmpeg();
             _ = CheckForUpdate();
         }
 
@@ -91,6 +92,8 @@ namespace ytDownloader
 
         private async Task UpdateFfmpeg()
         {
+            AppendOutput($"[DEBUG] ffmpegPath: {ffmpegPath}");
+            AppendOutput($"[DEBUG] File.Exists: {File.Exists(ffmpegPath)}");
             if (!File.Exists(ffmpegPath))
             {
                 AppendOutput("❌ ffmpeg.exe가 tools 폴더에 없습니다.");
