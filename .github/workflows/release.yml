@@ -79,11 +79,11 @@ jobs:
           Get-ChildItem dist/ytDownloader -Include *.pdb -Recurse | Remove-Item -Force
           
           # ✅ zip 이름 항상 고정
-          Compress-Archive -Path dist/ytDownloader/* -DestinationPath yt_downloader.zip -Force
+          Compress-Archive -Path dist/ytDownloader/* -DestinationPath ytdownloader.zip -Force
 
           mkdir dist/Updater
           Copy-Item publish/Updater/* dist/Updater/ -Recurse
-          Compress-Archive -Path dist/Updater/* -DestinationPath yt_updater.zip -Force
+          Compress-Archive -Path dist/Updater/* -DestinationPath ytupdater.zip -Force
 
       # GitHub Release 생성
       - name: Create GitHub Release
@@ -94,17 +94,17 @@ jobs:
           body: |
             📦 릴리스 안내
 
-            메인 프로그램: **yt_downloader.zip**  
+            메인 프로그램: **ytdownloader.zip**  
             → 실행 파일(ytDownloader.exe), DLL, updater 폴더 포함
 
-            업데이트 도구: **yt_updater.zip**  
+            업데이트 도구: **ytupdater.zip**  
             → Updater.exe 및 DLL 포함 (수동 업데이트용)
 
             ⚠️ 자동 업데이트는 메인 ZIP의 `updater` 폴더를 사용합니다.  
             별도 Updater ZIP은 수동 교체 시에만 사용하세요.
           files: |
-            yt_downloader.zip
-            yt_updater.zip
+            ytdownloader.zip
+            ytupdater.zip
           prerelease: ${{ !startsWith(github.ref, 'refs/tags/') }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

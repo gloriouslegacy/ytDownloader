@@ -1,4 +1,4 @@
-﻿﻿using Newtonsoft.Json.Linq;
+﻿using Newtonsoft.Json.Linq;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
@@ -39,70 +39,113 @@ namespace ytDownloader
             InitializeComponent();
             LoadSettings();
 
-            UpdateYtDlp();
-            _ = UpdateFfmpeg();
-            _ = CheckForUpdate();
+            if (!Directory.Exists(toolsPath))
+            {
+                Directory.CreateDirectory(toolsPath);
+            }
+
+            _ = UpdateToolsSequentially();
         }
 
-        private void UpdateYtDlp()
+        private async Task UpdateToolsSequentially()
+        {
+            await UpdateYtDlp();
+            await UpdateFfmpeg();
+            await CheckForUpdate();
+        }
+
+        private async Task UpdateYtDlp()
         {
             if (!File.Exists(ytdlpPath))
             {
-                AppendOutput("❌ yt-dlp.exe가 tools 폴더에 없습니다.");
-                return;
-            }
-
-            Task.Run(() =>
-            {
+                AppendOutput("⏳ yt-dlp.exe가 tools 폴더에 없습니다. 다운로드 중...");
                 try
                 {
-                    AppendOutput("⏳ yt-dlp 업데이트 확인 중...");
-                    ProcessStartInfo psi = new ProcessStartInfo
-                    {
-                        FileName = ytdlpPath,
-                        Arguments = "-U",
-                        RedirectStandardError = true,
-                        RedirectStandardOutput = true,
-                        UseShellExecute = false,
-                        CreateNoWindow = true,
-                        StandardOutputEncoding = Encoding.UTF8,
-                        StandardErrorEncoding = Encoding.UTF8
-                    };
+                    using var httpClient = new HttpClient();
+                    httpClient.DefaultRequestHeaders.UserAgent.ParseAdd("ytDownloader/1.0");
 
-                    using (Process proc = new Process())
+                    var response = await httpClient.GetAsync("https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp.exe");
+                    if (response.IsSuccessStatusCode)
                     {
-                        proc.StartInfo = psi;
-                        proc.OutputDataReceived += (s, ev) => { if (!string.IsNullOrEmpty(ev.Data)) AppendOutput(ev.Data); };
-                        proc.ErrorDataReceived += (s, ev) => { if (!string.IsNullOrEmpty(ev.Data)) AppendOutput(ev.Data); };
-
-                        proc.Start();
-                        proc.BeginOutputReadLine();
-                        proc.BeginErrorReadLine();
-                        proc.WaitForExit();
+                        var data = await response.Content.ReadAsByteArrayAsync();
+                        await File.WriteAllBytesAsync(ytdlpPath, data);
+                        AppendOutput("✅ yt-dlp.exe 다운로드 완료");
                     }
-
-                    AppendOutput("✅ yt-dlp 업데이트 확인 완료");
+                    else
+                    {
+                        AppendOutput($"❌ yt-dlp.exe 다운로드 실패: {response.StatusCode}");
+                        return;
+                    }
                 }
                 catch (Exception ex)
                 {
-                    AppendOutput("❌ 업데이트 오류: " + ex.Message);
+                    AppendOutput($"❌ yt-dlp.exe 다운로드 오류: {ex.Message}");
+                    return;
                 }
-            });
+            }
+
+            try
+            {
+                AppendOutput("⏳ yt-dlp 업데이트 확인 중...");
+                ProcessStartInfo psi = new ProcessStartInfo
+                {
+                    FileName = ytdlpPath,
+                    Arguments = "-U",
+                    RedirectStandardError = true,
+                    RedirectStandardOutput = true,
+                    UseShellExecute = false,
+                    CreateNoWindow = true,
+                    StandardOutputEncoding = Encoding.UTF8,
+                    StandardErrorEncoding = Encoding.UTF8
+                };
+
+                using (Process proc = new Process())
+                {
+                    proc.StartInfo = psi;
+                    proc.OutputDataReceived += (s, ev) => { if (!string.IsNullOrEmpty(ev.Data)) AppendOutput(ev.Data); };
+                    proc.ErrorDataReceived += (s, ev) => { if (!string.IsNullOrEmpty(ev.Data)) AppendOutput(ev.Data); };
+
+                    proc.Start();
+                    proc.BeginOutputReadLine();
+                    proc.BeginErrorReadLine();
+                    await proc.WaitForExitAsync();
+                }
+
+                AppendOutput("✅ yt-dlp 업데이트 확인 완료");
+            }
+            catch (Exception ex)
+            {
+                AppendOutput("❌ 업데이트 오류: " + ex.Message);
+            }
         }
 
         private async Task UpdateFfmpeg()
         {
             AppendOutput($"[DEBUG] ffmpegPath: {ffmpegPath}");
             AppendOutput($"[DEBUG] File.Exists: {File.Exists(ffmpegPath)}");
+
             if (!File.Exists(ffmpegPath))
             {
-                AppendOutput("❌ ffmpeg.exe가 tools 폴더에 없습니다.");
-                return;
+                AppendOutput("⏳ ffmpeg.exe가 tools 폴더에 없습니다. 다운로드 중...");
+
+                try
+                {
+                    using var httpClient = new HttpClient();
+                    httpClient.DefaultRequestHeaders.UserAgent.ParseAdd("ytDownloader/1.0");
+
+                    string downloadUrl = "https://github.com/BtbN/FFmpeg-Builds/releases/download/latest/ffmpeg-master-latest-win64-gpl-shared.zip";
+                    await DownloadAndExtractFfmpeg(downloadUrl);
+                }
+                catch (Exception ex)
+                {
+                    AppendOutput($"❌ ffmpeg.exe 다운로드 오류: {ex.Message}");
+                    return;
+                }
             }
 
             try
             {
-                AppendOutput("⏳ ffmpeg 버전 확인 중...");
+                AppendOutput("⏳ ffmpeg 업데이트 확인 중...");
 
                 // 현재 설치된 ffmpeg 버전 확인
                 string currentVersion = await GetCurrentFfmpegVersion();
@@ -130,12 +173,12 @@ namespace ytDownloader
                 {
                     AppendOutput($"ℹ️ 새로운 ffmpeg 버전 발견: {latestTag}");
 
-                    // Windows용 빌드 찾기 (ffmpeg-master-latest-win64-gpl.zip)
+                    // Windows용 빌드 찾기 (ffmpeg-master-latest-win64-gpl-shared.zip)
                     var asset = release["assets"]?
                         .FirstOrDefault(a =>
                         {
                             string name = a["name"]?.ToString() ?? "";
-                            return name.Contains("master-latest-win64-gpl") && name.EndsWith(".zip");
+                            return name.Contains("master-latest-win64-gpl-shared") && name.EndsWith(".zip");
                         });
 
                     if (asset != null)
@@ -387,12 +430,12 @@ namespace ytDownloader
                         if (MessageBox.Show($"새 {preMsg} {latestTag} 버전이 있습니다. 업데이트 하시겠습니까?",
                             "업데이트 확인", MessageBoxButton.YesNo, MessageBoxImage.Question) == MessageBoxResult.Yes)
                         {
-                            //  메인 ZIP 파일은 항상 yt_downloader.zip 으로 고정
+                            //  메인 ZIP 파일은 항상 ytdownloader.zip 으로 고정
                             var zipAsset = latest["assets"]?
                                 .FirstOrDefault(a =>
                                 {
                                     string assetName = a["name"]?.ToString() ?? "";
-                                    return string.Equals(assetName, "yt_downloader.zip", StringComparison.OrdinalIgnoreCase);
+                                    return string.Equals(assetName, "ytdownloader.zip", StringComparison.OrdinalIgnoreCase);
                                 });
 
                             if (zipAsset != null)
