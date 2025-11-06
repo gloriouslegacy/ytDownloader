@@ -9,7 +9,6 @@ using System.Text;
 using System.Text.RegularExpressions;
 using System.Windows;
 using System.Windows.Navigation;
-using ytDownloader.Properties;
 
 // 2025-09-21 .NET 8.0, C# 12.0
 // ✅ 자동 업데이트
@@ -30,14 +29,26 @@ namespace ytDownloader
         private readonly string toolsPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "tools");
         private readonly string ytdlpPath;
         private readonly string ffmpegPath;
+        private readonly string settingsPath;
+        private readonly string settingsFile;
 
         public MainWindow()
         {
             ytdlpPath = Path.Combine(toolsPath, "yt-dlp.exe");
             ffmpegPath = Path.Combine(toolsPath, "ffmpeg.exe");
 
+            // %appdata%\ytDownloader 폴더에 설정 저장
+            settingsPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "ytDownloader");
+            settingsFile = Path.Combine(settingsPath, "settings.json");
+
+            if (!Directory.Exists(settingsPath))
+            {
+                Directory.CreateDirectory(settingsPath);
+            }
+
             InitializeComponent();
             LoadSettings();
+            AttachSettingsEventHandlers();
 
             if (!Directory.Exists(toolsPath))
             {
@@ -609,37 +620,86 @@ namespace ytDownloader
 
         private void LoadSettings()
         {
-            if (string.IsNullOrWhiteSpace(Settings.Default.SavePath))
+            try
             {
-                Settings.Default.SavePath = Path.Combine(
-                    Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), "Downloads"
-                );
-                Settings.Default.Save();
-            }
+                if (File.Exists(settingsFile))
+                {
+                    var json = File.ReadAllText(settingsFile);
+                    var settings = JObject.Parse(json);
 
-            txtSavePath.Text = Settings.Default.SavePath;
-            ChkSingleVideo.IsChecked = Settings.Default.SingleVideoOnly;
-            SubtitleCheckBox.IsChecked = Settings.Default.DownloadSubtitle;
-            SubtitleLangComboBox.Text = Settings.Default.SubtitleLang;
-            SubtitleFormatComboBox.Text = Settings.Default.SubtitleFormat;
-            ChkWriteThumbnail.IsChecked = Settings.Default.SaveThumbnail;
-            ChkStructuredFolders.IsChecked = Settings.Default.UseStructuredFolder;
-            comboFormat.SelectedIndex = Settings.Default.Format;
-            txtMaxDownloads.Text = Settings.Default.MaxDownloads.ToString();
+                    txtSavePath.Text = settings["SavePath"]?.ToString() ?? Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), "Downloads");
+                    ChkSingleVideo.IsChecked = settings["SingleVideoOnly"]?.ToObject<bool>() ?? false;
+                    SubtitleCheckBox.IsChecked = settings["DownloadSubtitle"]?.ToObject<bool>() ?? false;
+                    SubtitleLangComboBox.Text = settings["SubtitleLang"]?.ToString() ?? "ko";
+                    SubtitleFormatComboBox.Text = settings["SubtitleFormat"]?.ToString() ?? "srt";
+                    ChkWriteThumbnail.IsChecked = settings["SaveThumbnail"]?.ToObject<bool>() ?? false;
+                    ChkStructuredFolders.IsChecked = settings["UseStructuredFolder"]?.ToObject<bool>() ?? false;
+                    comboFormat.SelectedIndex = settings["Format"]?.ToObject<int>() ?? 0;
+                    txtMaxDownloads.Text = (settings["MaxDownloads"]?.ToObject<int>() ?? 5).ToString();
+                }
+                else
+                {
+                    // 기본값 설정
+                    txtSavePath.Text = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), "Downloads");
+                    ChkSingleVideo.IsChecked = false;
+                    SubtitleCheckBox.IsChecked = false;
+                    SubtitleLangComboBox.Text = "ko";
+                    SubtitleFormatComboBox.Text = "srt";
+                    ChkWriteThumbnail.IsChecked = false;
+                    ChkStructuredFolders.IsChecked = false;
+                    comboFormat.SelectedIndex = 0;
+                    txtMaxDownloads.Text = "5";
+
+                    SaveSettings();
+                }
+            }
+            catch (Exception ex)
+            {
+                AppendOutput($"❌ 설정 로드 오류: {ex.Message}");
+            }
         }
 
         private void SaveSettings()
         {
-            Settings.Default.SavePath = txtSavePath.Text;
-            Settings.Default.SingleVideoOnly = ChkSingleVideo.IsChecked ?? false;
-            Settings.Default.DownloadSubtitle = SubtitleCheckBox.IsChecked ?? false;
-            Settings.Default.SubtitleLang = SubtitleLangComboBox.Text;
-            Settings.Default.SubtitleFormat = SubtitleFormatComboBox.Text;
-            Settings.Default.SaveThumbnail = ChkWriteThumbnail.IsChecked ?? false;
-            Settings.Default.UseStructuredFolder = ChkStructuredFolders.IsChecked ?? false;
-            Settings.Default.Format = comboFormat.SelectedIndex;
-            Settings.Default.MaxDownloads = int.TryParse(txtMaxDownloads.Text, out int n) ? n : 5;
-            Settings.Default.Save();
+            try
+            {
+                var settings = new JObject
+                {
+                    ["SavePath"] = txtSavePath.Text,
+                    ["SingleVideoOnly"] = ChkSingleVideo.IsChecked ?? false,
+                    ["DownloadSubtitle"] = SubtitleCheckBox.IsChecked ?? false,
+                    ["SubtitleLang"] = SubtitleLangComboBox.Text,
+                    ["SubtitleFormat"] = SubtitleFormatComboBox.Text,
+                    ["SaveThumbnail"] = ChkWriteThumbnail.IsChecked ?? false,
+                    ["UseStructuredFolder"] = ChkStructuredFolders.IsChecked ?? false,
+                    ["Format"] = comboFormat.SelectedIndex,
+                    ["MaxDownloads"] = int.TryParse(txtMaxDownloads.Text, out int n) ? n : 5
+                };
+
+                File.WriteAllText(settingsFile, settings.ToString());
+            }
+            catch (Exception ex)
+            {
+                AppendOutput($"❌ 설정 저장 오류: {ex.Message}");
+            }
+        }
+
+        private void AttachSettingsEventHandlers()
+        {
+            // UI 컨트롤 변경 시 즉시 저장
+            txtSavePath.TextChanged += (s, e) => SaveSettings();
+            ChkSingleVideo.Checked += (s, e) => SaveSettings();
+            ChkSingleVideo.Unchecked += (s, e) => SaveSettings();
+            SubtitleCheckBox.Checked += (s, e) => SaveSettings();
+            SubtitleCheckBox.Unchecked += (s, e) => SaveSettings();
+            SubtitleLangComboBox.SelectionChanged += (s, e) => SaveSettings();
+            SubtitleFormatComboBox.SelectionChanged += (s, e) => SaveSettings();
+            ChkWriteThumbnail.Checked += (s, e) => SaveSettings();
+            ChkWriteThumbnail.Unchecked += (s, e) => SaveSettings();
+            ChkStructuredFolders.Checked += (s, e) => SaveSettings();
+            ChkStructuredFolders.Unchecked += (s, e) => SaveSettings();
+            comboFormat.SelectionChanged += (s, e) => SaveSettings();
+            txtMaxDownloads.TextChanged += (s, e) => SaveSettings();
         }
 
         private void AppendOutput(string message)
@@ -856,7 +916,6 @@ namespace ytDownloader
 
         private void btnDownload_Click(object sender, RoutedEventArgs e)
         {
-            SaveSettings();
             string[] urls = txtUrls.Text.Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries);
             foreach (var url in urls)
                 StartDownload(url, false);
@@ -864,7 +923,6 @@ namespace ytDownloader
 
         private void btnChannelDownload_Click(object sender, RoutedEventArgs e)
         {
-            SaveSettings();
             string[] urls = txtChannelUrl.Text.Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries);
             foreach (var url in urls)
                 StartDownload(url, true);
@@ -882,7 +940,6 @@ namespace ytDownloader
                 if (dialog.ShowDialog() == System.Windows.Forms.DialogResult.OK)
                 {
                     txtSavePath.Text = dialog.SelectedPath;
-                    SaveSettings();
                 }
             }
         }
@@ -949,7 +1006,9 @@ namespace ytDownloader
         }
 
 
-
-        private void Window_Closing(object sender, CancelEventArgs e) => SaveSettings();
+        private void Window_Closing(object sender, CancelEventArgs e)
+        {
+            // 설정은 이미 실시간으로 저장됨
+        }
     }
 }
