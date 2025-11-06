@@ -49,9 +49,12 @@ namespace ytDownloader
 
         private async Task UpdateToolsSequentially()
         {
-            await UpdateYtDlp();
-            await UpdateFfmpeg();
-            await CheckForUpdate();
+            await Task.Run(async () =>
+            {
+                await UpdateYtDlp();
+                await UpdateFfmpeg();
+                await CheckForUpdate();
+            });
         }
 
         private async Task UpdateYtDlp()
@@ -308,7 +311,7 @@ namespace ytDownloader
                 AppendOutput("✅ ffmpeg 다운로드 완료");
                 AppendOutput("⏳ ffmpeg 압축 해제 중...");
 
-                // ZIP에서 ffmpeg.exe만 추출
+                // ZIP에서 bin 폴더의 모든 파일 추출
                 string tempExtract = Path.Combine(Path.GetTempPath(), "ffmpeg_extract_" + Guid.NewGuid().ToString("N"));
 
                 try
@@ -316,33 +319,40 @@ namespace ytDownloader
                     Directory.CreateDirectory(tempExtract);
                     ZipFile.ExtractToDirectory(tempZip, tempExtract);
 
-                    // bin 폴더에서 ffmpeg.exe 찾기
-                    string extractedFfmpeg = Directory.GetFiles(tempExtract, "ffmpeg.exe", SearchOption.AllDirectories)
+                    // bin 폴더 찾기
+                    var binDir = Directory.GetDirectories(tempExtract, "bin", SearchOption.AllDirectories)
                         .FirstOrDefault();
 
-                    if (extractedFfmpeg != null)
+                    if (binDir != null)
                     {
-                        // 기존 파일 백업
-                        string backupPath = ffmpegPath + ".bak";
-                        if (File.Exists(ffmpegPath))
+                        // bin 폴더의 모든 파일을 tools 폴더로 복사
+                        foreach (var file in Directory.GetFiles(binDir))
                         {
+                            string fileName = Path.GetFileName(file);
+                            string destPath = Path.Combine(toolsPath, fileName);
+
+                            // 기존 파일 백업
+                            string backupPath = destPath + ".bak";
+                            if (File.Exists(destPath))
+                            {
+                                if (File.Exists(backupPath))
+                                    File.Delete(backupPath);
+                                File.Move(destPath, backupPath);
+                            }
+
+                            // 새 파일 복사
+                            File.Copy(file, destPath, true);
+
+                            // 백업 삭제
                             if (File.Exists(backupPath))
                                 File.Delete(backupPath);
-                            File.Move(ffmpegPath, backupPath);
                         }
 
-                        // 새 파일 복사
-                        File.Copy(extractedFfmpeg, ffmpegPath, true);
-
-                        // 백업 삭제
-                        if (File.Exists(backupPath))
-                            File.Delete(backupPath);
-
-                        AppendOutput("✅ ffmpeg 업데이트 완료");
+                        AppendOutput("✅ ffmpeg 업데이트 완료 (bin 폴더의 모든 파일 복사)");
                     }
                     else
                     {
-                        AppendOutput("❌ 압축 파일에서 ffmpeg.exe를 찾을 수 없습니다.");
+                        AppendOutput("❌ 압축 파일에서 bin 폴더를 찾을 수 없습니다.");
                     }
                 }
                 finally
