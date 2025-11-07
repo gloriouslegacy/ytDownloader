@@ -296,7 +296,7 @@
 
             <Hyperlink
                 Foreground="SkyBlue"
-                NavigateUri="https://github.com/gloriouslegacy/ytDownloader"
+                NavigateUri="https://github.com/gloriouslegacy/ytDownloader/releases"
                 RequestNavigate="Hyperlink_RequestNavigate">
                 gloriouslegacy
             </Hyperlink>
