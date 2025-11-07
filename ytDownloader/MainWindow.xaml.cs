@@ -583,7 +583,7 @@ namespace ytDownloader
                 {
                     FileName = setupPath,
                     UseShellExecute = true,
-                    Arguments = "/SILENT /CLOSEAPPLICATIONS /RESTARTAPPLICATIONS"
+                    Arguments = "/VERYSILENT /CLOSEAPPLICATIONS /LAUNCH"
                 };
 
                 Process.Start(psi);
