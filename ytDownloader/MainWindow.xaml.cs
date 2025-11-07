@@ -451,30 +451,36 @@ namespace ytDownloader
                         if (MessageBox.Show($"새 {preMsg} {latestTag} 버전이 있습니다. 업데이트 하시겠습니까?",
                             "업데이트 확인", MessageBoxButton.YesNo, MessageBoxImage.Question) == MessageBoxResult.Yes)
                         {
-                            //  메인 ZIP 파일은 항상 ytdownloader.zip 으로 고정
-                            var zipAsset = latest["assets"]?
+                            string baseDir = AppDomain.CurrentDomain.BaseDirectory;
+                            string installDir = Path.GetDirectoryName(Process.GetCurrentProcess().MainModule!.FileName) ?? baseDir;
+                            bool isInstalledVersion = installDir.Contains(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "ytDownloader", "app"));
+
+                            string targetAssetName = isInstalledVersion ? "ytDownloader-setup.exe" : "ytdownloader.zip";
+
+                            var updateAsset = latest["assets"]?
                                 .FirstOrDefault(a =>
                                 {
                                     string assetName = a["name"]?.ToString() ?? "";
-                                    return string.Equals(assetName, "ytdownloader.zip", StringComparison.OrdinalIgnoreCase);
+                                    return string.Equals(assetName, targetAssetName, StringComparison.OrdinalIgnoreCase);
                                 });
 
-                            if (zipAsset != null)
+                            if (updateAsset != null)
                             {
-                                string assetUrl = zipAsset["browser_download_url"]?.ToString();
-                                string assetName = zipAsset["name"]?.ToString() ?? "";
+                                string assetUrl = updateAsset["browser_download_url"]?.ToString();
+                                string assetName = updateAsset["name"]?.ToString() ?? "";
 
+                                AppendOutput($"[INFO] 설치형 여부: {isInstalledVersion}");
                                 AppendOutput($"[INFO] 선택된 에셋: {assetName}");
                                 AppendOutput($"[INFO] 다운로드 URL: {assetUrl}");
 
                                 if (!string.IsNullOrEmpty(assetUrl))
                                 {
-                                    _ = RunUpdateAsync(assetUrl);
+                                    _ = RunUpdateAsync(assetUrl, isInstalledVersion);
                                 }
                             }
                             else
                             {
-                                AppendOutput("❌ 메인 ZIP 에셋을 찾을 수 없습니다.");
+                                AppendOutput($"❌ 업데이트 파일을 찾을 수 없습니다: {targetAssetName}");
                                 AppendOutput("[INFO] 사용 가능한 에셋들:");
                                 foreach (var asset in latest["assets"] ?? new JArray())
                                 {
@@ -528,34 +534,73 @@ namespace ytDownloader
         //        return $"{bps / (1024 * 1024):F1} MB/s";
         //    }
 
-        private async Task RunUpdateAsync(string zipUrl)
+        private async Task RunUpdateAsync(string downloadUrl, bool isInstalledVersion)
         {
+            string downloadPath = isInstalledVersion
+                ? Path.Combine(Path.GetTempPath(), "ytDownloader-setup.exe")
+                : Path.Combine(Path.GetTempPath(), "ytDownloader_update.zip");
+
             try
             {
                 using var httpClient = new HttpClient();
 
-                // 다운로드 ZIP을 %TEMP% 에 저장
-                string tempZip = Path.Combine(Path.GetTempPath(), "ytDownloader_update.zip");
-
-                // 진행 로그 출력
-                AppendOutput("[INFO] 업데이트 ZIP 다운로드 시작");
-                using (var response = await httpClient.GetAsync(zipUrl, HttpCompletionOption.ResponseHeadersRead))
+                AppendOutput("[INFO] 업데이트 파일 다운로드 시작");
+                using (var response = await httpClient.GetAsync(downloadUrl, HttpCompletionOption.ResponseHeadersRead))
                 {
                     response.EnsureSuccessStatusCode();
-                    await using var fs = new FileStream(tempZip, FileMode.Create, FileAccess.Write, FileShare.None);
+                    await using var fs = new FileStream(downloadPath, FileMode.Create, FileAccess.Write, FileShare.None);
                     await response.Content.CopyToAsync(fs);
                 }
-                AppendOutput($"[INFO] ZIP 다운로드 완료: {tempZip}");
+                AppendOutput($"[INFO] 다운로드 완료: {downloadPath}");
             }
             catch (Exception ex)
             {
-                // 다운로드 실패 → MessageBox 표시
                 MessageBox.Show("업데이트 파일 다운로드 실패: " + ex.Message,
                     "업데이트 오류", MessageBoxButton.OK, MessageBoxImage.Error);
                 AppendOutput("[ERROR] 다운로드 실패: " + ex);
                 return;
             }
 
+            if (isInstalledVersion)
+            {
+                // 설치형: setup.exe 실행
+                await RunSetupInstallerAsync(downloadPath);
+            }
+            else
+            {
+                // 포터블: Updater.exe 사용
+                await RunPortableUpdateAsync(downloadPath);
+            }
+        }
+
+        private async Task RunSetupInstallerAsync(string setupPath)
+        {
+            try
+            {
+                AppendOutput("[INFO] 설치 프로그램 실행 중...");
+
+                var psi = new ProcessStartInfo
+                {
+                    FileName = setupPath,
+                    UseShellExecute = true,
+                    Arguments = "/SILENT /CLOSEAPPLICATIONS /RESTARTAPPLICATIONS"
+                };
+
+                Process.Start(psi);
+                AppendOutput("[INFO] 설치 프로그램이 실행되었습니다. 현재 앱을 종료합니다.");
+
+                await Task.Delay(1000);
+                Application.Current.Shutdown();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("설치 프로그램 실행 실패: " + ex.Message, "오류", MessageBoxButton.OK, MessageBoxImage.Error);
+                AppendOutput($"[ERROR] 설치 실행 실패: {ex}");
+            }
+        }
+
+        private async Task RunPortableUpdateAsync(string zipPath)
+        {
             string baseDir = AppDomain.CurrentDomain.BaseDirectory;
             string updaterPath = Path.Combine(baseDir, "updater", "Updater.exe");
 
@@ -575,7 +620,6 @@ namespace ytDownloader
 
             if (!File.Exists(updaterPath))
             {
-                // MessageBox 없이 로그만
                 AppendOutput("[ERROR] Updater.exe를 찾을 수 없습니다.");
                 AppendOutput($"[ERROR] 시도 경로 1: {Path.Combine(baseDir, "updater", "Updater.exe")}");
                 AppendOutput($"[ERROR] 시도 경로 2: {Path.Combine(baseDir, "Updater.exe")}");
@@ -585,7 +629,7 @@ namespace ytDownloader
             try
             {
                 string workingDir = Path.GetDirectoryName(updaterPath) ?? baseDir;
-                string arguments = $"\"{Path.Combine(Path.GetTempPath(), "ytDownloader_update.zip")}\" \"{installDir}\" \"{targetExe}\"";
+                string arguments = $"\"{zipPath}\" \"{installDir}\" \"{targetExe}\"";
 
                 var psi = new ProcessStartInfo
                 {
@@ -611,7 +655,6 @@ namespace ytDownloader
             }
             catch (Exception ex)
             {
-                // 실행 실패도 로그만
                 AppendOutput("[ERROR] Updater 실행 실패: " + ex);
             }
         }
