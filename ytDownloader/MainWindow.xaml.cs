@@ -630,8 +630,13 @@ namespace ytDownloader
                     txtSavePath.Text = settings["SavePath"]?.ToString() ?? Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), "Downloads");
                     ChkSingleVideo.IsChecked = settings["SingleVideoOnly"]?.ToObject<bool>() ?? false;
                     SubtitleCheckBox.IsChecked = settings["DownloadSubtitle"]?.ToObject<bool>() ?? false;
-                    SubtitleLangComboBox.Text = settings["SubtitleLang"]?.ToString() ?? "ko";
-                    SubtitleFormatComboBox.Text = settings["SubtitleFormat"]?.ToString() ?? "srt";
+
+                    string subtitleLang = settings["SubtitleLang"]?.ToString() ?? "ko";
+                    SetComboBoxValue(SubtitleLangComboBox, subtitleLang);
+
+                    string subtitleFormat = settings["SubtitleFormat"]?.ToString() ?? "srt";
+                    SetComboBoxValue(SubtitleFormatComboBox, subtitleFormat);
+
                     ChkWriteThumbnail.IsChecked = settings["SaveThumbnail"]?.ToObject<bool>() ?? false;
                     ChkStructuredFolders.IsChecked = settings["UseStructuredFolder"]?.ToObject<bool>() ?? false;
                     comboFormat.SelectedIndex = settings["Format"]?.ToObject<int>() ?? 0;
@@ -643,8 +648,8 @@ namespace ytDownloader
                     txtSavePath.Text = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), "Downloads");
                     ChkSingleVideo.IsChecked = false;
                     SubtitleCheckBox.IsChecked = false;
-                    SubtitleLangComboBox.Text = "ko";
-                    SubtitleFormatComboBox.Text = "srt";
+                    SetComboBoxValue(SubtitleLangComboBox, "ko");
+                    SetComboBoxValue(SubtitleFormatComboBox, "srt");
                     ChkWriteThumbnail.IsChecked = false;
                     ChkStructuredFolders.IsChecked = false;
                     comboFormat.SelectedIndex = 0;
@@ -668,8 +673,8 @@ namespace ytDownloader
                     ["SavePath"] = txtSavePath.Text,
                     ["SingleVideoOnly"] = ChkSingleVideo.IsChecked ?? false,
                     ["DownloadSubtitle"] = SubtitleCheckBox.IsChecked ?? false,
-                    ["SubtitleLang"] = SubtitleLangComboBox.Text,
-                    ["SubtitleFormat"] = SubtitleFormatComboBox.Text,
+                    ["SubtitleLang"] = GetComboBoxValue(SubtitleLangComboBox),
+                    ["SubtitleFormat"] = GetComboBoxValue(SubtitleFormatComboBox),
                     ["SaveThumbnail"] = ChkWriteThumbnail.IsChecked ?? false,
                     ["UseStructuredFolder"] = ChkStructuredFolders.IsChecked ?? false,
                     ["Format"] = comboFormat.SelectedIndex,
@@ -684,6 +689,54 @@ namespace ytDownloader
             }
         }
 
+        private void SetComboBoxValue(System.Windows.Controls.ComboBox comboBox, string value)
+        {
+            if (comboBox.IsEditable)
+            {
+                comboBox.Text = value;
+            }
+            else
+            {
+                for (int i = 0; i < comboBox.Items.Count; i++)
+                {
+                    var item = comboBox.Items[i];
+                    string itemValue = "";
+
+                    // ComboBoxItem인 경우 Content 추출
+                    if (item is System.Windows.Controls.ComboBoxItem comboBoxItem)
+                    {
+                        itemValue = comboBoxItem.Content?.ToString() ?? "";
+                    }
+                    else
+                    {
+                        itemValue = item?.ToString() ?? "";
+                    }
+
+                    if (itemValue == value)
+                    {
+                        comboBox.SelectedIndex = i;
+                        return;
+                    }
+                }
+                // 항목이 없으면 Text로 설정 시도
+                comboBox.Text = value;
+            }
+        }
+
+        private string GetComboBoxValue(System.Windows.Controls.ComboBox comboBox)
+        {
+            if (comboBox.SelectedItem != null)
+            {
+                // ComboBoxItem인 경우 Content 추출
+                if (comboBox.SelectedItem is System.Windows.Controls.ComboBoxItem item)
+                {
+                    return item.Content?.ToString() ?? "";
+                }
+                return comboBox.SelectedItem.ToString() ?? "";
+            }
+            return comboBox.Text ?? "";
+        }
+
         private void AttachSettingsEventHandlers()
         {
             // UI 컨트롤 변경 시 즉시 저장
@@ -693,7 +746,9 @@ namespace ytDownloader
             SubtitleCheckBox.Checked += (s, e) => SaveSettings();
             SubtitleCheckBox.Unchecked += (s, e) => SaveSettings();
             SubtitleLangComboBox.SelectionChanged += (s, e) => SaveSettings();
+            SubtitleLangComboBox.AddHandler(System.Windows.Controls.Primitives.TextBoxBase.TextChangedEvent, new System.Windows.Controls.TextChangedEventHandler((s, e) => SaveSettings()));
             SubtitleFormatComboBox.SelectionChanged += (s, e) => SaveSettings();
+            SubtitleFormatComboBox.AddHandler(System.Windows.Controls.Primitives.TextBoxBase.TextChangedEvent, new System.Windows.Controls.TextChangedEventHandler((s, e) => SaveSettings()));
             ChkWriteThumbnail.Checked += (s, e) => SaveSettings();
             ChkWriteThumbnail.Unchecked += (s, e) => SaveSettings();
             ChkStructuredFolders.Checked += (s, e) => SaveSettings();
@@ -950,23 +1005,6 @@ namespace ytDownloader
                 Process.Start("explorer.exe", txtSavePath.Text);
         }
 
-        private void BtnLoadSubtitleLang_Click(object sender, RoutedEventArgs e)
-        {
-            SubtitleLangComboBox.Items.Clear();
-            SubtitleLangComboBox.Items.Add("ko");
-            SubtitleLangComboBox.Items.Add("en");
-            SubtitleLangComboBox.Items.Add("ja");
-            SubtitleLangComboBox.Items.Add("zh");
-            SubtitleLangComboBox.Items.Add("fr");
-            SubtitleLangComboBox.Items.Add("de");
-            SubtitleLangComboBox.SelectedIndex = 0;
-
-            SubtitleFormatComboBox.Items.Clear();
-            SubtitleFormatComboBox.Items.Add("srt");
-            SubtitleFormatComboBox.Items.Add("vtt");
-            SubtitleFormatComboBox.Items.Add("ass");
-            SubtitleFormatComboBox.SelectedIndex = 0;
-        }
 
         private void Hyperlink_RequestNavigate(object sender, RequestNavigateEventArgs e)
         {

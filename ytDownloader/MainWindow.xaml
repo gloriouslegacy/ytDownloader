@@ -242,15 +242,23 @@
                         <ComboBox
                             Name="SubtitleLangComboBox"
                             Width="120"
-                            Foreground="#FF0A0A0A" />
+                            IsEditable="True"
+                            Foreground="#FF0A0A0A">
+                            <ComboBoxItem Content="ko" />
+                            <ComboBoxItem Content="en" />
+                            <ComboBoxItem Content="ja" />
+                            <ComboBoxItem Content="zh" />
+                            <ComboBoxItem Content="fr" />
+                            <ComboBoxItem Content="de" />
+                        </ComboBox>
                         <ComboBox
                             Name="SubtitleFormatComboBox"
                             Width="120"
-                            Foreground="#FF0E0E0E" />
-                        <Button
-                            Width="90"
-                            Click="BtnLoadSubtitleLang_Click"
-                            Content="불러오기" />
+                            Foreground="#FF0E0E0E">
+                            <ComboBoxItem Content="srt" />
+                            <ComboBoxItem Content="vtt" />
+                            <ComboBoxItem Content="ass" />
+                        </ComboBox>
                     </StackPanel>
 
                     <Grid Margin="5,10,5,5">

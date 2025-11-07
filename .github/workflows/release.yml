@@ -85,6 +85,92 @@ jobs:
           Copy-Item publish/Updater/* dist/Updater/ -Recurse
           Compress-Archive -Path dist/Updater/* -DestinationPath ytupdater.zip -Force
 
+      # Inno Setup 설치
+      - name: Setup Inno Setup
+        shell: pwsh
+        run: |
+          choco install innosetup -y
+          
+      # setup.iss 파일 생성
+      - name: Create Inno Setup Script
+        shell: pwsh
+        run: |
+          $version = "${{ steps.vars.outputs.base_version }}"
+          
+          @"
+          #define MyAppName "ytDownloader"
+          #define MyAppVersion "$version"
+          #define MyAppPublisher "gloriouslegacy"
+          #define MyAppURL "https://github.com/gloriouslegacy/ytDownloader"
+          #define MyAppExeName "ytDownloader.exe"
+
+          [Setup]
+          AppId={{A1B2C3D4-E5F6-7890-ABCD-EF1234567890}
+          AppName={#MyAppName}
+          AppVersion={#MyAppVersion}
+          AppPublisher={#MyAppPublisher}
+          AppPublisherURL={#MyAppURL}
+          AppSupportURL={#MyAppURL}
+          AppUpdatesURL={#MyAppURL}
+          DefaultDirName={userappdata}\{#MyAppName}\app
+          DefaultGroupName={#MyAppName}
+          DisableProgramGroupPage=yes
+          OutputDir=.
+          OutputBaseFilename=ytDownloader-setup
+          Compression=lzma
+          SolidCompression=yes
+          WizardStyle=modern
+          PrivilegesRequired=lowest
+          ArchitecturesInstallIn64BitMode=x64
+
+          [Languages]
+          Name: "korean"; MessagesFile: "compiler:Languages\Korean.isl"
+          Name: "english"; MessagesFile: "compiler:Default.isl"
+
+          [Tasks]
+          Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{cm:AdditionalIcons}"; Flags: unchecked
+          Name: "quicklaunchicon"; Description: "{cm:CreateQuickLaunchIcon}"; GroupDescription: "{cm:AdditionalIcons}"; Flags: unchecked; OnlyBelowVersion: 6.1; Check: not IsAdminInstallMode
+
+          [Files]
+          Source: "publish\ytDownloader\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
+
+          [Icons]
+          Name: "{group}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"
+          Name: "{group}\{cm:UninstallProgram,{#MyAppName}}"; Filename: "{uninstallexe}"
+          Name: "{autodesktop}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"; Tasks: desktopicon
+          Name: "{userappdata}\Microsoft\Internet Explorer\Quick Launch\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"; Tasks: quicklaunchicon
+
+          [Run]
+          Filename: "{app}\{#MyAppExeName}"; Description: "{cm:LaunchProgram,{#StringChange(MyAppName, '&', '&&')}}"; Flags: nowait postinstall skipifsilent
+
+          [UninstallDelete]
+          Type: filesandordirs; Name: "{userappdata}\{#MyAppName}\app"
+
+          [Code]
+          procedure CurUninstallStepChanged(CurUninstallStep: TUninstallStep);
+          var
+            SettingsPath: String;
+            ResultCode: Integer;
+          begin
+            if CurUninstallStep = usPostUninstall then
+            begin
+              SettingsPath := ExpandConstant('{userappdata}\{#MyAppName}\settings.json');
+              
+              if MsgBox('설정 파일을 삭제하시겠습니까?' + #13#10 + SettingsPath, mbConfirmation, MB_YESNO) = IDYES then
+              begin
+                if FileExists(SettingsPath) then
+                  DeleteFile(SettingsPath);
+              end;
+            end;
+          end;
+          "@ | Out-File -FilePath setup.iss -Encoding UTF8
+
+      # Inno Setup으로 설치 파일 생성
+      - name: Build Setup Installer
+        shell: pwsh
+        run: |
+          & "C:\Program Files (x86)\Inno Setup 6\ISCC.exe" setup.iss
+
       # GitHub Release 생성
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
@@ -94,7 +180,13 @@ jobs:
           body: |
             📦 릴리스 안내
 
-            메인 프로그램: **ytdownloader.zip**  
+            **설치형 (권장)**: **ytDownloader-setup.exe**  
+            → %appdata%\ytDownloader\app에 자동 설치  
+            → 바탕화면 아이콘 생성 옵션  
+            → 설정 파일: %appdata%\ytDownloader\settings.json (별도 관리)
+
+            **포터블**: **ytdownloader.zip**  
+            → 압축 해제 후 실행  
             → 실행 파일(ytDownloader.exe), DLL, updater 폴더 포함
 
             업데이트 도구: **ytupdater.zip**  
@@ -103,6 +195,7 @@ jobs:
             ⚠️ 자동 업데이트는 메인 ZIP의 `updater` 폴더를 사용합니다.  
             별도 Updater ZIP은 수동 교체 시에만 사용하세요.
           files: |
+            ytDownloader-setup.exe
             ytdownloader.zip
             ytupdater.zip
           prerelease: ${{ !startsWith(github.ref, 'refs/tags/') }}
