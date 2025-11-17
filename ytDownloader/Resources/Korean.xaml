@@ -108,6 +108,31 @@
     <system:String x:Key="CheckBox_EnableNotification">다운로드 완료 알림</system:String>
     <system:String x:Key="ToolTip_EnableNotification">다운로드 완료 시 알림 표시</system:String>
 
+    <!-- 예약 DataGrid 헤더 및 라벨 -->
+    <system:String x:Key="Label_UrlInput_Schedule">URL 입력:</system:String>
+    <system:String x:Key="Button_Paste_Schedule">붙여넣기</system:String>
+    <system:String x:Key="ToolTip_Paste_Schedule">클립보드의 URL을 붙여넣기</system:String>
+    <system:String x:Key="Button_Clear_Schedule">지우기</system:String>
+    <system:String x:Key="ToolTip_Clear_Schedule">입력한 URL 제거</system:String>
+    <system:String x:Key="Label_ChannelName">채널 이름:</system:String>
+    <system:String x:Key="Header_Select">선택</system:String>
+    <system:String x:Key="Header_ChannelName">채널 이름</system:String>
+    <system:String x:Key="Header_Url">URL</system:String>
+    <system:String x:Key="Header_AddedDate">추가 날짜</system:String>
+    <system:String x:Key="Button_RemoveSelectedSchedule">수동 예약 선택 삭제</system:String>
+    <system:String x:Key="ToolTip_RemoveSelectedSchedule">선택한 수동 예약 항목들을 삭제합니다</system:String>
+    <system:String x:Key="Button_RunSelectedSchedule">선택 예약 실행</system:String>
+    <system:String x:Key="ToolTip_RunSelectedSchedule">선택한 예약 채널만 즉시 실행합니다</system:String>
+    <system:String x:Key="Label_RegisteredScheduleList">등록된 스케줄 목록</system:String>
+    <system:String x:Key="Header_TaskName">작업 이름</system:String>
+    <system:String x:Key="Header_Frequency">실행 주기</system:String>
+    <system:String x:Key="Header_ExecutionTime">실행 시간</system:String>
+    <system:String x:Key="Header_NextRun">다음 실행</system:String>
+    <system:String x:Key="Button_RemoveSelectedAutoSchedule">자동 예약 선택 삭제</system:String>
+    <system:String x:Key="ToolTip_RemoveSelectedAutoSchedule">선택한 자동 예약 스케줄들을 삭제합니다</system:String>
+    <system:String x:Key="Button_RemoveAllAutoSchedules">자동 예약 전체 삭제</system:String>
+    <system:String x:Key="ToolTip_RemoveAllAutoSchedules">모든 자동 예약 스케줄을 삭제합니다</system:String>
+
     <!-- 진행 상태 -->
     <system:String x:Key="Label_Speed">속도:</system:String>
     <system:String x:Key="Label_ETA">ETA:</system:String>
