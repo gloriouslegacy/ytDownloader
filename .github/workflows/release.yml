@@ -2,10 +2,9 @@ name: Build and Release
 
 on:
   push:
-    branches:
-      - main
     tags:
-      - "v*"
+      - "v*"  # 태그 푸시만 트리거 (예: v1.0.0)
+  workflow_dispatch:  # GitHub UI에서 수동 실행 가능
 
 jobs:
   build:
