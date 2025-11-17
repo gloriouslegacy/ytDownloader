@@ -1,3 +1,5 @@
+using System.IO;
+
 namespace ytDownloader.Models
 {
     /// <summary>
