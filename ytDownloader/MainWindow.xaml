@@ -839,8 +839,8 @@
                                     CanUserReorderColumns="False"
                                     CanUserResizeRows="False"
                                     HeadersVisibility="Column"
-                                    SelectionMode="Extended"
-                                    SelectionChanged="lstScheduledChannels_SelectionChanged">
+                                    SelectionMode="Single"
+                                    SelectionUnit="FullRow">
                                     <DataGrid.Resources>
                                         <Style TargetType="DataGridColumnHeader">
                                             <Setter Property="Background" Value="{DynamicResource SecondaryBackgroundBrush}" />
@@ -855,20 +855,11 @@
                                             <Setter Property="Background" Value="Transparent" />
                                             <Setter Property="BorderBrush" Value="{DynamicResource BorderBrush}" />
                                             <Setter Property="Padding" Value="5" />
-                                            <Style.Triggers>
-                                                <Trigger Property="IsSelected" Value="True">
-                                                    <Setter Property="Background" Value="{DynamicResource HoverBackgroundBrush}" />
-                                                    <Setter Property="Foreground" Value="{DynamicResource PrimaryTextBrush}" />
-                                                </Trigger>
-                                            </Style.Triggers>
                                         </Style>
                                         <Style TargetType="DataGridRow">
                                             <Setter Property="Background" Value="{DynamicResource PrimaryBackgroundBrush}" />
                                             <Setter Property="Foreground" Value="{DynamicResource PrimaryTextBrush}" />
                                             <Style.Triggers>
-                                                <Trigger Property="IsSelected" Value="True">
-                                                    <Setter Property="Background" Value="{DynamicResource HoverBackgroundBrush}" />
-                                                </Trigger>
                                                 <Trigger Property="IsMouseOver" Value="True">
                                                     <Setter Property="Background" Value="{DynamicResource SecondaryBackgroundBrush}" />
                                                 </Trigger>
@@ -986,8 +977,8 @@
                                     CanUserReorderColumns="False"
                                     CanUserResizeRows="False"
                                     HeadersVisibility="Column"
-                                    SelectionMode="Extended"
-                                    SelectionChanged="lstAutoScheduledTasks_SelectionChanged">
+                                    SelectionMode="Single"
+                                    SelectionUnit="FullRow">
                                     <DataGrid.Resources>
                                         <Style TargetType="DataGridColumnHeader">
                                             <Setter Property="Background" Value="{DynamicResource SecondaryBackgroundBrush}" />
@@ -1002,20 +993,11 @@
                                             <Setter Property="Background" Value="Transparent" />
                                             <Setter Property="BorderBrush" Value="{DynamicResource BorderBrush}" />
                                             <Setter Property="Padding" Value="5" />
-                                            <Style.Triggers>
-                                                <Trigger Property="IsSelected" Value="True">
-                                                    <Setter Property="Background" Value="{DynamicResource HoverBackgroundBrush}" />
-                                                    <Setter Property="Foreground" Value="{DynamicResource PrimaryTextBrush}" />
-                                                </Trigger>
-                                            </Style.Triggers>
                                         </Style>
                                         <Style TargetType="DataGridRow">
                                             <Setter Property="Background" Value="{DynamicResource PrimaryBackgroundBrush}" />
                                             <Setter Property="Foreground" Value="{DynamicResource PrimaryTextBrush}" />
                                             <Style.Triggers>
-                                                <Trigger Property="IsSelected" Value="True">
-                                                    <Setter Property="Background" Value="{DynamicResource HoverBackgroundBrush}" />
-                                                </Trigger>
                                                 <Trigger Property="IsMouseOver" Value="True">
                                                     <Setter Property="Background" Value="{DynamicResource SecondaryBackgroundBrush}" />
                                                 </Trigger>

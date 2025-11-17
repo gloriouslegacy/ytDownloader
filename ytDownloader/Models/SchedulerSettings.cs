@@ -8,6 +8,9 @@ namespace ytDownloader.Models
         /// <summary>스케줄러 TaskName (식별자)</summary>
         public string TaskName { get; set; } = string.Empty;
 
+        /// <summary>채널 URL (선택사항)</summary>
+        public string ChannelUrl { get; set; } = string.Empty;
+
         /// <summary>저장 경로</summary>
         public string SavePath { get; set; } = string.Empty;
 
