@@ -1,21 +1,99 @@
 using System.Windows;
 using System.Windows.Controls;
 using ytDownloader.Services;
+using ytDownloader.Models;
 
 namespace ytDownloader
 {
     public partial class ScheduleSettingsWindow : Window
     {
         private readonly TaskSchedulerService _schedulerService;
+        private readonly SettingsService _settingsService;
+        private AppSettings _currentSettings;
 
         public ScheduleSettingsWindow()
         {
             InitializeComponent();
             _schedulerService = new TaskSchedulerService();
+            _settingsService = new SettingsService();
+            _currentSettings = _settingsService.LoadSettings();
 
             InitializeFrequencyComboBox();
             InitializeTimeComboBoxes();
+            InitializeSchedulerSettings();
             UpdateStatus();
+        }
+
+        /// <summary>
+        /// 스케줄러 설정 초기화 (기본 설정값으로)
+        /// </summary>
+        private void InitializeSchedulerSettings()
+        {
+            txtSchedulerSavePath.Text = _currentSettings.SavePath;
+            cmbSchedulerFormat.SelectedIndex = (int)_currentSettings.Format;
+            chkSchedulerSubtitle.IsChecked = _currentSettings.DownloadSubtitle;
+            SetComboBoxValue(cmbSchedulerSubtitleFormat, _currentSettings.SubtitleFormat);
+            SetComboBoxValue(cmbSchedulerSubtitleLang, _currentSettings.SubtitleLang);
+            chkSchedulerNotification.IsChecked = _currentSettings.EnableNotification;
+            txtSchedulerMaxDownloads.Text = _currentSettings.MaxDownloads.ToString();
+        }
+
+        /// <summary>
+        /// ComboBox에 값 설정
+        /// </summary>
+        private void SetComboBoxValue(ComboBox comboBox, string value)
+        {
+            for (int i = 0; i < comboBox.Items.Count; i++)
+            {
+                var item = comboBox.Items[i];
+                string itemValue = "";
+
+                if (item is ComboBoxItem comboBoxItem)
+                {
+                    itemValue = comboBoxItem.Content?.ToString() ?? "";
+                }
+                else
+                {
+                    itemValue = item?.ToString() ?? "";
+                }
+
+                if (itemValue == value)
+                {
+                    comboBox.SelectedIndex = i;
+                    return;
+                }
+            }
+            comboBox.Text = value;
+        }
+
+        /// <summary>
+        /// ComboBox에서 값 가져오기
+        /// </summary>
+        private string GetComboBoxValue(ComboBox comboBox)
+        {
+            if (comboBox.SelectedItem != null)
+            {
+                if (comboBox.SelectedItem is ComboBoxItem item)
+                {
+                    return item.Content?.ToString() ?? "";
+                }
+                return comboBox.SelectedItem.ToString() ?? "";
+            }
+            return comboBox.Text ?? "";
+        }
+
+        /// <summary>
+        /// 저장 경로 찾기 버튼
+        /// </summary>
+        private void btnBrowseSavePath_Click(object sender, RoutedEventArgs e)
+        {
+            using (var dialog = new System.Windows.Forms.FolderBrowserDialog())
+            {
+                if (dialog.ShowDialog() == System.Windows.Forms.DialogResult.OK)
+                {
+                    txtSchedulerSavePath.Text = dialog.SelectedPath;
+                }
+            }
         }
 
         /// <summary>
@@ -95,6 +173,19 @@ namespace ytDownloader
                 return;
             }
 
+            // 입력값 검증
+            if (string.IsNullOrWhiteSpace(txtSchedulerSavePath.Text))
+            {
+                MessageBox.Show("저장 경로를 선택해주세요.", "입력 오류", MessageBoxButton.OK, MessageBoxImage.Warning);
+                return;
+            }
+
+            if (!int.TryParse(txtSchedulerMaxDownloads.Text, out int maxDownloads) || maxDownloads <= 0)
+            {
+                MessageBox.Show("최대 다운로드 개수를 올바르게 입력해주세요.", "입력 오류", MessageBoxButton.OK, MessageBoxImage.Warning);
+                return;
+            }
+
             int frequency = (int)selectedFrequency.Tag;
             int hour = (int)selectedHour.Tag;
             int minute = (int)selectedMinute.Tag;
@@ -103,6 +194,22 @@ namespace ytDownloader
 
             if (taskName != null)
             {
+                // 스케줄러별 설정 저장
+                var schedulerSettings = new SchedulerSettings
+                {
+                    TaskName = taskName,
+                    SavePath = txtSchedulerSavePath.Text,
+                    Format = (VideoFormat)(cmbSchedulerFormat.SelectedIndex >= 0 ? cmbSchedulerFormat.SelectedIndex : 0),
+                    DownloadSubtitle = chkSchedulerSubtitle.IsChecked ?? false,
+                    SubtitleFormat = GetComboBoxValue(cmbSchedulerSubtitleFormat),
+                    SubtitleLang = GetComboBoxValue(cmbSchedulerSubtitleLang),
+                    EnableNotification = chkSchedulerNotification.IsChecked ?? true,
+                    MaxDownloads = maxDownloads
+                };
+
+                _currentSettings.SchedulerSettingsMap[taskName] = schedulerSettings;
+                _settingsService.SaveSettings(_currentSettings);
+
                 MessageBox.Show(
                     $"자동 예약이 등록되었습니다.\n\n" +
                     $"실행 주기: {selectedFrequency.Content}\n" +
@@ -162,6 +269,13 @@ namespace ytDownloader
 
                 if (success)
                 {
+                    // 관련 스케줄러 설정도 함께 삭제
+                    if (_currentSettings.SchedulerSettingsMap.ContainsKey(selectedTask.TaskName))
+                    {
+                        _currentSettings.SchedulerSettingsMap.Remove(selectedTask.TaskName);
+                        _settingsService.SaveSettings(_currentSettings);
+                    }
+
                     MessageBox.Show("자동 예약이 삭제되었습니다.", "삭제 완료", MessageBoxButton.OK, MessageBoxImage.Information);
                     UpdateStatus();
                 }
@@ -199,10 +313,21 @@ namespace ytDownloader
 
             if (result == MessageBoxResult.Yes)
             {
+                // 각 태스크의 설정도 함께 삭제
+                foreach (var task in tasks)
+                {
+                    if (_currentSettings.SchedulerSettingsMap.ContainsKey(task.TaskName))
+                    {
+                        _currentSettings.SchedulerSettingsMap.Remove(task.TaskName);
+                    }
+                }
+
                 int deletedCount = _schedulerService.DeleteAllScheduledTasks();
 
                 if (deletedCount > 0)
                 {
+                    _settingsService.SaveSettings(_currentSettings);
+
                     MessageBox.Show(
                         $"{deletedCount}개의 자동 예약이 삭제되었습니다.",
                         "삭제 완료",
