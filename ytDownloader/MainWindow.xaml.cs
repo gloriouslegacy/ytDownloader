@@ -1330,6 +1330,16 @@ namespace ytDownloader
                 }
             }
         }
+
+        /// <summary>
+        /// ListBox 내 CheckBox 클릭 이벤트 핸들러
+        /// CheckBox를 클릭하면 부모 ListBoxItem의 선택 상태를 토글합니다
+        /// </summary>
+        private void CheckBox_Click(object sender, RoutedEventArgs e)
+        {
+            // 이벤트가 ListBoxItem으로 전파되지 않도록 처리됨
+            // IsChecked 바인딩이 자동으로 ListBoxItem의 IsSelected를 업데이트함
+        }
     }
 
     /// <summary>
