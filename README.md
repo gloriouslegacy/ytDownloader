@@ -101,7 +101,7 @@
 
    **예시 1: 일일 음악 채널 자동 다운로드**
    ```
-   채널 URL: https://www.youtube.com/@lofi-music
+   채널 URL: https://www.tube.com/@lofi-music
    저장 경로: C:\Music\Lofi
    포맷: audio_mp3
    자막: 사용 안 함
@@ -112,7 +112,7 @@
 
    **예시 2: 주간 강의 채널 다운로드**
    ```
-   채널 URL: https://www.youtube.com/@programming-lectures
+   채널 URL: https://www.tube.com/@programming-lectures
    저장 경로: C:\Lectures\Programming
    포맷: 1080p
    자막: ko, srt
