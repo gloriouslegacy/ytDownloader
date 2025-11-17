@@ -1168,24 +1168,28 @@ namespace ytDownloader
 
             // 클릭된 셀 확인
             var hit = e.OriginalSource as System.Windows.DependencyObject;
-            while (hit != null && !(hit is System.Windows.Controls.DataGridCell) && !(hit is System.Windows.Controls.DataGridRow))
+            System.Windows.Controls.DataGridRow row = null;
+            System.Windows.Controls.DataGridCell cell = null;
+
+            while (hit != null)
             {
+                if (hit is System.Windows.Controls.DataGridCell)
+                    cell = hit as System.Windows.Controls.DataGridCell;
+                if (hit is System.Windows.Controls.DataGridRow)
+                {
+                    row = hit as System.Windows.Controls.DataGridRow;
+                    break;
+                }
                 hit = System.Windows.Media.VisualTreeHelper.GetParent(hit);
             }
 
             // 체크박스 컬럼이 아닌 경우에만 토글
-            if (hit is System.Windows.Controls.DataGridCell cell)
-            {
-                if (cell.Column.DisplayIndex == 0) return; // 체크박스 컬럼
-            }
+            if (cell != null && cell.Column.DisplayIndex == 0) return; // 체크박스 컬럼
 
-            // 현재 선택된 항목들의 IsSelected 토글
-            foreach (var item in grid.SelectedItems)
+            // 클릭된 행의 데이터 항목 찾기 및 토글
+            if (row != null && row.Item is ScheduledChannel channel)
             {
-                if (item is ScheduledChannel channel)
-                {
-                    channel.IsSelected = !channel.IsSelected;
-                }
+                channel.IsSelected = !channel.IsSelected;
             }
         }
 
@@ -1200,24 +1204,28 @@ namespace ytDownloader
 
             // 클릭된 셀 확인
             var hit = e.OriginalSource as System.Windows.DependencyObject;
-            while (hit != null && !(hit is System.Windows.Controls.DataGridCell) && !(hit is System.Windows.Controls.DataGridRow))
+            System.Windows.Controls.DataGridRow row = null;
+            System.Windows.Controls.DataGridCell cell = null;
+
+            while (hit != null)
             {
+                if (hit is System.Windows.Controls.DataGridCell)
+                    cell = hit as System.Windows.Controls.DataGridCell;
+                if (hit is System.Windows.Controls.DataGridRow)
+                {
+                    row = hit as System.Windows.Controls.DataGridRow;
+                    break;
+                }
                 hit = System.Windows.Media.VisualTreeHelper.GetParent(hit);
             }
 
             // 체크박스 컬럼이 아닌 경우에만 토글
-            if (hit is System.Windows.Controls.DataGridCell cell)
-            {
-                if (cell.Column.DisplayIndex == 0) return; // 체크박스 컬럼
-            }
+            if (cell != null && cell.Column.DisplayIndex == 0) return; // 체크박스 컬럼
 
-            // 현재 선택된 항목들의 IsSelected 토글
-            foreach (var item in grid.SelectedItems)
+            // 클릭된 행의 데이터 항목 찾기 및 토글
+            if (row != null && row.Item is ScheduleTaskInfo task)
             {
-                if (item is ScheduleTaskInfo task)
-                {
-                    task.IsSelected = !task.IsSelected;
-                }
+                task.IsSelected = !task.IsSelected;
             }
         }
 

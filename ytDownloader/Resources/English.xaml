@@ -109,6 +109,31 @@
     <system:String x:Key="CheckBox_EnableNotification">Download Complete Notification</system:String>
     <system:String x:Key="ToolTip_EnableNotification">Show notification when download completes</system:String>
 
+    <!--  Schedule DataGrid Headers and Labels  -->
+    <system:String x:Key="Label_UrlInput_Schedule">URL Input:</system:String>
+    <system:String x:Key="Button_Paste_Schedule">Paste</system:String>
+    <system:String x:Key="ToolTip_Paste_Schedule">Paste URL from clipboard</system:String>
+    <system:String x:Key="Button_Clear_Schedule">Clear</system:String>
+    <system:String x:Key="ToolTip_Clear_Schedule">Clear entered URL</system:String>
+    <system:String x:Key="Label_ChannelName">Channel Name:</system:String>
+    <system:String x:Key="Header_Select">Select</system:String>
+    <system:String x:Key="Header_ChannelName">Channel Name</system:String>
+    <system:String x:Key="Header_Url">URL</system:String>
+    <system:String x:Key="Header_AddedDate">Added Date</system:String>
+    <system:String x:Key="Button_RemoveSelectedSchedule">Remove Selected Schedules</system:String>
+    <system:String x:Key="ToolTip_RemoveSelectedSchedule">Delete selected manual schedule items</system:String>
+    <system:String x:Key="Button_RunSelectedSchedule">Run Selected Schedules</system:String>
+    <system:String x:Key="ToolTip_RunSelectedSchedule">Execute only selected scheduled channels immediately</system:String>
+    <system:String x:Key="Label_RegisteredScheduleList">Registered Schedule List</system:String>
+    <system:String x:Key="Header_TaskName">Task Name</system:String>
+    <system:String x:Key="Header_Frequency">Frequency</system:String>
+    <system:String x:Key="Header_ExecutionTime">Execution Time</system:String>
+    <system:String x:Key="Header_NextRun">Next Run</system:String>
+    <system:String x:Key="Button_RemoveSelectedAutoSchedule">Remove Selected Auto Schedules</system:String>
+    <system:String x:Key="ToolTip_RemoveSelectedAutoSchedule">Delete selected auto schedule items</system:String>
+    <system:String x:Key="Button_RemoveAllAutoSchedules">Remove All Auto Schedules</system:String>
+    <system:String x:Key="ToolTip_RemoveAllAutoSchedules">Delete all auto schedule items</system:String>
+
     <!--  Progress  -->
     <system:String x:Key="Label_Speed">Speed:</system:String>
     <system:String x:Key="Label_ETA">ETA:</system:String>
