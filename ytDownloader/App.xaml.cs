@@ -81,7 +81,28 @@ namespace ytDownloader
             }
             catch
             {
-                // 언어 적용 실패시 기본 한국어 사용
+                // 언어 적용 실패시 기본 한국어 로드 시도
+                try
+                {
+                    var dictionaries = this.Resources.MergedDictionaries;
+
+                    // 언어 리소스가 없는지 확인
+                    var hasLanguageResource = dictionaries.Any(d =>
+                        d.Source != null && (d.Source.OriginalString.Contains("Korean.xaml") || d.Source.OriginalString.Contains("English.xaml")));
+
+                    if (!hasLanguageResource)
+                    {
+                        var koreanDict = new ResourceDictionary
+                        {
+                            Source = new Uri("Resources/Korean.xaml", UriKind.Relative)
+                        };
+                        dictionaries.Add(koreanDict);
+                    }
+                }
+                catch
+                {
+                    // 기본 언어 로드도 실패한 경우 무시 (App.xaml에 이미 포함됨)
+                }
             }
         }
     }

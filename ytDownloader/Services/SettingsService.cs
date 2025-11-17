@@ -69,7 +69,10 @@ namespace ytDownloader.Services
                         SaveThumbnail = false,
                         UseStructuredFolder = false,
                         Format = VideoFormat.BestVideo,
-                        MaxDownloads = 5
+                        MaxDownloads = 5,
+                        Theme = "Dark",
+                        Language = "ko",
+                        EnableNotification = true
                     };
 
                     // 기본값으로 저장
