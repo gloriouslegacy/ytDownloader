@@ -1160,17 +1160,17 @@ namespace ytDownloader
         /// <summary>
         /// 수동 예약 DataGrid 행 클릭 시 체크박스 토글
         /// </summary>
-        private void lstScheduledChannels_MouseLeftButtonUp(object sender, MouseButtonEventArgs e)
+        private void lstScheduledChannels_PreviewMouseLeftButtonDown(object sender, MouseButtonEventArgs e)
         {
-            // 체크박스 컬럼을 클릭한 경우는 자동 처리되므로 제외
             var grid = sender as System.Windows.Controls.DataGrid;
             if (grid == null) return;
 
-            // 클릭된 셀 확인
+            // 클릭된 요소 추적
             var hit = e.OriginalSource as System.Windows.DependencyObject;
             System.Windows.Controls.DataGridRow row = null;
             System.Windows.Controls.DataGridCell cell = null;
 
+            // 비주얼 트리를 따라 올라가며 행과 셀 찾기
             while (hit != null)
             {
                 if (hit is System.Windows.Controls.DataGridCell)
@@ -1183,10 +1183,11 @@ namespace ytDownloader
                 hit = System.Windows.Media.VisualTreeHelper.GetParent(hit);
             }
 
-            // 체크박스 컬럼이 아닌 경우에만 토글
-            if (cell != null && cell.Column.DisplayIndex == 0) return; // 체크박스 컬럼
+            // 체크박스 컬럼을 클릭한 경우는 기본 동작 허용 (자동 처리됨)
+            if (cell != null && cell.Column is DataGridCheckBoxColumn)
+                return;
 
-            // 클릭된 행의 데이터 항목 찾기 및 토글
+            // 다른 셀을 클릭한 경우 체크박스 토글
             if (row != null && row.Item is ScheduledChannel channel)
             {
                 channel.IsSelected = !channel.IsSelected;
@@ -1196,17 +1197,17 @@ namespace ytDownloader
         /// <summary>
         /// 자동 예약 DataGrid 행 클릭 시 체크박스 토글
         /// </summary>
-        private void lstAutoScheduledTasks_MouseLeftButtonUp(object sender, MouseButtonEventArgs e)
+        private void lstAutoScheduledTasks_PreviewMouseLeftButtonDown(object sender, MouseButtonEventArgs e)
         {
-            // 체크박스 컬럼을 클릭한 경우는 자동 처리되므로 제외
             var grid = sender as System.Windows.Controls.DataGrid;
             if (grid == null) return;
 
-            // 클릭된 셀 확인
+            // 클릭된 요소 추적
             var hit = e.OriginalSource as System.Windows.DependencyObject;
             System.Windows.Controls.DataGridRow row = null;
             System.Windows.Controls.DataGridCell cell = null;
 
+            // 비주얼 트리를 따라 올라가며 행과 셀 찾기
             while (hit != null)
             {
                 if (hit is System.Windows.Controls.DataGridCell)
@@ -1219,10 +1220,11 @@ namespace ytDownloader
                 hit = System.Windows.Media.VisualTreeHelper.GetParent(hit);
             }
 
-            // 체크박스 컬럼이 아닌 경우에만 토글
-            if (cell != null && cell.Column.DisplayIndex == 0) return; // 체크박스 컬럼
+            // 체크박스 컬럼을 클릭한 경우는 기본 동작 허용 (자동 처리됨)
+            if (cell != null && cell.Column is DataGridCheckBoxColumn)
+                return;
 
-            // 클릭된 행의 데이터 항목 찾기 및 토글
+            // 다른 셀을 클릭한 경우 체크박스 토글
             if (row != null && row.Item is ScheduleTaskInfo task)
             {
                 task.IsSelected = !task.IsSelected;

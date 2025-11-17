@@ -137,4 +137,24 @@
     <!--  Progress  -->
     <system:String x:Key="Label_Speed">Speed:</system:String>
     <system:String x:Key="Label_ETA">ETA:</system:String>
+
+    <!--  Schedule Settings Dialog  -->
+    <system:String x:Key="Dialog_AutoScheduleSettings">Auto Schedule Settings</system:String>
+    <system:String x:Key="Label_AutoScheduleDescription">Automatically download scheduled channels at specified times.</system:String>
+    <system:String x:Key="Label_FrequencyDays">Frequency (Days)</system:String>
+    <system:String x:Key="Label_ExecutionTimeSettings">Execution Time</system:String>
+    <system:String x:Key="Label_Hour">Hour</system:String>
+    <system:String x:Key="Label_Minute">Minute</system:String>
+    <system:String x:Key="Label_SchedulerDownloadSettings">Scheduler Download Settings</system:String>
+    <system:String x:Key="Label_ChannelUrl">Channel URL</system:String>
+    <system:String x:Key="ToolTip_SchedulerChannelUrl">Enter a specific channel URL to download only that channel</system:String>
+    <system:String x:Key="ToolTip_PasteChannelUrl">Paste URL from clipboard</system:String>
+    <system:String x:Key="ToolTip_SchedulerSavePath">Path where files downloaded by this scheduler will be saved</system:String>
+    <system:String x:Key="ToolTip_SchedulerMaxDownloads">Maximum number of videos to download per channel (0 = unlimited)</system:String>
+    <system:String x:Key="Button_Register">Register</system:String>
+    <system:String x:Key="Button_DeleteSelected">Delete Selected</system:String>
+    <system:String x:Key="Button_DeleteAll">Delete All</system:String>
+    <system:String x:Key="Button_Refresh">Refresh</system:String>
+    <system:String x:Key="Button_Close">Close</system:String>
+    <system:String x:Key="Label_AdvancedSettings">Advanced Settings</system:String>
 </ResourceDictionary>

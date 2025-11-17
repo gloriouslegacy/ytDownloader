@@ -136,4 +136,24 @@
     <!-- 진행 상태 -->
     <system:String x:Key="Label_Speed">속도:</system:String>
     <system:String x:Key="Label_ETA">ETA:</system:String>
+
+    <!--  스케줄 설정 다이얼로그  -->
+    <system:String x:Key="Dialog_AutoScheduleSettings">자동 예약 설정</system:String>
+    <system:String x:Key="Label_AutoScheduleDescription">예약된 채널들을 지정한 시간에 자동으로 다운로드합니다.</system:String>
+    <system:String x:Key="Label_FrequencyDays">실행 주기 (일)</system:String>
+    <system:String x:Key="Label_ExecutionTimeSettings">실행 시간</system:String>
+    <system:String x:Key="Label_Hour">시</system:String>
+    <system:String x:Key="Label_Minute">분</system:String>
+    <system:String x:Key="Label_SchedulerDownloadSettings">스케줄러 다운로드 설정</system:String>
+    <system:String x:Key="Label_ChannelUrl">채널 URL</system:String>
+    <system:String x:Key="ToolTip_SchedulerChannelUrl">특정 채널 URL을 입력하면 해당 채널만 다운로드됩니다</system:String>
+    <system:String x:Key="ToolTip_PasteChannelUrl">클립보드의 URL 붙여넣기</system:String>
+    <system:String x:Key="ToolTip_SchedulerSavePath">이 스케줄러에서 다운로드한 파일이 저장될 경로</system:String>
+    <system:String x:Key="ToolTip_SchedulerMaxDownloads">채널당 다운로드할 최대 영상 개수 (0은 무한)</system:String>
+    <system:String x:Key="Button_Register">등록</system:String>
+    <system:String x:Key="Button_DeleteSelected">선택 삭제</system:String>
+    <system:String x:Key="Button_DeleteAll">전체 삭제</system:String>
+    <system:String x:Key="Button_Refresh">새로고침</system:String>
+    <system:String x:Key="Button_Close">닫기</system:String>
+    <system:String x:Key="Label_AdvancedSettings">고급 설정</system:String>
 </ResourceDictionary>
