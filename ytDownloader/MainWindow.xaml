@@ -829,7 +829,7 @@
                                         Background="Transparent"
                                         BorderThickness="0"
                                         Foreground="{DynamicResource PrimaryTextBrush}"
-                                        SelectionMode="Extended"
+                                        SelectionMode="Single"
                                         MinHeight="80" />
                                 </Border>
 
@@ -915,7 +915,7 @@
                                         Background="Transparent"
                                         BorderThickness="0"
                                         Foreground="{DynamicResource PrimaryTextBrush}"
-                                        SelectionMode="Extended"
+                                        SelectionMode="Single"
                                         MinHeight="80" />
                                 </Border>
 

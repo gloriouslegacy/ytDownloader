@@ -75,8 +75,8 @@
     <system:String x:Key="ToolTip_Subtitle">Download subtitle files with video</system:String>
     <system:String x:Key="ToolTip_SubtitleLang">Select subtitle language (can type: ko, en, ja, zh, etc.)</system:String>
     <system:String x:Key="ToolTip_SubtitleFormat">Subtitle file format (srt: universal, vtt: web, ass: advanced styling)</system:String>
-    <system:String x:Key="Label_MaxDownloads">Max Download Count</system:String>
-    <system:String x:Key="ToolTip_MaxDownloads">Maximum download count for channel/playlist (e.g., 5)</system:String>
+    <system:String x:Key="Label_MaxDownloads">Max Download Count (0 = unlimited)</system:String>
+    <system:String x:Key="ToolTip_MaxDownloads">Maximum download count for channel/playlist (0 = unlimited)</system:String>
 
     <!-- Download Control -->
     <system:String x:Key="Button_Pause">Pause</system:String>
