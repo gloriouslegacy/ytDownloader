@@ -1,3 +1,4 @@
+using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
 using System.Text.RegularExpressions;
@@ -7,13 +8,29 @@ namespace ytDownloader.Services
     /// <summary>
     /// 스케줄 작업 정보
     /// </summary>
-    public class ScheduleTaskInfo
+    public class ScheduleTaskInfo : INotifyPropertyChanged
     {
+        private bool _isSelected;
+
         public string TaskName { get; set; } = string.Empty;
         public int Frequency { get; set; }
         public int Hour { get; set; }
         public int Minute { get; set; }
         public string DisplayText => $"{TaskName}: {FrequencyText} {Hour:D2}:{Minute:D2}";
+
+        /// <summary>체크박스 선택 여부</summary>
+        public bool IsSelected
+        {
+            get => _isSelected;
+            set
+            {
+                if (_isSelected != value)
+                {
+                    _isSelected = value;
+                    OnPropertyChanged(nameof(IsSelected));
+                }
+            }
+        }
 
         private string FrequencyText
         {
@@ -37,6 +54,13 @@ namespace ytDownloader.Services
         public override string ToString()
         {
             return DisplayText;
+        }
+
+        public event PropertyChangedEventHandler? PropertyChanged;
+
+        protected virtual void OnPropertyChanged(string propertyName)
+        {
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
     }
 
