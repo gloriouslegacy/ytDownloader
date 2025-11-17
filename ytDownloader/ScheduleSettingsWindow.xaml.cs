@@ -13,8 +13,31 @@ namespace ytDownloader
             InitializeComponent();
             _schedulerService = new TaskSchedulerService();
 
+            InitializeFrequencyComboBox();
             InitializeTimeComboBoxes();
             UpdateStatus();
+        }
+
+        /// <summary>
+        /// 실행 주기 콤보박스 초기화
+        /// </summary>
+        private void InitializeFrequencyComboBox()
+        {
+            // 콤보박스 항목 추가 (Tag를 int로 설정)
+            cmbFrequency.Items.Add(new ComboBoxItem { Content = "매일 (1일)", Tag = 1 });
+            cmbFrequency.Items.Add(new ComboBoxItem { Content = "2일마다", Tag = 2 });
+            cmbFrequency.Items.Add(new ComboBoxItem { Content = "3일마다", Tag = 3 });
+            cmbFrequency.Items.Add(new ComboBoxItem { Content = "4일마다", Tag = 4 });
+            cmbFrequency.Items.Add(new ComboBoxItem { Content = "5일마다", Tag = 5 });
+            cmbFrequency.Items.Add(new ComboBoxItem { Content = "6일마다", Tag = 6 });
+            cmbFrequency.Items.Add(new ComboBoxItem { Content = "매주 (7일)", Tag = 7 });
+            cmbFrequency.Items.Add(new ComboBoxItem { Content = "10일마다", Tag = 10 });
+            cmbFrequency.Items.Add(new ComboBoxItem { Content = "2주마다 (14일)", Tag = 14 });
+            cmbFrequency.Items.Add(new ComboBoxItem { Content = "3주마다 (21일)", Tag = 21 });
+            cmbFrequency.Items.Add(new ComboBoxItem { Content = "매월 (30일)", Tag = 30 });
+            cmbFrequency.Items.Add(new ComboBoxItem { Content = "31일마다", Tag = 31 });
+
+            cmbFrequency.SelectedIndex = 0;
         }
 
         /// <summary>
@@ -36,17 +59,23 @@ namespace ytDownloader
         }
 
         /// <summary>
-        /// 현재 스케줄 상태 업데이트
+        /// 스케줄 목록 새로고침
         /// </summary>
         private void UpdateStatus()
         {
-            if (_schedulerService.IsTaskScheduled())
+            lstScheduledTasks.Items.Clear();
+
+            var tasks = _schedulerService.GetAllScheduledTasks();
+            if (tasks.Count == 0)
             {
-                txtStatus.Text = "✅ 자동 예약이 등록되어 있습니다.\n작업 스케줄러에서 상세 정보를 확인할 수 있습니다.";
+                lstScheduledTasks.Items.Add("등록된 스케줄이 없습니다.");
             }
             else
             {
-                txtStatus.Text = "등록된 스케줄이 없습니다.";
+                foreach (var task in tasks)
+                {
+                    lstScheduledTasks.Items.Add(task.DisplayText);
+                }
             }
         }
 
@@ -69,9 +98,9 @@ namespace ytDownloader
             int hour = (int)selectedHour.Tag;
             int minute = (int)selectedMinute.Tag;
 
-            bool success = _schedulerService.CreateScheduledTask(frequency, hour, minute);
+            string? taskName = _schedulerService.CreateScheduledTask(frequency, hour, minute);
 
-            if (success)
+            if (taskName != null)
             {
                 MessageBox.Show(
                     $"자동 예약이 등록되었습니다.\n\n" +
@@ -96,18 +125,18 @@ namespace ytDownloader
         }
 
         /// <summary>
-        /// 삭제 버튼 클릭
+        /// 선택 삭제 버튼 클릭
         /// </summary>
-        private void btnDelete_Click(object sender, RoutedEventArgs e)
+        private void btnDeleteSelected_Click(object sender, RoutedEventArgs e)
         {
-            if (!_schedulerService.IsTaskScheduled())
+            if (lstScheduledTasks.SelectedItem == null || lstScheduledTasks.SelectedItem.ToString() == "등록된 스케줄이 없습니다.")
             {
-                MessageBox.Show("등록된 스케줄이 없습니다.", "알림", MessageBoxButton.OK, MessageBoxImage.Information);
+                MessageBox.Show("삭제할 스케줄을 선택해주세요.", "알림", MessageBoxButton.OK, MessageBoxImage.Information);
                 return;
             }
 
             var result = MessageBox.Show(
-                "등록된 자동 예약을 삭제하시겠습니까?",
+                "선택한 자동 예약을 삭제하시겠습니까?",
                 "확인",
                 MessageBoxButton.YesNo,
                 MessageBoxImage.Question
@@ -115,23 +144,38 @@ namespace ytDownloader
 
             if (result == MessageBoxResult.Yes)
             {
-                bool success = _schedulerService.DeleteScheduledTask();
+                var tasks = _schedulerService.GetAllScheduledTasks();
+                int selectedIndex = lstScheduledTasks.SelectedIndex;
 
-                if (success)
+                if (selectedIndex >= 0 && selectedIndex < tasks.Count)
                 {
-                    MessageBox.Show("자동 예약이 삭제되었습니다.", "삭제 완료", MessageBoxButton.OK, MessageBoxImage.Information);
-                    UpdateStatus();
-                }
-                else
-                {
-                    MessageBox.Show(
-                        "자동 예약 삭제에 실패했습니다.\n관리자 권한이 필요할 수 있습니다.",
-                        "삭제 실패",
-                        MessageBoxButton.OK,
-                        MessageBoxImage.Error
-                    );
+                    var taskToDelete = tasks[selectedIndex];
+                    bool success = _schedulerService.DeleteScheduledTask(taskToDelete.TaskName);
+
+                    if (success)
+                    {
+                        MessageBox.Show("자동 예약이 삭제되었습니다.", "삭제 완료", MessageBoxButton.OK, MessageBoxImage.Information);
+                        UpdateStatus();
+                    }
+                    else
+                    {
+                        MessageBox.Show(
+                            "자동 예약 삭제에 실패했습니다.\n관리자 권한이 필요할 수 있습니다.",
+                            "삭제 실패",
+                            MessageBoxButton.OK,
+                            MessageBoxImage.Error
+                        );
+                    }
                 }
             }
+        }
+
+        /// <summary>
+        /// 새로고침 버튼 클릭
+        /// </summary>
+        private void btnRefresh_Click(object sender, RoutedEventArgs e)
+        {
+            UpdateStatus();
         }
 
         /// <summary>

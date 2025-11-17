@@ -4,7 +4,7 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     Title="자동 예약 설정"
     Width="500"
-    Height="350"
+    Height="420"
     WindowStartupLocation="CenterOwner"
     Background="{DynamicResource WindowBackgroundBrush}"
     Foreground="{DynamicResource PrimaryTextBrush}"
@@ -159,7 +159,7 @@
         <!--  설명  -->
         <TextBlock
             Grid.Row="0"
-            Margin="0,0,0,20"
+            Margin="0,0,0,15"
             TextWrapping="Wrap"
             Foreground="{DynamicResource PrimaryTextBrush}">
             <Run FontWeight="Bold">자동 예약 다운로드 설정</Run>
@@ -168,30 +168,17 @@
         </TextBlock>
 
         <!--  실행 주기  -->
-        <StackPanel Grid.Row="1" Margin="0,0,0,15">
+        <StackPanel Grid.Row="1" Margin="0,0,0,10">
             <TextBlock
                 Margin="0,0,0,5"
                 FontWeight="Bold"
                 Foreground="{DynamicResource PrimaryTextBrush}"
                 Text="실행 주기 (일)" />
-            <ComboBox Name="cmbFrequency" SelectedIndex="0">
-                <ComboBoxItem Content="매일 (1일)" Tag="1" />
-                <ComboBoxItem Content="2일마다" Tag="2" />
-                <ComboBoxItem Content="3일마다" Tag="3" />
-                <ComboBoxItem Content="4일마다" Tag="4" />
-                <ComboBoxItem Content="5일마다" Tag="5" />
-                <ComboBoxItem Content="6일마다" Tag="6" />
-                <ComboBoxItem Content="매주 (7일)" Tag="7" />
-                <ComboBoxItem Content="10일마다" Tag="10" />
-                <ComboBoxItem Content="2주마다 (14일)" Tag="14" />
-                <ComboBoxItem Content="3주마다 (21일)" Tag="21" />
-                <ComboBoxItem Content="매월 (30일)" Tag="30" />
-                <ComboBoxItem Content="31일마다" Tag="31" />
-            </ComboBox>
+            <ComboBox Name="cmbFrequency" />
         </StackPanel>
 
         <!--  실행 시간  -->
-        <StackPanel Grid.Row="2" Margin="0,0,0,15">
+        <StackPanel Grid.Row="2" Margin="0,0,0,10">
             <TextBlock
                 Margin="0,0,0,5"
                 FontWeight="Bold"
@@ -210,21 +197,39 @@
                     VerticalAlignment="Center"
                     Foreground="{DynamicResource PrimaryTextBrush}"
                     Text="분" />
+                <Button
+                    Width="100"
+                    Margin="20,0,0,0"
+                    Click="btnRegister_Click"
+                    Content="등록" />
             </StackPanel>
         </StackPanel>
 
-        <!--  현재 상태  -->
-        <StackPanel Grid.Row="3" Margin="0,0,0,15">
+        <!--  등록된 스케줄 목록  -->
+        <StackPanel Grid.Row="3" Margin="0,0,0,10">
             <TextBlock
                 Margin="0,0,0,5"
                 FontWeight="Bold"
                 Foreground="{DynamicResource PrimaryTextBrush}"
-                Text="현재 상태" />
-            <TextBlock
-                Name="txtStatus"
-                Foreground="{DynamicResource SecondaryTextBrush}"
-                Text="등록된 스케줄이 없습니다." />
+                Text="등록된 스케줄 목록" />
         </StackPanel>
+
+        <!--  스케줄 목록 ListBox  -->
+        <Border
+            Grid.Row="4"
+            Background="{DynamicResource PrimaryBackgroundBrush}"
+            BorderBrush="{DynamicResource BorderBrush}"
+            BorderThickness="1"
+            CornerRadius="6"
+            Margin="0,0,0,10">
+            <ListBox
+                Name="lstScheduledTasks"
+                Background="Transparent"
+                BorderThickness="0"
+                Foreground="{DynamicResource PrimaryTextBrush}"
+                SelectionMode="Single"
+                MinHeight="80" />
+        </Border>
 
         <!--  버튼  -->
         <StackPanel
@@ -234,13 +239,13 @@
             <Button
                 Width="100"
                 Margin="5"
-                Click="btnRegister_Click"
-                Content="등록" />
+                Click="btnDeleteSelected_Click"
+                Content="선택 삭제" />
             <Button
                 Width="100"
                 Margin="5"
-                Click="btnDelete_Click"
-                Content="삭제" />
+                Click="btnRefresh_Click"
+                Content="새로고침" />
             <Button
                 Width="100"
                 Margin="5"
