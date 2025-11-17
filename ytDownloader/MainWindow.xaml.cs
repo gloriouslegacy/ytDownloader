@@ -46,6 +46,24 @@ namespace ytDownloader
                 _isScheduledMode = true;
             }
 
+            // 작업 디렉토리를 실행 파일 디렉토리로 설정 (스케줄러 실행 시 필요)
+            try
+            {
+                string exePath = Process.GetCurrentProcess().MainModule?.FileName ?? "";
+                if (!string.IsNullOrWhiteSpace(exePath))
+                {
+                    string? exeDir = Path.GetDirectoryName(exePath);
+                    if (!string.IsNullOrWhiteSpace(exeDir))
+                    {
+                        Directory.SetCurrentDirectory(exeDir);
+                    }
+                }
+            }
+            catch
+            {
+                // 작업 디렉토리 설정 실패 시 무시
+            }
+
             // 서비스 초기화
             _settingsService = new SettingsService();
             _toolUpdateService = new ToolUpdateService();
@@ -778,13 +796,13 @@ namespace ytDownloader
         /// <summary>
         /// 탭 선택 변경 이벤트
         /// </summary>
-        private void mainTabControl_SelectionChanged(object sender, System.Windows.Controls.SelectionChangedEventArgs e)
+        private async void mainTabControl_SelectionChanged(object sender, System.Windows.Controls.SelectionChangedEventArgs e)
         {
             // 예약 탭이 선택되었을 때만 새로고침
             if (mainTabControl.SelectedItem == scheduleTabItem)
             {
                 RefreshScheduledChannelsList();
-                UpdateSchedulerStatus();
+                await UpdateSchedulerStatusAsync();
             }
         }
 
@@ -961,9 +979,13 @@ namespace ytDownloader
         {
             await Task.Delay(2000); // 초기화 대기
 
+            AppendOutput($"🤖 자동 실행 모드 시작 - 작업 디렉토리: {Directory.GetCurrentDirectory()}");
+            AppendOutput($"📋 설정 파일 경로: {Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "ytDownloader")}");
+
             if (_currentSettings.ScheduledChannels.Count == 0)
             {
                 AppendOutput("⚠️ 예약된 채널이 없습니다. 프로그램을 종료합니다.");
+                await SaveScheduledLog();
                 await Task.Delay(3000);
                 Application.Current.Shutdown();
                 return;
@@ -971,15 +993,50 @@ namespace ytDownloader
 
             AppendOutput($"🤖 자동 실행 모드: {_currentSettings.ScheduledChannels.Count}개 채널 다운로드 시작...");
 
-            foreach (var channel in _currentSettings.ScheduledChannels)
+            try
             {
-                var options = DownloadOptions.FromAppSettings(_currentSettings, channel.Url, isChannelMode: true);
-                await _downloadService.StartDownloadAsync(options);
+                foreach (var channel in _currentSettings.ScheduledChannels)
+                {
+                    AppendOutput($"📥 채널 다운로드 시작: {channel.Name ?? channel.Url}");
+                    var options = DownloadOptions.FromAppSettings(_currentSettings, channel.Url, isChannelMode: true);
+                    await _downloadService.StartDownloadAsync(options);
+                    AppendOutput($"✅ 채널 다운로드 완료: {channel.Name ?? channel.Url}");
+                }
+
+                AppendOutput("✅ 모든 예약 다운로드 완료. 5초 후 프로그램을 종료합니다.");
+            }
+            catch (Exception ex)
+            {
+                AppendOutput($"❌ 예약 다운로드 중 오류 발생: {ex.Message}");
+                AppendOutput($"❌ 스택 추적: {ex.StackTrace}");
             }
 
-            AppendOutput("✅ 모든 예약 다운로드 완료. 5초 후 프로그램을 종료합니다.");
+            await SaveScheduledLog();
             await Task.Delay(5000);
             Application.Current.Shutdown();
+        }
+
+        /// <summary>
+        /// 스케줄러 모드 로그를 파일로 저장
+        /// </summary>
+        private async Task SaveScheduledLog()
+        {
+            try
+            {
+                string timestamp = DateTime.Now.ToString("yyyyMMdd_HHmmss");
+                string logFileName = $"ytDownloader_scheduled_log_{timestamp}.txt";
+                string logPath = Path.Combine(_currentSettings.SavePath, logFileName);
+
+                await Dispatcher.InvokeAsync(async () =>
+                {
+                    await File.WriteAllTextAsync(logPath, txtOutput.Text);
+                    AppendOutput($"📝 로그 저장: {logPath}");
+                });
+            }
+            catch (Exception ex)
+            {
+                AppendOutput($"❌ 로그 저장 실패: {ex.Message}");
+            }
         }
 
         /// <summary>
@@ -987,21 +1044,35 @@ namespace ytDownloader
         /// </summary>
         private void UpdateSchedulerStatus()
         {
-            var schedulerService = new TaskSchedulerService();
-            lstAutoScheduledTasks.Items.Clear();
+            _ = UpdateSchedulerStatusAsync();
+        }
 
-            var tasks = schedulerService.GetAllScheduledTasks();
-            if (tasks.Count == 0)
+        /// <summary>
+        /// 스케줄러 상태 비동기 업데이트
+        /// </summary>
+        private async Task UpdateSchedulerStatusAsync()
+        {
+            var schedulerService = new TaskSchedulerService();
+
+            // UI 스레드를 차단하지 않도록 작업을 백그라운드에서 실행
+            var tasks = await Task.Run(() => schedulerService.GetAllScheduledTasks());
+
+            await Dispatcher.InvokeAsync(() =>
             {
-                lstAutoScheduledTasks.Items.Add("등록된 스케줄이 없습니다.");
-            }
-            else
-            {
-                foreach (var task in tasks)
+                lstAutoScheduledTasks.Items.Clear();
+
+                if (tasks.Count == 0)
                 {
-                    lstAutoScheduledTasks.Items.Add(task.DisplayText);
+                    lstAutoScheduledTasks.Items.Add("등록된 스케줄이 없습니다.");
                 }
-            }
+                else
+                {
+                    foreach (var task in tasks)
+                    {
+                        lstAutoScheduledTasks.Items.Add(task.DisplayText);
+                    }
+                }
+            });
         }
 
         /// <summary>
