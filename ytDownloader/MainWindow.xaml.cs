@@ -48,6 +48,7 @@ namespace ytDownloader
             _appUpdateService.LogMessage += AppendOutput;
             _downloadService.LogMessage += AppendOutput;
             _downloadService.ProgressChanged += OnDownloadProgressChanged;
+            _downloadService.DownloadCompleted += OnDownloadCompleted;
 
             // 설정 로드 및 UI 초기화
             _currentSettings = _settingsService.LoadSettings();
@@ -122,6 +123,7 @@ namespace ytDownloader
             ChkStructuredFolders.IsChecked = _currentSettings.UseStructuredFolder;
             comboFormat.SelectedIndex = (int)_currentSettings.Format;
             txtMaxDownloads.Text = _currentSettings.MaxDownloads.ToString();
+            ChkEnableNotification.IsChecked = _currentSettings.EnableNotification;
         }
 
         /// <summary>
@@ -146,6 +148,8 @@ namespace ytDownloader
             ChkStructuredFolders.Unchecked += (s, e) => SaveCurrentSettings();
             comboFormat.SelectionChanged += (s, e) => SaveCurrentSettings();
             txtMaxDownloads.TextChanged += (s, e) => SaveCurrentSettings();
+            ChkEnableNotification.Checked += (s, e) => SaveCurrentSettings();
+            ChkEnableNotification.Unchecked += (s, e) => SaveCurrentSettings();
         }
 
         /// <summary>
@@ -164,6 +168,7 @@ namespace ytDownloader
                 _currentSettings.UseStructuredFolder = ChkStructuredFolders.IsChecked ?? false;
                 _currentSettings.Format = (VideoFormat)(comboFormat.SelectedIndex >= 0 ? comboFormat.SelectedIndex : 0);
                 _currentSettings.MaxDownloads = int.TryParse(txtMaxDownloads.Text, out int n) ? n : 5;
+                _currentSettings.EnableNotification = ChkEnableNotification.IsChecked ?? true;
 
                 _settingsService.SaveSettings(_currentSettings);
             }
@@ -247,6 +252,27 @@ namespace ytDownloader
                 txtProgress.Text = $"{e.Percent:F0}%";
                 txtSpeed.Text = e.Speed;
                 txtEta.Text = e.Eta;
+            });
+        }
+
+        /// <summary>
+        /// 다운로드 완료 이벤트
+        /// </summary>
+        private void OnDownloadCompleted(object? sender, EventArgs e)
+        {
+            Dispatcher.Invoke(() =>
+            {
+                if (_currentSettings.EnableNotification)
+                {
+                    string message = _currentSettings.Language == "ko"
+                        ? "다운로드가 완료되었습니다."
+                        : "Download completed.";
+                    string title = _currentSettings.Language == "ko"
+                        ? "다운로드 완료"
+                        : "Download Complete";
+
+                    MessageBox.Show(message, title, MessageBoxButton.OK, MessageBoxImage.Information);
+                }
             });
         }
 
@@ -340,6 +366,14 @@ namespace ytDownloader
         }
 
         /// <summary>
+        /// 다운로드 정지 버튼
+        /// </summary>
+        private void btnStopDownload_Click(object sender, RoutedEventArgs e)
+        {
+            _downloadService.CancelDownload();
+        }
+
+        /// <summary>
         /// 하이퍼링크 클릭 이벤트
         /// </summary>
         private void Hyperlink_RequestNavigate(object sender, RequestNavigateEventArgs e)
@@ -423,6 +457,18 @@ namespace ytDownloader
         }
 
         /// <summary>
+        /// 메뉴: BtbN 릴리스
+        /// </summary>
+        private void MenuBtbN_Click(object sender, RoutedEventArgs e)
+        {
+            Process.Start(new ProcessStartInfo
+            {
+                FileName = "https://github.com/BtbN/FFmpeg-Builds/releases",
+                UseShellExecute = true
+            });
+        }
+
+        /// <summary>
         /// 메뉴: 정보
         /// </summary>
         private void MenuAbout_Click(object sender, RoutedEventArgs e)
@@ -473,14 +519,49 @@ namespace ytDownloader
             _currentSettings.Language = newLanguage;
             _settingsService.SaveSettings(_currentSettings);
 
+            // 언어 적용
+            ApplyLanguage(newLanguage);
+
             string languageName = newLanguage == "ko" ? "한국어" : "English";
             AppendOutput($"✅ 언어 변경: {languageName}");
-            MessageBox.Show(
-                $"언어가 '{languageName}'(으)로 변경되었습니다.\n프로그램을 재시작하면 새 언어가 적용됩니다.",
-                "언어 변경",
-                MessageBoxButton.OK,
-                MessageBoxImage.Information
-            );
+
+            string message = newLanguage == "ko"
+                ? $"언어가 '{languageName}'(으)로 변경되었습니다."
+                : $"Language changed to '{languageName}'.";
+            string title = newLanguage == "ko" ? "언어 변경" : "Language Changed";
+
+            MessageBox.Show(message, title, MessageBoxButton.OK, MessageBoxImage.Information);
+        }
+
+        /// <summary>
+        /// 언어 적용
+        /// </summary>
+        private void ApplyLanguage(string language)
+        {
+            try
+            {
+                var dictionaries = Application.Current.Resources.MergedDictionaries;
+
+                // 기존 언어 리소스 제거
+                var existingLanguage = dictionaries.FirstOrDefault(d =>
+                    d.Source != null && (d.Source.OriginalString.Contains("Korean.xaml") || d.Source.OriginalString.Contains("English.xaml")));
+                if (existingLanguage != null)
+                {
+                    dictionaries.Remove(existingLanguage);
+                }
+
+                string languageFile = language == "en" ? "Resources/English.xaml" : "Resources/Korean.xaml";
+                var languageDict = new ResourceDictionary
+                {
+                    Source = new Uri(languageFile, UriKind.Relative)
+                };
+
+                dictionaries.Add(languageDict);
+            }
+            catch (Exception ex)
+            {
+                AppendOutput($"❌ 언어 적용 오류: {ex.Message}");
+            }
         }
 
         /// <summary>

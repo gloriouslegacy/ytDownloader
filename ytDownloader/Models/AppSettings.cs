@@ -40,6 +40,9 @@ namespace ytDownloader.Models
         /// <summary>언어 설정 (ko, en)</summary>
         public string Language { get; set; } = "ko";
 
+        /// <summary>다운로드 완료 알림 여부</summary>
+        public bool EnableNotification { get; set; } = true;
+
         /// <summary>
         /// 기본 다운로드 경로 반환
         /// </summary>

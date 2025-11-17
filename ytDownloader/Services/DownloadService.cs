@@ -24,6 +24,8 @@ namespace ytDownloader.Services
         private readonly string _toolsPath;
         private readonly string _ytdlpPath;
         private readonly string _ffmpegPath;
+        private Process? _currentProcess;
+        private bool _isCancelled = false;
 
         /// <summary>
         /// 로그 메시지 출력 이벤트
@@ -40,11 +42,36 @@ namespace ytDownloader.Services
         /// </summary>
         public event EventHandler? DownloadCompleted;
 
+        /// <summary>
+        /// 현재 다운로드 중인지 여부
+        /// </summary>
+        public bool IsDownloading => _currentProcess != null && !_currentProcess.HasExited;
+
         public DownloadService()
         {
             _toolsPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "tools");
             _ytdlpPath = Path.Combine(_toolsPath, "yt-dlp.exe");
             _ffmpegPath = Path.Combine(_toolsPath, "ffmpeg.exe");
+        }
+
+        /// <summary>
+        /// 다운로드 취소
+        /// </summary>
+        public void CancelDownload()
+        {
+            try
+            {
+                _isCancelled = true;
+                if (_currentProcess != null && !_currentProcess.HasExited)
+                {
+                    _currentProcess.Kill();
+                    LogMessage?.Invoke("⏹️ 다운로드가 취소되었습니다.");
+                }
+            }
+            catch (Exception ex)
+            {
+                LogMessage?.Invoke($"❌ 다운로드 취소 오류: {ex.Message}");
+            }
         }
 
         /// <summary>
@@ -164,6 +191,8 @@ namespace ytDownloader.Services
             {
                 try
                 {
+                    _isCancelled = false;
+
                     ProcessStartInfo psi = new ProcessStartInfo
                     {
                         FileName = _ytdlpPath,
@@ -182,6 +211,7 @@ namespace ytDownloader.Services
 
                     using (Process proc = new Process())
                     {
+                        _currentProcess = proc;
                         proc.StartInfo = psi;
                         proc.OutputDataReceived += (s, e) =>
                         {
@@ -245,19 +275,28 @@ namespace ytDownloader.Services
                         proc.WaitForExit();
                     }
 
-                    LogMessage?.Invoke("✅ 다운로드 완료");
-                    ProgressChanged?.Invoke(this, new DownloadProgressEventArgs
-                    {
-                        Percent = 100,
-                        Speed = "-",
-                        Eta = "완료 ✅"
-                    });
+                    _currentProcess = null;
 
-                    DownloadCompleted?.Invoke(this, EventArgs.Empty);
+                    if (!_isCancelled)
+                    {
+                        LogMessage?.Invoke("✅ 다운로드 완료");
+                        ProgressChanged?.Invoke(this, new DownloadProgressEventArgs
+                        {
+                            Percent = 100,
+                            Speed = "-",
+                            Eta = "완료 ✅"
+                        });
+
+                        DownloadCompleted?.Invoke(this, EventArgs.Empty);
+                    }
                 }
                 catch (Exception ex)
                 {
-                    LogMessage?.Invoke("❌ 오류: " + ex.Message);
+                    _currentProcess = null;
+                    if (!_isCancelled)
+                    {
+                        LogMessage?.Invoke("❌ 오류: " + ex.Message);
+                    }
                 }
             });
         }
