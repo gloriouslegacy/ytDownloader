@@ -158,41 +158,64 @@ namespace ytDownloader.Services
                     string? nextRunTime = null;
                     int currentFrequency = 1;
 
-                    foreach (var line in lines)
+                    for (int i = 0; i < lines.Length; i++)
                     {
+                        var line = lines[i];
+
                         if (line.StartsWith("작업 이름:") || line.StartsWith("TaskName:"))
                         {
+                            // 이전 작업 정보가 있으면 tasks에 추가
+                            if (currentTaskName != null && nextRunTime != null)
+                            {
+                                if (TryParseScheduleInfo(nextRunTime, out int prevHour, out int prevMinute))
+                                {
+                                    tasks.Add(new ScheduleTaskInfo
+                                    {
+                                        TaskName = currentTaskName,
+                                        Hour = prevHour,
+                                        Minute = prevMinute,
+                                        Frequency = currentFrequency
+                                    });
+                                }
+                            }
+
+                            // 새로운 작업 시작
                             var taskName = line.Split(':', 2)[1].Trim();
                             if (taskName.Contains(TaskNamePrefix))
                             {
                                 currentTaskName = taskName;
                                 currentFrequency = 1; // 초기화
+                                nextRunTime = null;
                             }
                             else
                             {
                                 currentTaskName = null;
+                                nextRunTime = null;
                             }
                         }
                         else if (currentTaskName != null && (line.StartsWith("다음 실행 시간:") || line.StartsWith("Next Run Time:")))
                         {
                             nextRunTime = line.Split(':', 2)[1].Trim();
-
-                            // 시간 정보 추출 시도
-                            if (TryParseScheduleInfo(nextRunTime, out int hour, out int minute))
-                            {
-                                tasks.Add(new ScheduleTaskInfo
-                                {
-                                    TaskName = currentTaskName,
-                                    Hour = hour,
-                                    Minute = minute,
-                                    Frequency = currentFrequency
-                                });
-                            }
                         }
                         else if (currentTaskName != null && (line.Contains("간격:") || line.Contains("Repeat:")))
                         {
                             // 주기 정보 추출 (예: "간격: 3일 마다" 또는 "Repeat: Every 3 Day(s)")
                             currentFrequency = ExtractFrequency(line);
+                        }
+                    }
+
+                    // 마지막 작업 정보 추가
+                    if (currentTaskName != null && nextRunTime != null)
+                    {
+                        if (TryParseScheduleInfo(nextRunTime, out int hour, out int minute))
+                        {
+                            tasks.Add(new ScheduleTaskInfo
+                            {
+                                TaskName = currentTaskName,
+                                Hour = hour,
+                                Minute = minute,
+                                Frequency = currentFrequency
+                            });
                         }
                     }
                 }
