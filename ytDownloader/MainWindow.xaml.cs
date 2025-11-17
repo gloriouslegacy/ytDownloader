@@ -6,6 +6,7 @@ using System.Linq;
 using System.Reflection;
 using System.Runtime.Versioning;
 using System.Windows;
+using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Navigation;
 using ytDownloader.Models;
@@ -1167,8 +1168,8 @@ namespace ytDownloader
 
             // 클릭된 요소 추적
             var hit = e.OriginalSource as System.Windows.DependencyObject;
-            System.Windows.Controls.DataGridRow row = null;
-            System.Windows.Controls.DataGridCell cell = null;
+            System.Windows.Controls.DataGridRow? row = null;
+            System.Windows.Controls.DataGridCell? cell = null;
 
             // 비주얼 트리를 따라 올라가며 행과 셀 찾기
             while (hit != null)
@@ -1204,8 +1205,8 @@ namespace ytDownloader
 
             // 클릭된 요소 추적
             var hit = e.OriginalSource as System.Windows.DependencyObject;
-            System.Windows.Controls.DataGridRow row = null;
-            System.Windows.Controls.DataGridCell cell = null;
+            System.Windows.Controls.DataGridRow? row = null;
+            System.Windows.Controls.DataGridCell? cell = null;
 
             // 비주얼 트리를 따라 올라가며 행과 셀 찾기
             while (hit != null)
