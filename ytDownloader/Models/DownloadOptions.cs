@@ -58,5 +58,26 @@ namespace ytDownloader.Models
                 MaxDownloads = settings.MaxDownloads
             };
         }
+
+        /// <summary>
+        /// SchedulerSettings로부터 DownloadOptions 생성
+        /// </summary>
+        public static DownloadOptions FromSchedulerSettings(SchedulerSettings settings, string url, bool isChannelMode = false)
+        {
+            return new DownloadOptions
+            {
+                Url = url,
+                SavePath = settings.SavePath,
+                Format = settings.Format,
+                SingleVideoOnly = false, // 스케줄러는 항상 채널/재생목록 모드
+                DownloadSubtitle = settings.DownloadSubtitle,
+                SubtitleLang = settings.SubtitleLang,
+                SubtitleFormat = settings.SubtitleFormat,
+                SaveThumbnail = false, // 스케줄러는 썸네일 저장 안 함
+                UseStructuredFolder = true, // 스케줄러는 항상 폴더 구조 사용
+                IsChannelMode = isChannelMode,
+                MaxDownloads = settings.MaxDownloads
+            };
+        }
     }
 }

@@ -68,9 +68,9 @@ namespace ytDownloader.Services
                 // 형식: ytDownloader_Schedule_{frequency}D_{hour:D2}{minute:D2}_{timestamp}
                 string taskName = $"{TaskNamePrefix}{frequency}D_{hour:D2}{minute:D2}_{DateTime.Now:yyyyMMdd_HHmmss}";
 
-                // schtasks 명령어로 작업 생성
+                // schtasks 명령어로 작업 생성 (taskName을 인자로 전달)
                 string arguments = $"/Create /TN \"{taskName}\" " +
-                    $"/TR \"\\\"{exePath}\\\" --scheduled\" " +
+                    $"/TR \"\\\"{exePath}\\\" --scheduled \\\"{taskName}\\\"\" " +
                     $"/SC DAILY /MO {frequency} " +
                     $"/ST {hour:D2}:{minute:D2} " +
                     $"/F"; // /F: 강제 생성

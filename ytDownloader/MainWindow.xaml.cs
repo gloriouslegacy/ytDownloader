@@ -35,6 +35,7 @@ namespace ytDownloader
 
         // 스케줄러 모드 플래그
         private bool _isScheduledMode = false;
+        private string? _scheduledTaskName = null;
 
         public MainWindow(string[] args = null)
         {
@@ -44,6 +45,11 @@ namespace ytDownloader
             if (args != null && args.Length > 0 && args[0] == "--scheduled")
             {
                 _isScheduledMode = true;
+                // taskName이 두 번째 인자로 전달된 경우
+                if (args.Length > 1)
+                {
+                    _scheduledTaskName = args[1];
+                }
             }
 
             // 작업 디렉토리를 실행 파일 디렉토리로 설정 (스케줄러 실행 시 필요)
@@ -994,7 +1000,29 @@ namespace ytDownloader
             await Task.Delay(2000); // 초기화 대기
 
             AppendOutput($"🤖 자동 실행 모드 시작 - 작업 디렉토리: {Directory.GetCurrentDirectory()}");
-            AppendOutput($"📋 설정 파일 경로: {Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "ytDownloader")}");
+
+            // 스케줄러 설정 로드
+            SchedulerSettings? schedulerSettings = null;
+            if (!string.IsNullOrWhiteSpace(_scheduledTaskName))
+            {
+                schedulerSettings = _settingsService.LoadSchedulerSettings(_scheduledTaskName);
+                if (schedulerSettings != null)
+                {
+                    AppendOutput($"📋 스케줄러 설정 로드 완료: {_scheduledTaskName}");
+                    AppendOutput($"📂 저장 경로: {schedulerSettings.SavePath}");
+                    AppendOutput($"🎬 포맷: {schedulerSettings.Format}");
+                }
+                else
+                {
+                    AppendOutput($"⚠️ 스케줄러 설정을 찾을 수 없습니다: {_scheduledTaskName}");
+                    AppendOutput($"📋 기본 설정 사용 - 설정 파일 경로: {Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "ytDownloader")}");
+                }
+            }
+            else
+            {
+                AppendOutput($"⚠️ 스케줄러 작업 이름이 전달되지 않았습니다.");
+                AppendOutput($"📋 기본 설정 사용 - 설정 파일 경로: {Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "ytDownloader")}");
+            }
 
             if (_currentSettings.ScheduledChannels.Count == 0)
             {
@@ -1012,7 +1040,18 @@ namespace ytDownloader
                 foreach (var channel in _currentSettings.ScheduledChannels)
                 {
                     AppendOutput($"📥 채널 다운로드 시작: {channel.Name ?? channel.Url}");
-                    var options = DownloadOptions.FromAppSettings(_currentSettings, channel.Url, isChannelMode: true);
+
+                    // 스케줄러 설정이 있으면 사용, 없으면 기본 설정 사용
+                    DownloadOptions options;
+                    if (schedulerSettings != null)
+                    {
+                        options = DownloadOptions.FromSchedulerSettings(schedulerSettings, channel.Url, isChannelMode: true);
+                    }
+                    else
+                    {
+                        options = DownloadOptions.FromAppSettings(_currentSettings, channel.Url, isChannelMode: true);
+                    }
+
                     await _downloadService.StartDownloadAsync(options);
                     AppendOutput($"✅ 채널 다운로드 완료: {channel.Name ?? channel.Url}");
                 }
@@ -1194,6 +1233,10 @@ namespace ytDownloader
         /// </summary>
         private void chkSelectAllManual_Changed(object sender, RoutedEventArgs e)
         {
+            // 초기화 중일 수 있으므로 null 체크
+            if (lstScheduledChannels == null || !lstScheduledChannels.IsLoaded)
+                return;
+
             if (chkSelectAllManual.IsChecked == true)
             {
                 lstScheduledChannels.SelectAll();
@@ -1209,6 +1252,10 @@ namespace ytDownloader
         /// </summary>
         private void chkSelectAllAuto_Changed(object sender, RoutedEventArgs e)
         {
+            // 초기화 중일 수 있으므로 null 체크
+            if (lstAutoScheduledTasks == null || !lstAutoScheduledTasks.IsLoaded)
+                return;
+
             if (chkSelectAllAuto.IsChecked == true)
             {
                 lstAutoScheduledTasks.SelectAll();
