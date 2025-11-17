@@ -221,7 +221,7 @@ namespace ytDownloader
                 _currentSettings.SaveThumbnail = ChkWriteThumbnail.IsChecked ?? false;
                 _currentSettings.UseStructuredFolder = ChkStructuredFolders.IsChecked ?? false;
                 _currentSettings.Format = (VideoFormat)(comboFormat.SelectedIndex >= 0 ? comboFormat.SelectedIndex : 0);
-                _currentSettings.MaxDownloads = int.TryParse(txtMaxDownloads.Text, out int n) ? n : 5;
+                _currentSettings.MaxDownloads = int.TryParse(txtMaxDownloads.Text, out int n) && n >= 0 ? n : 5;
                 _currentSettings.EnableNotification = ChkEnableNotification.IsChecked ?? true;
 
                 _settingsService.SaveSettings(_currentSettings);
@@ -865,10 +865,8 @@ namespace ytDownloader
         /// </summary>
         private void btnRemoveSchedule_Click(object sender, RoutedEventArgs e)
         {
-            // 체크박스로 선택된 항목들 필터링
-            var selectedChannels = _scheduledChannelsCollection
-                .Where(c => c.IsSelected)
-                .ToList();
+            // ListBox에서 선택된 항목들 가져오기
+            var selectedChannels = lstScheduledChannels.SelectedItems.Cast<ScheduledChannel>().ToList();
 
             if (selectedChannels.Count == 0)
             {
@@ -944,10 +942,8 @@ namespace ytDownloader
         /// </summary>
         private void btnRunSelectedSchedule_Click(object sender, RoutedEventArgs e)
         {
-            // 체크박스로 선택된 항목들 필터링
-            var selectedChannels = _scheduledChannelsCollection
-                .Where(c => c.IsSelected)
-                .ToList();
+            // ListBox에서 선택된 항목들 가져오기
+            var selectedChannels = lstScheduledChannels.SelectedItems.Cast<ScheduledChannel>().ToList();
 
             if (selectedChannels.Count == 0)
             {
@@ -1045,14 +1041,22 @@ namespace ytDownloader
                 }
                 else
                 {
-                    AppendOutput($"⚠️ 스케줄러 설정을 찾을 수 없습니다: {_scheduledTaskName}");
-                    AppendOutput($"📋 기본 설정 사용 - 설정 파일 경로: {Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "ytDownloader")}");
+                    AppendOutput($"❌ 스케줄러 설정을 찾을 수 없습니다: {_scheduledTaskName}");
+                    AppendOutput($"⚠️ 자동 예약은 스케줄러 설정이 필수입니다. 프로그램을 종료합니다.");
+                    await SaveScheduledLog();
+                    await Task.Delay(3000);
+                    Application.Current.Shutdown();
+                    return;
                 }
             }
             else
             {
-                AppendOutput($"⚠️ 스케줄러 작업 이름이 전달되지 않았습니다.");
-                AppendOutput($"📋 기본 설정 사용 - 설정 파일 경로: {Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "ytDownloader")}");
+                AppendOutput($"❌ 스케줄러 작업 이름이 전달되지 않았습니다.");
+                AppendOutput($"⚠️ 자동 예약 실행을 위한 필수 정보가 없습니다. 프로그램을 종료합니다.");
+                await SaveScheduledLog();
+                await Task.Delay(3000);
+                Application.Current.Shutdown();
+                return;
             }
 
             if (_currentSettings.ScheduledChannels.Count == 0)
@@ -1068,23 +1072,26 @@ namespace ytDownloader
 
             try
             {
-                foreach (var channel in _currentSettings.ScheduledChannels)
+                // schedulerSettings.ChannelUrl이 비어있으면 모든 예약 채널 다운로드
+                // schedulerSettings.ChannelUrl이 있으면 해당 채널만 다운로드
+                if (!string.IsNullOrWhiteSpace(schedulerSettings.ChannelUrl))
                 {
-                    AppendOutput($"📥 채널 다운로드 시작: {channel.Name ?? channel.Url}");
-
-                    // 스케줄러 설정이 있으면 사용, 없으면 기본 설정 사용
-                    DownloadOptions options;
-                    if (schedulerSettings != null)
-                    {
-                        options = DownloadOptions.FromSchedulerSettings(schedulerSettings, channel.Url, isChannelMode: true);
-                    }
-                    else
-                    {
-                        options = DownloadOptions.FromAppSettings(_currentSettings, channel.Url, isChannelMode: true);
-                    }
-
+                    // 특정 채널만 다운로드
+                    AppendOutput($"📥 지정된 채널 다운로드 시작: {schedulerSettings.ChannelUrl}");
+                    var options = DownloadOptions.FromSchedulerSettings(schedulerSettings, schedulerSettings.ChannelUrl, isChannelMode: true);
                     await _downloadService.StartDownloadAsync(options);
-                    AppendOutput($"✅ 채널 다운로드 완료: {channel.Name ?? channel.Url}");
+                    AppendOutput($"✅ 채널 다운로드 완료: {schedulerSettings.ChannelUrl}");
+                }
+                else
+                {
+                    // 모든 예약 채널 다운로드
+                    foreach (var channel in _currentSettings.ScheduledChannels)
+                    {
+                        AppendOutput($"📥 채널 다운로드 시작: {channel.Name ?? channel.Url}");
+                        var options = DownloadOptions.FromSchedulerSettings(schedulerSettings, channel.Url, isChannelMode: true);
+                        await _downloadService.StartDownloadAsync(options);
+                        AppendOutput($"✅ 채널 다운로드 완료: {channel.Name ?? channel.Url}");
+                    }
                 }
 
                 AppendOutput("✅ 모든 예약 다운로드 완료. 5초 후 프로그램을 종료합니다.");
@@ -1165,10 +1172,8 @@ namespace ytDownloader
         /// </summary>
         private void btnDeleteSelectedAutoSchedule_Click(object sender, RoutedEventArgs e)
         {
-            // 체크박스로 선택된 항목들 필터링
-            var selectedTasks = _autoScheduledTasksCollection
-                .Where(t => t.IsSelected)
-                .ToList();
+            // ListBox에서 선택된 항목들 가져오기
+            var selectedTasks = lstAutoScheduledTasks.SelectedItems.Cast<ScheduleTaskInfo>().ToList();
 
             if (selectedTasks.Count == 0)
             {
@@ -1234,43 +1239,6 @@ namespace ytDownloader
                 }
             }
         }
-
-        /// <summary>
-        /// 수동 예약 전체 선택/해제 체크박스 변경
-        /// </summary>
-        private void chkSelectAllManual_Changed(object sender, RoutedEventArgs e)
-        {
-            // 초기화 중일 수 있으므로 null 체크
-            if (_scheduledChannelsCollection == null)
-                return;
-
-            bool isChecked = chkSelectAllManual.IsChecked == true;
-
-            // 각 항목의 IsSelected 속성을 직접 업데이트
-            foreach (var channel in _scheduledChannelsCollection)
-            {
-                channel.IsSelected = isChecked;
-            }
-        }
-
-        /// <summary>
-        /// 자동 예약 전체 선택/해제 체크박스 변경
-        /// </summary>
-        private void chkSelectAllAuto_Changed(object sender, RoutedEventArgs e)
-        {
-            // 초기화 중일 수 있으므로 null 체크
-            if (_autoScheduledTasksCollection == null)
-                return;
-
-            bool isChecked = chkSelectAllAuto.IsChecked == true;
-
-            // 각 항목의 IsSelected 속성을 직접 업데이트
-            foreach (var task in _autoScheduledTasksCollection)
-            {
-                task.IsSelected = isChecked;
-            }
-        }
-
 
         /// <summary>
         /// 자동 예약 전체 삭제 버튼 클릭

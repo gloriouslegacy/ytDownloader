@@ -25,17 +25,19 @@ namespace ytDownloader
         }
 
         /// <summary>
-        /// 스케줄러 설정 초기화 (기본 설정값으로)
+        /// 스케줄러 설정 초기화 (독립된 기본값으로)
         /// </summary>
         private void InitializeSchedulerSettings()
         {
-            txtSchedulerSavePath.Text = _currentSettings.SavePath;
-            cmbSchedulerFormat.SelectedIndex = (int)_currentSettings.Format;
-            chkSchedulerSubtitle.IsChecked = _currentSettings.DownloadSubtitle;
-            SetComboBoxValue(cmbSchedulerSubtitleFormat, _currentSettings.SubtitleFormat);
-            SetComboBoxValue(cmbSchedulerSubtitleLang, _currentSettings.SubtitleLang);
-            chkSchedulerNotification.IsChecked = _currentSettings.EnableNotification;
-            txtSchedulerMaxDownloads.Text = _currentSettings.MaxDownloads.ToString();
+            // 자동 예약 설정은 기본 설정값을 참조하지 않고 독립된 기본값 사용
+            txtSchedulerChannelUrl.Text = "";
+            txtSchedulerSavePath.Text = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), "Downloads");
+            cmbSchedulerFormat.SelectedIndex = 0; // 최고화질
+            chkSchedulerSubtitle.IsChecked = false;
+            SetComboBoxValue(cmbSchedulerSubtitleFormat, "srt");
+            SetComboBoxValue(cmbSchedulerSubtitleLang, "ko");
+            chkSchedulerNotification.IsChecked = true;
+            txtSchedulerMaxDownloads.Text = "5";
         }
 
         /// <summary>
@@ -185,15 +187,21 @@ namespace ytDownloader
             }
 
             // 입력값 검증
+            if (string.IsNullOrWhiteSpace(txtSchedulerChannelUrl.Text))
+            {
+                MessageBox.Show("채널 URL을 입력해주세요.", "입력 오류", MessageBoxButton.OK, MessageBoxImage.Warning);
+                return;
+            }
+
             if (string.IsNullOrWhiteSpace(txtSchedulerSavePath.Text))
             {
                 MessageBox.Show("저장 경로를 선택해주세요.", "입력 오류", MessageBoxButton.OK, MessageBoxImage.Warning);
                 return;
             }
 
-            if (!int.TryParse(txtSchedulerMaxDownloads.Text, out int maxDownloads) || maxDownloads <= 0)
+            if (!int.TryParse(txtSchedulerMaxDownloads.Text, out int maxDownloads) || maxDownloads < 0)
             {
-                MessageBox.Show("최대 다운로드 개수를 올바르게 입력해주세요.", "입력 오류", MessageBoxButton.OK, MessageBoxImage.Warning);
+                MessageBox.Show("최대 다운로드 개수를 올바르게 입력해주세요. (0은 무한)", "입력 오류", MessageBoxButton.OK, MessageBoxImage.Warning);
                 return;
             }
 
