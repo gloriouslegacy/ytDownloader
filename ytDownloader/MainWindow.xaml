@@ -841,7 +841,7 @@
                                             <CheckBox
                                                 Content="{Binding}"
                                                 IsChecked="{Binding RelativeSource={RelativeSource AncestorType=ListBoxItem}, Path=IsSelected, Mode=TwoWay}"
-                                                Focusable="False" />
+                                                Click="CheckBox_Click" />
                                         </DataTemplate>
                                     </ListBox.ItemTemplate>
                                 </ListBox>
@@ -955,7 +955,7 @@
                                             <CheckBox
                                                 Content="{Binding}"
                                                 IsChecked="{Binding RelativeSource={RelativeSource AncestorType=ListBoxItem}, Path=IsSelected, Mode=TwoWay}"
-                                                Focusable="False" />
+                                                Click="CheckBox_Click" />
                                         </DataTemplate>
                                     </ListBox.ItemTemplate>
                                 </ListBox>

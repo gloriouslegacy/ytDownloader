@@ -159,8 +159,10 @@ namespace ytDownloader.Services
         {
             try
             {
+                // Windows 작업 스케줄러는 작업 이름 앞에 백슬래시를 붙일 수 있으므로 제거
+                string cleanTaskName = settings.TaskName.TrimStart('\\').TrimEnd('\\');
                 // 파일명에 사용할 수 없는 문자 제거
-                string safeFileName = string.Join("_", settings.TaskName.Split(Path.GetInvalidFileNameChars()));
+                string safeFileName = string.Join("_", cleanTaskName.Split(Path.GetInvalidFileNameChars()));
                 string filePath = Path.Combine(_scheduleSettingsPath, $"{safeFileName}.json");
 
                 var json = new JObject
@@ -190,7 +192,9 @@ namespace ytDownloader.Services
         {
             try
             {
-                string safeFileName = string.Join("_", taskName.Split(Path.GetInvalidFileNameChars()));
+                // Windows 작업 스케줄러는 작업 이름 앞에 백슬래시를 붙일 수 있으므로 제거
+                string cleanTaskName = taskName.TrimStart('\\').TrimEnd('\\');
+                string safeFileName = string.Join("_", cleanTaskName.Split(Path.GetInvalidFileNameChars()));
                 string filePath = Path.Combine(_scheduleSettingsPath, $"{safeFileName}.json");
 
                 if (File.Exists(filePath))
@@ -280,7 +284,9 @@ namespace ytDownloader.Services
         {
             try
             {
-                string safeFileName = string.Join("_", taskName.Split(Path.GetInvalidFileNameChars()));
+                // Windows 작업 스케줄러는 작업 이름 앞에 백슬래시를 붙일 수 있으므로 제거
+                string cleanTaskName = taskName.TrimStart('\\').TrimEnd('\\');
+                string safeFileName = string.Join("_", cleanTaskName.Split(Path.GetInvalidFileNameChars()));
                 string filePath = Path.Combine(_scheduleSettingsPath, $"{safeFileName}.json");
 
                 if (File.Exists(filePath))

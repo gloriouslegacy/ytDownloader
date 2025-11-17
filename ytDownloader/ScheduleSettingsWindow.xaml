@@ -144,6 +144,54 @@
                 </Setter.Value>
             </Setter>
         </Style>
+
+        <!--  CheckBox  -->
+        <Style TargetType="CheckBox">
+            <Setter Property="Margin" Value="5" />
+            <Setter Property="Foreground" Value="{DynamicResource PrimaryTextBrush}" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="CheckBox">
+                        <StackPanel Orientation="Horizontal">
+                            <Border
+                                Name="Border"
+                                Width="16"
+                                Height="16"
+                                Background="{DynamicResource PrimaryBackgroundBrush}"
+                                BorderBrush="{DynamicResource BorderBrush}"
+                                BorderThickness="1"
+                                CornerRadius="3">
+                                <Path
+                                    Name="CheckMark"
+                                    Width="10"
+                                    Height="10"
+                                    Data="M 0 5 L 3 8 L 8 0"
+                                    Stretch="Uniform"
+                                    Stroke="{DynamicResource PrimaryTextBrush}"
+                                    StrokeThickness="2"
+                                    Visibility="Collapsed" />
+                            </Border>
+                            <ContentPresenter
+                                Margin="5,0,0,0"
+                                VerticalAlignment="Center"
+                                RecognizesAccessKey="True"
+                                TextElement.Foreground="{TemplateBinding Foreground}" />
+                        </StackPanel>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsChecked" Value="True">
+                                <Setter TargetName="CheckMark" Property="Visibility" Value="Visible" />
+                            </Trigger>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="Border" Property="Background" Value="{DynamicResource HoverBackgroundBrush}" />
+                            </Trigger>
+                            <Trigger Property="IsEnabled" Value="False">
+                                <Setter Property="Foreground" Value="{DynamicResource SecondaryTextBrush}" />
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
     </Window.Resources>
 
     <Grid Margin="20">
