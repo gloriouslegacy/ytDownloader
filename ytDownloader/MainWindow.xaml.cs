@@ -12,7 +12,7 @@ using System.Windows.Navigation;
 using ytDownloader.Models;
 using ytDownloader.Services;
 
-// 2025-09-21 .NET 8.0, C# 12.0
+// 2025-11 .NET 8.0, C# 12.0
 // ✅ 자동 업데이트
 // ✅ 라이트 / 다크 모드 전환
 // ✅ 키보드 단축키 (Ctrl+T, Ctrl+L, Ctrl+S, F5)
@@ -21,7 +21,7 @@ using ytDownloader.Services;
 // ✅ 언어 전환 (한국어/English)
 // ❌ 웹뷰 내장
 // ✅ 채널 예약 다운로드
-// ❌ 다운로드 정지/일시정지/재개
+// ✅  다운로드 정지
 // ✅ 다운로드 후 알림
 
 namespace ytDownloader
@@ -784,7 +784,7 @@ namespace ytDownloader
         /// </summary>
         private void RefreshScheduledChannelsList()
         {
-            // 수동 예약 UI가 제거되었으므로 이 메서드는 더 이상 필요하지 않습니다
+            // 수동 예약 UI가 제거되었으므로 이 메서드 불필요
             // 기존 호출 호환성을 위해 빈 메서드로 유지
         }
 
