@@ -4,7 +4,7 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     Title="자동 예약 설정"
     Width="600"
-    Height="750"
+    Height="820"
     WindowStartupLocation="CenterOwner"
     Background="{DynamicResource WindowBackgroundBrush}"
     Foreground="{DynamicResource PrimaryTextBrush}"
@@ -259,17 +259,17 @@
                     Foreground="{DynamicResource PrimaryTextBrush}"
                     Text="스케줄러 다운로드 설정" />
 
-                <!--  채널 URL (선택사항)  -->
+                <!--  채널 URL  -->
                 <TextBlock
                     Margin="0,5,0,5"
                     FontWeight="SemiBold"
                     Foreground="{DynamicResource PrimaryTextBrush}"
-                    Text="채널 URL (선택사항)" />
+                    Text="채널 URL" />
                 <DockPanel Margin="0,0,0,10">
                     <TextBox
                         Name="txtSchedulerChannelUrl"
                         Width="380"
-                        ToolTip="특정 채널 URL을 입력하면 해당 채널만 다운로드됩니다 (비워두면 모든 예약 채널 다운로드)" />
+                        ToolTip="특정 채널 URL을 입력하면 해당 채널만 다운로드됩니다" />
                     <Button
                         Width="70"
                         Click="btnPasteChannelUrl_Click"
@@ -367,11 +367,11 @@
                         VerticalAlignment="Center"
                         FontWeight="SemiBold"
                         Foreground="{DynamicResource PrimaryTextBrush}"
-                        Text="최대 다운로드 개수" />
+                        Text="최대 다운로드 개수 (0은 무한)" />
                     <TextBox
                         Name="txtSchedulerMaxDownloads"
                         Width="80"
-                        ToolTip="채널당 다운로드할 최대 영상 개수" />
+                        ToolTip="채널당 다운로드할 최대 영상 개수 (0은 무한)" />
                 </DockPanel>
 
                 <Button

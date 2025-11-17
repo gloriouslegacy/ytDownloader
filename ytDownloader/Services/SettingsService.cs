@@ -168,6 +168,7 @@ namespace ytDownloader.Services
                 var json = new JObject
                 {
                     ["TaskName"] = settings.TaskName,
+                    ["ChannelUrl"] = settings.ChannelUrl,
                     ["SavePath"] = settings.SavePath,
                     ["Format"] = (int)settings.Format,
                     ["DownloadSubtitle"] = settings.DownloadSubtitle,
@@ -205,6 +206,7 @@ namespace ytDownloader.Services
                     return new SchedulerSettings
                     {
                         TaskName = settings["TaskName"]?.ToString() ?? taskName,
+                        ChannelUrl = settings["ChannelUrl"]?.ToString() ?? "",
                         SavePath = settings["SavePath"]?.ToString() ?? "",
                         Format = (VideoFormat)(settings["Format"]?.ToObject<int>() ?? 0),
                         DownloadSubtitle = settings["DownloadSubtitle"]?.ToObject<bool>() ?? false,
@@ -248,6 +250,7 @@ namespace ytDownloader.Services
                         var schedulerSettings = new SchedulerSettings
                         {
                             TaskName = settings["TaskName"]?.ToString() ?? "",
+                            ChannelUrl = settings["ChannelUrl"]?.ToString() ?? "",
                             SavePath = settings["SavePath"]?.ToString() ?? "",
                             Format = (VideoFormat)(settings["Format"]?.ToObject<int>() ?? 0),
                             DownloadSubtitle = settings["DownloadSubtitle"]?.ToObject<bool>() ?? false,
