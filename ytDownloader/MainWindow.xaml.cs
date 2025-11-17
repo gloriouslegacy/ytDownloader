@@ -55,8 +55,9 @@ namespace ytDownloader
             LoadSettingsToUI();
             AttachSettingsEventHandlers();
 
-            // 테마 적용
+            // 테마 및 언어 적용
             ApplyTheme(_currentSettings.Theme);
+            ApplyLanguage(_currentSettings.Language);
 
             // 키보드 단축키 설정
             SetupKeyboardShortcuts();
@@ -605,7 +606,14 @@ namespace ytDownloader
             try
             {
                 var dictionaries = Application.Current.Resources.MergedDictionaries;
-                dictionaries.Clear();
+
+                // 기존 테마 제거
+                var existingTheme = dictionaries.FirstOrDefault(d =>
+                    d.Source != null && (d.Source.OriginalString.Contains("LightTheme.xaml") || d.Source.OriginalString.Contains("DarkTheme.xaml")));
+                if (existingTheme != null)
+                {
+                    dictionaries.Remove(existingTheme);
+                }
 
                 string themeFile = theme == "Light" ? "Themes/LightTheme.xaml" : "Themes/DarkTheme.xaml";
                 var themeDict = new ResourceDictionary
@@ -613,7 +621,7 @@ namespace ytDownloader
                     Source = new Uri(themeFile, UriKind.Relative)
                 };
 
-                dictionaries.Add(themeDict);
+                dictionaries.Insert(0, themeDict);
 
                 // Window 배경색 적용
                 if (Application.Current.Resources["WindowBackgroundBrush"] is System.Windows.Media.SolidColorBrush windowBrush)
@@ -630,6 +638,37 @@ namespace ytDownloader
             catch (Exception ex)
             {
                 AppendOutput($"❌ 테마 적용 오류: {ex.Message}");
+            }
+        }
+
+        /// <summary>
+        /// 언어 적용
+        /// </summary>
+        private void ApplyLanguage(string language)
+        {
+            try
+            {
+                var dictionaries = Application.Current.Resources.MergedDictionaries;
+
+                // 기존 언어 리소스 제거
+                var existingLanguage = dictionaries.FirstOrDefault(d =>
+                    d.Source != null && (d.Source.OriginalString.Contains("Korean.xaml") || d.Source.OriginalString.Contains("English.xaml")));
+                if (existingLanguage != null)
+                {
+                    dictionaries.Remove(existingLanguage);
+                }
+
+                string languageFile = language == "en" ? "Resources/English.xaml" : "Resources/Korean.xaml";
+                var languageDict = new ResourceDictionary
+                {
+                    Source = new Uri(languageFile, UriKind.Relative)
+                };
+
+                dictionaries.Add(languageDict);
+            }
+            catch (Exception ex)
+            {
+                AppendOutput($"❌ 언어 적용 오류: {ex.Message}");
             }
         }
 
