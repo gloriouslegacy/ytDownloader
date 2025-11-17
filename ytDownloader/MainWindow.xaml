@@ -107,6 +107,7 @@
         <!--  메인 영역 (TabControl)  -->
         <TabControl
             Grid.Row="1"
+            Margin="0,10,0,0"
             Background="#1E1E2E"
             BorderBrush="#2A2F45">
             <!--  기본 설정  -->
@@ -128,15 +129,18 @@
                             <Button
                                 Width="80"
                                 Click="btnPaste_Click"
-                                Content="붙여넣기" />
+                                Content="붙여넣기"
+                                ToolTip="클립보드의 URL을 입력란에 붙여넣기 (Ctrl+V)" />
                             <Button
                                 Width="80"
                                 Click="btnUrlsClear_Click"
-                                Content="지우기" />
+                                Content="지우기"
+                                ToolTip="입력한 모든 URL 제거" />
                             <Button
                                 Width="160"
                                 Click="btnDownload_Click"
-                                Content="URL 다운로드" />
+                                Content="URL 다운로드"
+                                ToolTip="입력한 URL 목록을 개별적으로 다운로드" />
                         </DockPanel>
                         <TextBox
                             Name="txtUrls"
@@ -153,15 +157,18 @@
                             <Button
                                 Width="80"
                                 Click="btnChannelPaste_Click"
-                                Content="붙여넣기" />
+                                Content="붙여넣기"
+                                ToolTip="클립보드의 채널/재생목록 URL 붙여넣기" />
                             <Button
                                 Width="80"
                                 Click="btnChannelClear_Click"
-                                Content="지우기" />
+                                Content="지우기"
+                                ToolTip="입력한 모든 채널/재생목록 URL 제거" />
                             <Button
                                 Width="160"
                                 Click="btnChannelDownload_Click"
-                                Content="채널 / 재생목록 다운로드" />
+                                Content="채널 / 재생목록 다운로드"
+                                ToolTip="채널 또는 재생목록의 모든 영상 다운로드 (최대 개수: 고급 설정 참조)" />
                         </DockPanel>
                         <TextBox
                             Name="txtChannelUrl"
@@ -181,15 +188,18 @@
                             <TextBox
                                 Name="txtSavePath"
                                 Width="254"
-                                IsReadOnly="True" />
+                                IsReadOnly="True"
+                                ToolTip="다운로드한 파일이 저장될 경로" />
                             <Button
                                 Width="70"
                                 Click="btnBrowse_Click"
-                                Content="찾기" />
+                                Content="찾기"
+                                ToolTip="저장 경로 변경" />
                             <Button
                                 Width="70"
                                 Click="btnOpenFolder_Click"
-                                Content="열기" />
+                                Content="열기"
+                                ToolTip="탐색기에서 저장 폴더 열기" />
                         </DockPanel>
 
                         <TextBlock
@@ -197,7 +207,10 @@
                             FontWeight="Bold"
                             Foreground="#FFF9F9F9"
                             Text="포맷 선택" />
-                        <ComboBox Name="comboFormat" Foreground="#FF080707">
+                        <ComboBox
+                            Name="comboFormat"
+                            Foreground="#FF080707"
+                            ToolTip="다운로드할 영상/음악 품질 선택">
                             <ComboBoxItem Content="영상 (최고화질)" />
                             <ComboBoxItem Content="영상 (1080p)" />
                             <ComboBoxItem Content="영상 (720p)" />
@@ -207,7 +220,10 @@
                             <ComboBoxItem Content="음악 (FLAC 무손실 변환)" />
                         </ComboBox>
 
-                        <CheckBox Name="ChkSingleVideo" Content="단일 다운로드(재생목록 무시)" />
+                        <CheckBox
+                            Name="ChkSingleVideo"
+                            Content="단일 다운로드(재생목록 무시)"
+                            ToolTip="재생목록 URL을 입력해도 첫 번째 영상만 다운로드" />
 
                         <!--  다운로드 버튼을 우측 패널 하단에 배치
                         <StackPanel
@@ -231,7 +247,8 @@
                             <Button
                                 Width="140"
                                 Click="pgRestart_Click"
-                                Content="프로그램 재시작" />
+                                Content="프로그램 재시작"
+                                ToolTip="프로그램을 종료하고 다시 시작" />
                         </StackPanel>
                     </StackPanel>
                 </Grid>
@@ -241,21 +258,31 @@
             <!--  고급 설정  -->
             <TabItem Header="고급 설정">
                 <StackPanel Margin="10">
-                    <CheckBox Name="ChkStructuredFolders" Content="채널/재생목록 폴더 구조" />
-                    <CheckBox Name="ChkWriteThumbnail" Content="썸네일 저장" />
+                    <CheckBox
+                        Name="ChkStructuredFolders"
+                        Content="채널/재생목록 폴더 구조"
+                        ToolTip="채널명 또는 재생목록명으로 폴더를 생성하여 정리" />
+                    <CheckBox
+                        Name="ChkWriteThumbnail"
+                        Content="썸네일 저장"
+                        ToolTip="영상 썸네일 이미지를 함께 저장" />
 
                     <TextBlock
                         Margin="5,10,5,5"
                         FontWeight="Bold"
                         Foreground="#FFF9F9F9"
                         Text="자막 설정" />
-                    <CheckBox Name="SubtitleCheckBox" Content="자막 다운로드" />
+                    <CheckBox
+                        Name="SubtitleCheckBox"
+                        Content="자막 다운로드"
+                        ToolTip="영상과 함께 자막 파일 다운로드" />
                     <StackPanel Orientation="Horizontal">
                         <ComboBox
                             Name="SubtitleLangComboBox"
                             Width="120"
                             IsEditable="True"
-                            Foreground="#FF0A0A0A">
+                            Foreground="#FF0A0A0A"
+                            ToolTip="자막 언어 선택 (직접 입력 가능: ko, en, ja, zh 등)">
                             <ComboBoxItem Content="ko" />
                             <ComboBoxItem Content="en" />
                             <ComboBoxItem Content="ja" />
@@ -266,7 +293,8 @@
                         <ComboBox
                             Name="SubtitleFormatComboBox"
                             Width="120"
-                            Foreground="#FF0E0E0E">
+                            Foreground="#FF0E0E0E"
+                            ToolTip="자막 파일 형식 (srt: 범용, vtt: 웹용, ass: 고급 스타일)">
                             <ComboBoxItem Content="srt" />
                             <ComboBoxItem Content="vtt" />
                             <ComboBoxItem Content="ass" />
@@ -289,7 +317,8 @@
                         <TextBox
                             Name="txtMaxDownloads"
                             Grid.Column="1"
-                            Width="80" />
+                            Width="80"
+                            ToolTip="채널/재생목록 다운로드 시 최대 다운로드 개수 (예: 5)" />
                     </Grid>
                 </StackPanel>
             </TabItem>
@@ -300,6 +329,7 @@
             Grid.Row="2"
             Grid.Column="0"
             Grid.ColumnSpan="2"
+            Margin="0,10,0,0"
             Padding="10"
             Background="#2A2F45"
             CornerRadius="8">
@@ -324,11 +354,20 @@
                     Margin="0,10,0,0"
                     VerticalAlignment="Center"
                     Orientation="Horizontal">
-                    <ProgressBar
-                        Name="progressBar"
-                        Width="827"
-                        Height="20"
-                        Margin="5" />
+                    <!--  ProgressBar with percentage overlay  -->
+                    <Grid Width="827" Height="20" Margin="5">
+                        <ProgressBar
+                            Name="progressBar"
+                            Width="827"
+                            Height="20" />
+                        <TextBlock
+                            Name="txtProgress"
+                            HorizontalAlignment="Center"
+                            VerticalAlignment="Center"
+                            FontWeight="Bold"
+                            Foreground="White"
+                            Text="0%" />
+                    </Grid>
                     <TextBlock
                         Margin="15,0,5,0"
                         VerticalAlignment="Center"
