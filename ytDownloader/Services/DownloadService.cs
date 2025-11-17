@@ -25,6 +25,8 @@ namespace ytDownloader.Services
         private readonly string _ytdlpPath;
         private readonly string _ffmpegPath;
         private Process? _currentProcess;
+        private readonly List<Process> _runningProcesses = new List<Process>();
+        private readonly object _processLock = new object();
         private bool _isCancelled = false;
 
         /// <summary>
@@ -62,11 +64,30 @@ namespace ytDownloader.Services
             try
             {
                 _isCancelled = true;
-                if (_currentProcess != null && !_currentProcess.HasExited)
+
+                lock (_processLock)
                 {
-                    _currentProcess.Kill();
-                    LogMessage?.Invoke("⏹️ 다운로드가 취소되었습니다.");
+                    // 모든 실행 중인 프로세스 종료
+                    foreach (var process in _runningProcesses.ToList())
+                    {
+                        try
+                        {
+                            if (process != null && !process.HasExited)
+                            {
+                                process.Kill();
+                            }
+                        }
+                        catch
+                        {
+                            // 개별 프로세스 종료 실패는 무시
+                        }
+                    }
+
+                    _runningProcesses.Clear();
+                    _currentProcess = null;
                 }
+
+                LogMessage?.Invoke("⏹️ 모든 다운로드가 취소되었습니다.");
             }
             catch (Exception ex)
             {
@@ -212,6 +233,13 @@ namespace ytDownloader.Services
                     using (Process proc = new Process())
                     {
                         _currentProcess = proc;
+
+                        // 실행 중인 프로세스 리스트에 추가
+                        lock (_processLock)
+                        {
+                            _runningProcesses.Add(proc);
+                        }
+
                         proc.StartInfo = psi;
                         proc.OutputDataReceived += (s, e) =>
                         {
@@ -273,6 +301,12 @@ namespace ytDownloader.Services
                         proc.BeginOutputReadLine();
                         proc.BeginErrorReadLine();
                         proc.WaitForExit();
+
+                        // 프로세스가 종료되면 리스트에서 제거
+                        lock (_processLock)
+                        {
+                            _runningProcesses.Remove(proc);
+                        }
                     }
 
                     _currentProcess = null;
