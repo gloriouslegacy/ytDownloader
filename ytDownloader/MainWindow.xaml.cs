@@ -754,6 +754,38 @@ namespace ytDownloader
         }
 
         /// <summary>
+        /// 수동 예약 URL 붙여넣기 버튼 클릭
+        /// </summary>
+        private void btnScheduleUrlPaste_Click(object sender, RoutedEventArgs e)
+        {
+            if (Clipboard.ContainsText())
+            {
+                txtScheduleChannelUrl.Text = Clipboard.GetText();
+            }
+        }
+
+        /// <summary>
+        /// 수동 예약 URL 지우기 버튼 클릭
+        /// </summary>
+        private void btnScheduleUrlClear_Click(object sender, RoutedEventArgs e)
+        {
+            txtScheduleChannelUrl.Clear();
+        }
+
+        /// <summary>
+        /// 탭 선택 변경 이벤트
+        /// </summary>
+        private void mainTabControl_SelectionChanged(object sender, System.Windows.Controls.SelectionChangedEventArgs e)
+        {
+            // 예약 탭이 선택되었을 때만 새로고침
+            if (mainTabControl.SelectedItem == scheduleTabItem)
+            {
+                RefreshScheduledChannelsList();
+                UpdateSchedulerStatus();
+            }
+        }
+
+        /// <summary>
         /// 예약 추가 버튼 클릭
         /// </summary>
         private void btnAddSchedule_Click(object sender, RoutedEventArgs e)

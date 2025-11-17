@@ -436,10 +436,12 @@
 
         <!--  메인 영역 (TabControl)  -->
         <TabControl
+            Name="mainTabControl"
             Grid.Row="1"
             Margin="0,10,0,0"
             Background="{DynamicResource WindowBackgroundBrush}"
-            BorderBrush="{DynamicResource BorderBrush}">
+            BorderBrush="{DynamicResource BorderBrush}"
+            SelectionChanged="mainTabControl_SelectionChanged">
             <!--  기본 설정  -->
             <TabItem Header="{DynamicResource Tab_BasicSettings}">
                 <Grid Margin="10">
@@ -670,7 +672,7 @@
             </TabItem>
 
             <!--  예약 (수동 + 자동 통합)  -->
-            <TabItem Header="{DynamicResource Tab_Schedule}">
+            <TabItem Name="scheduleTabItem" Header="{DynamicResource Tab_Schedule}">
                 <ScrollViewer VerticalScrollBarVisibility="Auto">
                     <Grid Margin="10">
                         <Grid.RowDefinitions>
@@ -691,7 +693,7 @@
                                 <Grid.RowDefinitions>
                                     <RowDefinition Height="Auto" />
                                     <RowDefinition Height="Auto" />
-                                    <RowDefinition Height="250" />
+                                    <RowDefinition Height="100" />
                                     <RowDefinition Height="Auto" />
                                 </Grid.RowDefinitions>
 
@@ -714,10 +716,20 @@
                                         Text="URL 입력:" />
                                     <TextBox
                                         Name="txtScheduleChannelUrl"
-                                        Width="530"
+                                        Width="410"
                                         Margin="5"
                                         VerticalAlignment="Center"
                                         ToolTip="{DynamicResource ToolTip_ScheduleChannelUrl}" />
+                                    <Button
+                                        Width="60"
+                                        Click="btnScheduleUrlPaste_Click"
+                                        Content="붙여넣기"
+                                        ToolTip="클립보드의 URL을 입력란에 붙여넣기" />
+                                    <Button
+                                        Width="60"
+                                        Click="btnScheduleUrlClear_Click"
+                                        Content="지우기"
+                                        ToolTip="입력한 URL 제거" />
                                     <TextBlock
                                         Margin="10,0,5,0"
                                         VerticalAlignment="Center"
@@ -790,7 +802,7 @@
                                 <Grid.RowDefinitions>
                                     <RowDefinition Height="Auto" />
                                     <RowDefinition Height="Auto" />
-                                    <RowDefinition Height="200" />
+                                    <RowDefinition Height="80" />
                                     <RowDefinition Height="Auto" />
                                 </Grid.RowDefinitions>
 

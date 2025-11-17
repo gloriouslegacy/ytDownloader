@@ -13,7 +13,7 @@ namespace ytDownloader.Services
         public int Frequency { get; set; }
         public int Hour { get; set; }
         public int Minute { get; set; }
-        public string DisplayText => $"{TaskName}: {FrequencyText}, 매일 {Hour:D2}:{Minute:D2}";
+        public string DisplayText => $"{TaskName}: {FrequencyText} {Hour:D2}:{Minute:D2}";
 
         private string FrequencyText
         {
