@@ -23,6 +23,10 @@ namespace ytDownloader
 
             // 저장된 언어 적용
             ApplyLanguage(settings.Language);
+
+            // MainWindow 생성 및 표시 (명령줄 인수 전달)
+            var mainWindow = new MainWindow(e.Args);
+            mainWindow.Show();
         }
 
         private void ApplyTheme(string theme)

@@ -33,9 +33,16 @@ namespace ytDownloader
         // 현재 설정
         private AppSettings _currentSettings;
 
-        public MainWindow()
+        public MainWindow(string[] args = null)
         {
             InitializeComponent();
+
+            // 명령줄 인수 처리 (스케줄러에서 실행 시)
+            if (args != null && args.Length > 0 && args[0] == "--scheduled")
+            {
+                // 자동 실행 모드
+                AutoExecuteScheduledDownloads();
+            }
 
             // 서비스 초기화
             _settingsService = new SettingsService();
@@ -819,6 +826,60 @@ namespace ytDownloader
             {
                 var options = DownloadOptions.FromAppSettings(_currentSettings, channel.Url, isChannelMode: true);
                 _ = _downloadService.StartDownloadAsync(options);
+            }
+        }
+
+        /// <summary>
+        /// 자동 예약 설정 버튼 클릭
+        /// </summary>
+        private void btnAutoScheduleSettings_Click(object sender, RoutedEventArgs e)
+        {
+            var scheduleWindow = new ScheduleSettingsWindow();
+            scheduleWindow.Owner = this;
+            scheduleWindow.ShowDialog();
+        }
+
+        /// <summary>
+        /// 자동 실행 모드 (스케줄러에서 실행 시)
+        /// </summary>
+        private async void AutoExecuteScheduledDownloads()
+        {
+            await Task.Delay(2000); // 초기화 대기
+
+            if (_currentSettings.ScheduledChannels.Count == 0)
+            {
+                AppendOutput("⚠️ 예약된 채널이 없습니다. 프로그램을 종료합니다.");
+                await Task.Delay(3000);
+                Application.Current.Shutdown();
+                return;
+            }
+
+            AppendOutput($"🤖 자동 실행 모드: {_currentSettings.ScheduledChannels.Count}개 채널 다운로드 시작...");
+
+            foreach (var channel in _currentSettings.ScheduledChannels)
+            {
+                var options = DownloadOptions.FromAppSettings(_currentSettings, channel.Url, isChannelMode: true);
+                await _downloadService.StartDownloadAsync(options);
+            }
+
+            AppendOutput("✅ 모든 예약 다운로드 완료. 5초 후 프로그램을 종료합니다.");
+            await Task.Delay(5000);
+            Application.Current.Shutdown();
+        }
+
+        /// <summary>
+        /// 상태 새로고침 버튼 클릭
+        /// </summary>
+        private void btnRefreshScheduleStatus_Click(object sender, RoutedEventArgs e)
+        {
+            var schedulerService = new TaskSchedulerService();
+            if (schedulerService.IsTaskScheduled())
+            {
+                txtAutoScheduleStatus.Text = "✅ 자동 예약이 등록되어 있습니다.\nWindows 작업 스케줄러에서 상세 정보를 확인할 수 있습니다.";
+            }
+            else
+            {
+                txtAutoScheduleStatus.Text = "등록된 자동 예약이 없습니다.";
             }
         }
     }
