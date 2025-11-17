@@ -244,5 +244,25 @@ namespace ytDownloader.Services
         {
             return GetAllScheduledTasks().Count > 0;
         }
+
+        /// <summary>
+        /// 모든 ytDownloader 스케줄 작업 삭제
+        /// </summary>
+        /// <returns>성공한 삭제 개수</returns>
+        public int DeleteAllScheduledTasks()
+        {
+            int deletedCount = 0;
+            var tasks = GetAllScheduledTasks();
+
+            foreach (var task in tasks)
+            {
+                if (DeleteScheduledTask(task.TaskName))
+                {
+                    deletedCount++;
+                }
+            }
+
+            return deletedCount;
+        }
     }
 }

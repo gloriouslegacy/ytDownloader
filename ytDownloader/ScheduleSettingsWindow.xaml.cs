@@ -171,6 +171,52 @@ namespace ytDownloader
         }
 
         /// <summary>
+        /// 전체 삭제 버튼 클릭
+        /// </summary>
+        private void btnDeleteAll_Click(object sender, RoutedEventArgs e)
+        {
+            var tasks = _schedulerService.GetAllScheduledTasks();
+
+            if (tasks.Count == 0)
+            {
+                MessageBox.Show("삭제할 스케줄이 없습니다.", "알림", MessageBoxButton.OK, MessageBoxImage.Information);
+                return;
+            }
+
+            var result = MessageBox.Show(
+                $"모든 자동 예약({tasks.Count}개)을 삭제하시겠습니까?",
+                "전체 삭제 확인",
+                MessageBoxButton.YesNo,
+                MessageBoxImage.Question
+            );
+
+            if (result == MessageBoxResult.Yes)
+            {
+                int deletedCount = _schedulerService.DeleteAllScheduledTasks();
+
+                if (deletedCount > 0)
+                {
+                    MessageBox.Show(
+                        $"{deletedCount}개의 자동 예약이 삭제되었습니다.",
+                        "삭제 완료",
+                        MessageBoxButton.OK,
+                        MessageBoxImage.Information
+                    );
+                    UpdateStatus();
+                }
+                else
+                {
+                    MessageBox.Show(
+                        "자동 예약 삭제에 실패했습니다.\n관리자 권한이 필요할 수 있습니다.",
+                        "삭제 실패",
+                        MessageBoxButton.OK,
+                        MessageBoxImage.Error
+                    );
+                }
+            }
+        }
+
+        /// <summary>
         /// 새로고침 버튼 클릭
         /// </summary>
         private void btnRefresh_Click(object sender, RoutedEventArgs e)
