@@ -40,7 +40,7 @@ namespace ytDownloader.Services
                     var json = File.ReadAllText(_settingsFile);
                     var settings = JObject.Parse(json);
 
-                    return new AppSettings
+                    var appSettings = new AppSettings
                     {
                         SavePath = settings["SavePath"]?.ToString() ?? AppSettings.GetDefaultSavePath(),
                         SingleVideoOnly = settings["SingleVideoOnly"]?.ToObject<bool>() ?? false,
@@ -55,6 +55,14 @@ namespace ytDownloader.Services
                         Language = settings["Language"]?.ToString() ?? "ko",
                         EnableNotification = settings["EnableNotification"]?.ToObject<bool>() ?? true
                     };
+
+                    // ScheduledChannels 로드
+                    if (settings["ScheduledChannels"] != null)
+                    {
+                        appSettings.ScheduledChannels = settings["ScheduledChannels"]?.ToObject<List<ScheduledChannel>>() ?? new List<ScheduledChannel>();
+                    }
+
+                    return appSettings;
                 }
                 else
                 {
@@ -106,7 +114,8 @@ namespace ytDownloader.Services
                     ["MaxDownloads"] = settings.MaxDownloads,
                     ["Theme"] = settings.Theme,
                     ["Language"] = settings.Language,
-                    ["EnableNotification"] = settings.EnableNotification
+                    ["EnableNotification"] = settings.EnableNotification,
+                    ["ScheduledChannels"] = JToken.FromObject(settings.ScheduledChannels)
                 };
 
                 File.WriteAllText(_settingsFile, json.ToString());

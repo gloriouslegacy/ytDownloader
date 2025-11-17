@@ -384,10 +384,10 @@
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
             <!--  메뉴바  -->
-            <RowDefinition Height="Auto" />
-            <!--  TabControl  -->
-            <RowDefinition Height="*" />
-            <!--  로그창  -->
+            <RowDefinition Height="6*" />
+            <!--  TabControl (60%)  -->
+            <RowDefinition Height="4*" />
+            <!--  로그창 (40%)  -->
         </Grid.RowDefinitions>
 
         <!--  메뉴바  -->

@@ -30,6 +30,14 @@ namespace ytDownloader.Services
                 };
             }
         }
+
+        /// <summary>
+        /// ToString 오버라이드 - ListBox에서 자동으로 표시됨
+        /// </summary>
+        public override string ToString()
+        {
+            return DisplayText;
+        }
     }
 
     /// <summary>
@@ -133,10 +141,11 @@ namespace ytDownloader.Services
 
             try
             {
+                // 먼저 ytDownloader 작업 목록 가져오기
                 var processInfo = new ProcessStartInfo
                 {
                     FileName = "schtasks.exe",
-                    Arguments = "/Query /FO LIST /V",
+                    Arguments = "/Query /FO LIST",
                     CreateNoWindow = true,
                     UseShellExecute = false,
                     RedirectStandardOutput = true,
@@ -152,70 +161,29 @@ namespace ytDownloader.Services
 
                     if (process.ExitCode != 0) return tasks;
 
-                    // 출력 파싱하여 ytDownloader 작업만 필터링
+                    // ytDownloader 작업 이름 추출
+                    var taskNames = new List<string>();
                     var lines = output.Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries);
-                    string? currentTaskName = null;
-                    string? nextRunTime = null;
-                    int currentFrequency = 1;
 
-                    for (int i = 0; i < lines.Length; i++)
+                    foreach (var line in lines)
                     {
-                        var line = lines[i];
-
                         if (line.StartsWith("작업 이름:") || line.StartsWith("TaskName:"))
                         {
-                            // 이전 작업 정보가 있으면 tasks에 추가
-                            if (currentTaskName != null && nextRunTime != null)
-                            {
-                                if (TryParseScheduleInfo(nextRunTime, out int prevHour, out int prevMinute))
-                                {
-                                    tasks.Add(new ScheduleTaskInfo
-                                    {
-                                        TaskName = currentTaskName,
-                                        Hour = prevHour,
-                                        Minute = prevMinute,
-                                        Frequency = currentFrequency
-                                    });
-                                }
-                            }
-
-                            // 새로운 작업 시작
                             var taskName = line.Split(':', 2)[1].Trim();
                             if (taskName.Contains(TaskNamePrefix))
                             {
-                                currentTaskName = taskName;
-                                currentFrequency = 1; // 초기화
-                                nextRunTime = null;
+                                taskNames.Add(taskName);
                             }
-                            else
-                            {
-                                currentTaskName = null;
-                                nextRunTime = null;
-                            }
-                        }
-                        else if (currentTaskName != null && (line.StartsWith("다음 실행 시간:") || line.StartsWith("Next Run Time:")))
-                        {
-                            nextRunTime = line.Split(':', 2)[1].Trim();
-                        }
-                        else if (currentTaskName != null && (line.Contains("간격:") || line.Contains("Repeat:")))
-                        {
-                            // 주기 정보 추출 (예: "간격: 3일 마다" 또는 "Repeat: Every 3 Day(s)")
-                            currentFrequency = ExtractFrequency(line);
                         }
                     }
 
-                    // 마지막 작업 정보 추가
-                    if (currentTaskName != null && nextRunTime != null)
+                    // 각 작업에 대해 XML로 상세 정보 가져오기
+                    foreach (var taskName in taskNames)
                     {
-                        if (TryParseScheduleInfo(nextRunTime, out int hour, out int minute))
+                        var taskInfo = GetTaskInfoFromXml(taskName);
+                        if (taskInfo != null)
                         {
-                            tasks.Add(new ScheduleTaskInfo
-                            {
-                                TaskName = currentTaskName,
-                                Hour = hour,
-                                Minute = minute,
-                                Frequency = currentFrequency
-                            });
+                            tasks.Add(taskInfo);
                         }
                     }
                 }
@@ -226,6 +194,67 @@ namespace ytDownloader.Services
             }
 
             return tasks;
+        }
+
+        /// <summary>
+        /// XML에서 작업 정보 추출
+        /// </summary>
+        private ScheduleTaskInfo? GetTaskInfoFromXml(string taskName)
+        {
+            try
+            {
+                var processInfo = new ProcessStartInfo
+                {
+                    FileName = "schtasks.exe",
+                    Arguments = $"/Query /TN \"{taskName}\" /XML",
+                    CreateNoWindow = true,
+                    UseShellExecute = false,
+                    RedirectStandardOutput = true,
+                    RedirectStandardError = true
+                };
+
+                using (var process = Process.Start(processInfo))
+                {
+                    if (process == null) return null;
+
+                    string xmlOutput = process.StandardOutput.ReadToEnd();
+                    process.WaitForExit();
+
+                    if (process.ExitCode != 0) return null;
+
+                    // XML 파싱하여 주기와 시간 추출
+                    int frequency = 1;
+                    int hour = 0;
+                    int minute = 0;
+
+                    // Interval 추출 (예: <Interval>P3D</Interval> -> 3일)
+                    var intervalMatch = Regex.Match(xmlOutput, @"<Interval>P(\d+)D</Interval>");
+                    if (intervalMatch.Success)
+                    {
+                        frequency = int.Parse(intervalMatch.Groups[1].Value);
+                    }
+
+                    // StartBoundary에서 시간 추출 (예: <StartBoundary>2025-11-18T02:00:00</StartBoundary>)
+                    var timeMatch = Regex.Match(xmlOutput, @"<StartBoundary>\d{4}-\d{2}-\d{2}T(\d{2}):(\d{2}):\d{2}</StartBoundary>");
+                    if (timeMatch.Success)
+                    {
+                        hour = int.Parse(timeMatch.Groups[1].Value);
+                        minute = int.Parse(timeMatch.Groups[2].Value);
+                    }
+
+                    return new ScheduleTaskInfo
+                    {
+                        TaskName = taskName,
+                        Frequency = frequency,
+                        Hour = hour,
+                        Minute = minute
+                    };
+                }
+            }
+            catch
+            {
+                return null;
+            }
         }
 
         /// <summary>
