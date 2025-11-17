@@ -259,6 +259,24 @@
                     Foreground="{DynamicResource PrimaryTextBrush}"
                     Text="스케줄러 다운로드 설정" />
 
+                <!--  채널 URL (선택사항)  -->
+                <TextBlock
+                    Margin="0,5,0,5"
+                    FontWeight="SemiBold"
+                    Foreground="{DynamicResource PrimaryTextBrush}"
+                    Text="채널 URL (선택사항)" />
+                <DockPanel Margin="0,0,0,10">
+                    <TextBox
+                        Name="txtSchedulerChannelUrl"
+                        Width="380"
+                        ToolTip="특정 채널 URL을 입력하면 해당 채널만 다운로드됩니다 (비워두면 모든 예약 채널 다운로드)" />
+                    <Button
+                        Width="70"
+                        Click="btnPasteChannelUrl_Click"
+                        Content="붙여넣기"
+                        ToolTip="클립보드의 URL 붙여넣기" />
+                </DockPanel>
+
                 <!--  저장 경로  -->
                 <TextBlock
                     Margin="0,5,0,5"

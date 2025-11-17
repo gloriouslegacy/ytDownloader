@@ -1271,23 +1271,6 @@ namespace ytDownloader
             }
         }
 
-        /// <summary>
-        /// 수동 예약 DataGrid 선택 변경 - 행 클릭과 체크박스를 분리
-        /// </summary>
-        private void lstScheduledChannels_SelectionChanged(object sender, System.Windows.Controls.SelectionChangedEventArgs e)
-        {
-            // 행 클릭과 체크박스 체크를 분리 - 아무 작업도 하지 않음
-            // 체크박스는 사용자가 직접 클릭해야만 체크됨
-        }
-
-        /// <summary>
-        /// 자동 예약 DataGrid 선택 변경 - 행 클릭과 체크박스를 분리
-        /// </summary>
-        private void lstAutoScheduledTasks_SelectionChanged(object sender, System.Windows.Controls.SelectionChangedEventArgs e)
-        {
-            // 행 클릭과 체크박스 체크를 분리 - 아무 작업도 하지 않음
-            // 체크박스는 사용자가 직접 클릭해야만 체크됨
-        }
 
         /// <summary>
         /// 자동 예약 전체 삭제 버튼 클릭

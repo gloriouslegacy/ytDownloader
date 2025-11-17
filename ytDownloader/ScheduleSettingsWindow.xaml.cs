@@ -83,6 +83,17 @@ namespace ytDownloader
         }
 
         /// <summary>
+        /// URL 붙여넣기 버튼
+        /// </summary>
+        private void btnPasteChannelUrl_Click(object sender, RoutedEventArgs e)
+        {
+            if (System.Windows.Clipboard.ContainsText())
+            {
+                txtSchedulerChannelUrl.Text = System.Windows.Clipboard.GetText();
+            }
+        }
+
+        /// <summary>
         /// 저장 경로 찾기 버튼
         /// </summary>
         private void btnBrowseSavePath_Click(object sender, RoutedEventArgs e)
@@ -198,6 +209,7 @@ namespace ytDownloader
                 var schedulerSettings = new SchedulerSettings
                 {
                     TaskName = taskName,
+                    ChannelUrl = txtSchedulerChannelUrl.Text.Trim(),
                     SavePath = txtSchedulerSavePath.Text,
                     Format = (VideoFormat)(cmbSchedulerFormat.SelectedIndex >= 0 ? cmbSchedulerFormat.SelectedIndex : 0),
                     DownloadSubtitle = chkSchedulerSubtitle.IsChecked ?? false,
