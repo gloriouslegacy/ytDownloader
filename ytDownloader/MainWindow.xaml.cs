@@ -615,7 +615,14 @@ namespace ytDownloader
             try
             {
                 var dictionaries = Application.Current.Resources.MergedDictionaries;
-                dictionaries.Clear();
+
+                // 기존 테마만 제거 (언어 리소스는 유지)
+                var existingTheme = dictionaries.FirstOrDefault(d =>
+                    d.Source != null && (d.Source.OriginalString.Contains("LightTheme.xaml") || d.Source.OriginalString.Contains("DarkTheme.xaml")));
+                if (existingTheme != null)
+                {
+                    dictionaries.Remove(existingTheme);
+                }
 
                 string themeFile = theme == "Light" ? "Themes/LightTheme.xaml" : "Themes/DarkTheme.xaml";
                 var themeDict = new ResourceDictionary
@@ -623,7 +630,8 @@ namespace ytDownloader
                     Source = new Uri(themeFile, UriKind.Relative)
                 };
 
-                dictionaries.Add(themeDict);
+                // 테마는 맨 앞에 삽입하여 우선순위 보장
+                dictionaries.Insert(0, themeDict);
 
                 // Window 배경색 적용
                 if (Application.Current.Resources["WindowBackgroundBrush"] is System.Windows.Media.SolidColorBrush windowBrush)
