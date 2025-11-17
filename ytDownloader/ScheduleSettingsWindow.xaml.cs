@@ -12,6 +12,7 @@ namespace ytDownloader
         private readonly TaskSchedulerService _schedulerService;
         private readonly SettingsService _settingsService;
         private AppSettings _currentSettings;
+        private ScheduleTaskInfo? _editingTask; // 편집 중인 스케줄 (null이면 새로 만들기 모드)
 
         public ScheduleSettingsWindow()
         {
@@ -24,6 +25,78 @@ namespace ytDownloader
             InitializeTimeComboBoxes();
             InitializeSchedulerSettings();
             UpdateStatus();
+        }
+
+        /// <summary>
+        /// 편집 모드로 스케줄 설정 창 열기
+        /// </summary>
+        public void LoadScheduleForEdit(ScheduleTaskInfo task)
+        {
+            _editingTask = task;
+
+            // 스케줄러 설정 로드
+            var settings = _settingsService.LoadSchedulerSettings(task.TaskName);
+            if (settings != null)
+            {
+                txtSchedulerChannelUrl.Text = settings.ChannelUrl ?? "";
+                txtSchedulerSavePath.Text = settings.SavePath ?? Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), "Downloads");
+                cmbSchedulerFormat.SelectedIndex = (int)settings.Format;
+                chkSchedulerSubtitle.IsChecked = settings.DownloadSubtitle;
+                SetComboBoxValue(cmbSchedulerSubtitleFormat, settings.SubtitleFormat ?? "srt");
+                SetComboBoxValue(cmbSchedulerSubtitleLang, settings.SubtitleLang ?? "ko");
+                chkSchedulerNotification.IsChecked = settings.EnableNotification;
+                txtSchedulerMaxDownloads.Text = settings.MaxDownloads.ToString();
+            }
+
+            // 주기 및 시간 설정
+            // FrequencyDays를 파싱하여 콤보박스 설정
+            if (task.FrequencyDays.EndsWith("일마다"))
+            {
+                string daysStr = task.FrequencyDays.Replace("일마다", "").Trim();
+                if (int.TryParse(daysStr, out int days))
+                {
+                    // cmbSchedulerFrequency에서 해당 값 찾기
+                    for (int i = 0; i < cmbSchedulerFrequency.Items.Count; i++)
+                    {
+                        if (cmbSchedulerFrequency.Items[i] is ComboBoxItem item && item.Tag is int tagValue && tagValue == days)
+                        {
+                            cmbSchedulerFrequency.SelectedIndex = i;
+                            break;
+                        }
+                    }
+                }
+            }
+
+            // 시간 설정 (ExecutionTime 형식: "HH:mm")
+            if (!string.IsNullOrEmpty(task.ExecutionTime) && task.ExecutionTime.Contains(":"))
+            {
+                var timeParts = task.ExecutionTime.Split(':');
+                if (timeParts.Length == 2 && int.TryParse(timeParts[0], out int hour) && int.TryParse(timeParts[1], out int minute))
+                {
+                    // 시간 콤보박스 설정
+                    for (int i = 0; i < cmbSchedulerHour.Items.Count; i++)
+                    {
+                        if (cmbSchedulerHour.Items[i] is ComboBoxItem item && item.Tag is int tagValue && tagValue == hour)
+                        {
+                            cmbSchedulerHour.SelectedIndex = i;
+                            break;
+                        }
+                    }
+
+                    // 분 콤보박스 설정
+                    for (int i = 0; i < cmbSchedulerMinute.Items.Count; i++)
+                    {
+                        if (cmbSchedulerMinute.Items[i] is ComboBoxItem item && item.Tag is int tagValue && tagValue == minute)
+                        {
+                            cmbSchedulerMinute.SelectedIndex = i;
+                            break;
+                        }
+                    }
+                }
+            }
+
+            // 제목 변경
+            this.Title = "자동 예약 편집";
         }
 
         /// <summary>
@@ -212,6 +285,16 @@ namespace ytDownloader
             int hour = (int)selectedHour.Tag;
             int minute = (int)selectedMinute.Tag;
 
+            // 편집 모드일 때 기존 스케줄 삭제
+            if (_editingTask != null)
+            {
+                bool deleteSuccess = _schedulerService.DeleteScheduledTask(_editingTask.TaskName);
+                if (deleteSuccess)
+                {
+                    _settingsService.DeleteSchedulerSettings(_editingTask.TaskName);
+                }
+            }
+
             string? taskName = _schedulerService.CreateScheduledTask(frequency, hour, minute);
 
             if (taskName != null)
@@ -233,25 +316,32 @@ namespace ytDownloader
                 // 개별 파일로 저장
                 _settingsService.SaveSchedulerSettings(schedulerSettings);
 
-                MessageBox.Show(
-                    $"자동 예약이 등록되었습니다.\n\n" +
-                    $"실행 주기: {selectedFrequency.Content}\n" +
-                    $"실행 시간: {hour:D2}:{minute:D2}\n\n" +
-                    $"예약된 채널들이 지정한 시간에 자동으로 다운로드됩니다.",
-                    "등록 완료",
-                    MessageBoxButton.OK,
-                    MessageBoxImage.Information
-                );
+                string successMessage = _editingTask != null
+                    ? $"자동 예약이 수정되었습니다.\n\n" +
+                      $"실행 주기: {selectedFrequency.Content}\n" +
+                      $"실행 시간: {hour:D2}:{minute:D2}\n\n" +
+                      $"예약된 채널들이 지정한 시간에 자동으로 다운로드됩니다."
+                    : $"자동 예약이 등록되었습니다.\n\n" +
+                      $"실행 주기: {selectedFrequency.Content}\n" +
+                      $"실행 시간: {hour:D2}:{minute:D2}\n\n" +
+                      $"예약된 채널들이 지정한 시간에 자동으로 다운로드됩니다.";
+
+                string successTitle = _editingTask != null ? "수정 완료" : "등록 완료";
+
+                MessageBox.Show(successMessage, successTitle, MessageBoxButton.OK, MessageBoxImage.Information);
                 UpdateStatus();
+                this.DialogResult = true;
+                this.Close();
             }
             else
             {
-                MessageBox.Show(
-                    "자동 예약 등록에 실패했습니다.\n관리자 권한이 필요할 수 있습니다.",
-                    "등록 실패",
-                    MessageBoxButton.OK,
-                    MessageBoxImage.Error
-                );
+                string errorMessage = _editingTask != null
+                    ? "자동 예약 수정에 실패했습니다.\n관리자 권한이 필요할 수 있습니다."
+                    : "자동 예약 등록에 실패했습니다.\n관리자 권한이 필요할 수 있습니다.";
+
+                string errorTitle = _editingTask != null ? "수정 실패" : "등록 실패";
+
+                MessageBox.Show(errorMessage, errorTitle, MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
 
