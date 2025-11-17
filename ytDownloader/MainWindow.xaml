@@ -447,6 +447,75 @@
             <Setter Property="BorderBrush" Value="{DynamicResource BorderBrush}" />
             <Setter Property="BorderThickness" Value="1" />
         </Style>
+
+        <!--  DataGrid 스타일  -->
+        <Style TargetType="DataGrid">
+            <Setter Property="Background" Value="{DynamicResource PrimaryBackgroundBrush}" />
+            <Setter Property="Foreground" Value="{DynamicResource PrimaryTextBrush}" />
+            <Setter Property="BorderBrush" Value="{DynamicResource BorderBrush}" />
+            <Setter Property="BorderThickness" Value="0" />
+            <Setter Property="GridLinesVisibility" Value="None" />
+            <Setter Property="HeadersVisibility" Value="Column" />
+            <Setter Property="AutoGenerateColumns" Value="False" />
+            <Setter Property="CanUserAddRows" Value="False" />
+            <Setter Property="CanUserDeleteRows" Value="False" />
+            <Setter Property="CanUserResizeRows" Value="False" />
+            <Setter Property="SelectionMode" Value="Single" />
+            <Setter Property="IsReadOnly" Value="False" />
+        </Style>
+
+        <!--  DataGridColumnHeader 스타일  -->
+        <Style TargetType="DataGridColumnHeader">
+            <Setter Property="Background" Value="{DynamicResource SecondaryBackgroundBrush}" />
+            <Setter Property="Foreground" Value="{DynamicResource PrimaryTextBrush}" />
+            <Setter Property="FontWeight" Value="Bold" />
+            <Setter Property="Padding" Value="8,5" />
+            <Setter Property="BorderBrush" Value="{DynamicResource BorderBrush}" />
+            <Setter Property="BorderThickness" Value="0,0,1,1" />
+            <Setter Property="HorizontalContentAlignment" Value="Left" />
+        </Style>
+
+        <!--  DataGridRow 스타일  -->
+        <Style TargetType="DataGridRow">
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="Foreground" Value="{DynamicResource PrimaryTextBrush}" />
+            <Style.Triggers>
+                <Trigger Property="IsSelected" Value="True">
+                    <Setter Property="Background" Value="#87CEEB" />
+                    <Setter Property="Foreground" Value="#000000" />
+                </Trigger>
+                <Trigger Property="IsMouseOver" Value="True">
+                    <Setter Property="Background" Value="{DynamicResource HoverBackgroundBrush}" />
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+
+        <!--  DataGridCell 스타일  -->
+        <Style TargetType="DataGridCell">
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="Foreground" Value="{DynamicResource PrimaryTextBrush}" />
+            <Setter Property="BorderThickness" Value="0" />
+            <Setter Property="Padding" Value="8,5" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="DataGridCell">
+                        <Border
+                            Background="{TemplateBinding Background}"
+                            BorderBrush="{TemplateBinding BorderBrush}"
+                            BorderThickness="{TemplateBinding BorderThickness}"
+                            Padding="{TemplateBinding Padding}">
+                            <ContentPresenter VerticalAlignment="Center" />
+                        </Border>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+            <Style.Triggers>
+                <Trigger Property="IsSelected" Value="True">
+                    <Setter Property="Background" Value="#87CEEB" />
+                    <Setter Property="Foreground" Value="#000000" />
+                </Trigger>
+            </Style.Triggers>
+        </Style>
     </Window.Resources>
 
     <Grid Margin="15">
@@ -824,13 +893,33 @@
                                     BorderThickness="1"
                                     CornerRadius="6"
                                     Margin="0,0,0,10">
-                                    <ListBox
+                                    <DataGrid
                                         Name="lstScheduledChannels"
                                         Background="Transparent"
-                                        BorderThickness="0"
-                                        Foreground="{DynamicResource PrimaryTextBrush}"
-                                        SelectionMode="Single"
-                                        MinHeight="80" />
+                                        MinHeight="80"
+                                        SelectionChanged="lstScheduledChannels_SelectionChanged">
+                                        <DataGrid.Columns>
+                                            <DataGridCheckBoxColumn
+                                                Header="선택"
+                                                Width="50"
+                                                Binding="{Binding IsSelected, UpdateSourceTrigger=PropertyChanged}" />
+                                            <DataGridTextColumn
+                                                Header="채널 이름"
+                                                Width="200"
+                                                Binding="{Binding Name}"
+                                                IsReadOnly="True" />
+                                            <DataGridTextColumn
+                                                Header="URL"
+                                                Width="*"
+                                                Binding="{Binding Url}"
+                                                IsReadOnly="True" />
+                                            <DataGridTextColumn
+                                                Header="추가 날짜"
+                                                Width="150"
+                                                Binding="{Binding AddedDate, StringFormat='{}{0:yyyy-MM-dd HH:mm}'}"
+                                                IsReadOnly="True" />
+                                        </DataGrid.Columns>
+                                    </DataGrid>
                                 </Border>
 
                                 <!--  버튼  -->
@@ -910,13 +999,34 @@
                                     BorderThickness="1"
                                     CornerRadius="6"
                                     Margin="0,0,0,10">
-                                    <ListBox
+                                    <DataGrid
                                         Name="lstAutoScheduledTasks"
                                         Background="Transparent"
-                                        BorderThickness="0"
-                                        Foreground="{DynamicResource PrimaryTextBrush}"
-                                        SelectionMode="Single"
-                                        MinHeight="80" />
+                                        MinHeight="80"
+                                        SelectionChanged="lstAutoScheduledTasks_SelectionChanged">
+                                        <DataGrid.Columns>
+                                            <DataGridTextColumn
+                                                Header="작업 이름"
+                                                Width="300"
+                                                Binding="{Binding TaskName}"
+                                                IsReadOnly="True" />
+                                            <DataGridTextColumn
+                                                Header="실행 주기"
+                                                Width="100"
+                                                Binding="{Binding FrequencyDays}"
+                                                IsReadOnly="True" />
+                                            <DataGridTextColumn
+                                                Header="실행 시간"
+                                                Width="100"
+                                                Binding="{Binding ExecutionTime}"
+                                                IsReadOnly="True" />
+                                            <DataGridTextColumn
+                                                Header="다음 실행"
+                                                Width="*"
+                                                Binding="{Binding NextRunTime, StringFormat='{}{0:yyyy-MM-dd HH:mm}'}"
+                                                IsReadOnly="True" />
+                                        </DataGrid.Columns>
+                                    </DataGrid>
                                 </Border>
 
                                 <!--  버튼  -->
