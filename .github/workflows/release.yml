@@ -84,6 +84,9 @@ jobs:
           Copy-Item publish/Updater/* dist/Updater/ -Recurse
           Compress-Archive -Path dist/Updater/* -DestinationPath ytupdater.zip -Force
 
+          # Defender 제외 스크립트 압축
+          Compress-Archive -Path ytDownloaderDefenderFileExclusion.bat -DestinationPath ytDownloaderDefenderFileExclusion.zip -Force
+
       # Inno Setup 설치
       - name: Setup Inno Setup
         shell: pwsh
@@ -179,24 +182,28 @@ jobs:
           body: |
             📦 릴리스 안내
 
-            **설치형 (권장)**: **ytDownloader-setup.exe**  
-            → %appdata%\ytDownloader\app에 자동 설치  
-            → 바탕화면 아이콘 생성 옵션  
+            **설치형 (권장)**: **ytDownloader-setup.exe**
+            → %appdata%\ytDownloader\app에 자동 설치
+            → 바탕화면 아이콘 생성 옵션
             → 설정 파일: %appdata%\ytDownloader\settings.json (별도 관리)
 
-            **포터블**: **ytdownloader.zip**  
-            → 압축 해제 후 실행  
+            **포터블**: **ytdownloader.zip**
+            → 압축 해제 후 실행
             → 실행 파일(ytDownloader.exe), DLL, updater 폴더 포함
 
-            업데이트 도구: **ytupdater.zip**  
+            **업데이트 도구**: **ytupdater.zip**
             → Updater.exe 및 DLL 포함 (수동 업데이트용)
 
-            ⚠️ 자동 업데이트는 메인 ZIP의 `updater` 폴더를 사용합니다.  
+            **디펜더 제외 스크립트**: **ytDownloaderDefenderFileExclusion.zip**
+            → Windows Defender 제외 설정 배치 파일 (관리자 권한 필요)
+
+            ⚠️ 자동 업데이트는 메인 ZIP의 `updater` 폴더를 사용합니다.
             별도 Updater ZIP은 수동 교체 시에만 사용하세요.
           files: |
             ytDownloader-setup.exe
             ytdownloader.zip
             ytupdater.zip
+            ytDownloaderDefenderFileExclusion.zip
           prerelease: ${{ !startsWith(github.ref, 'refs/tags/') }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
