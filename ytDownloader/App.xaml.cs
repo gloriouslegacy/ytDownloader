@@ -28,7 +28,7 @@ namespace ytDownloader
             bool isScheduledMode = e.Args != null && e.Args.Length > 0 && e.Args[0] == "--scheduled";
 
             // MainWindow 생성 및 표시 (명령줄 인수 전달)
-            var mainWindow = new MainWindow(e.Args);
+            var mainWindow = new MainWindow(e.Args ?? Array.Empty<string>());
 
             if (isScheduledMode)
             {
