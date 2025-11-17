@@ -29,7 +29,7 @@
                             Padding="{TemplateBinding Padding}"
                             Background="{TemplateBinding Background}"
                             CornerRadius="6">
-                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" />
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" TextBlock.Foreground="{TemplateBinding Foreground}" />
                         </Border>
                         <ControlTemplate.Triggers>
                             <Trigger Property="IsMouseOver" Value="True">
@@ -72,12 +72,79 @@
         <Style TargetType="MenuItem">
             <Setter Property="Foreground" Value="{DynamicResource PrimaryTextBrush}" />
             <Setter Property="Background" Value="{DynamicResource WindowBackgroundBrush}" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="MenuItem">
+                        <Border Name="Border" Background="{TemplateBinding Background}" BorderThickness="0">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto" SharedSizeGroup="Icon"/>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="Auto" SharedSizeGroup="Shortcut"/>
+                                    <ColumnDefinition Width="13"/>
+                                </Grid.ColumnDefinitions>
+                                <ContentPresenter Name="Icon" Grid.Column="0" Margin="6,0,6,0" VerticalAlignment="Center" ContentSource="Icon"/>
+                                <ContentPresenter Name="HeaderHost" Grid.Column="1" ContentSource="Header" RecognizesAccessKey="True" VerticalAlignment="Center" TextBlock.Foreground="{TemplateBinding Foreground}"/>
+                                <TextBlock Name="InputGestureText" Grid.Column="2" Text="{TemplateBinding InputGestureText}" Margin="5,2,0,2" DockPanel.Dock="Right" Foreground="{TemplateBinding Foreground}"/>
+                                <Path Name="ArrowPath" Grid.Column="3" HorizontalAlignment="Center" VerticalAlignment="Center" Data="M 0 0 L 0 7 L 4 3.5 Z" Fill="{TemplateBinding Foreground}" Visibility="Collapsed"/>
+                                <Popup Name="Popup" Placement="Right" IsOpen="{TemplateBinding IsSubmenuOpen}" AllowsTransparency="True" Focusable="False" PopupAnimation="Fade">
+                                    <Border Name="SubmenuBorder" SnapsToDevicePixels="True" Background="{DynamicResource PrimaryBackgroundBrush}" BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1">
+                                        <StackPanel IsItemsHost="True" KeyboardNavigation.DirectionalNavigation="Cycle"/>
+                                    </Border>
+                                </Popup>
+                            </Grid>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="Role" Value="TopLevelHeader">
+                                <Setter TargetName="Popup" Property="Placement" Value="Bottom"/>
+                                <Setter TargetName="ArrowPath" Property="Visibility" Value="Collapsed"/>
+                            </Trigger>
+                            <Trigger Property="Role" Value="TopLevelItem">
+                                <Setter TargetName="Popup" Property="Visibility" Value="Collapsed"/>
+                                <Setter TargetName="ArrowPath" Property="Visibility" Value="Collapsed"/>
+                            </Trigger>
+                            <Trigger Property="Role" Value="SubmenuHeader">
+                                <Setter TargetName="ArrowPath" Property="Visibility" Value="Visible"/>
+                            </Trigger>
+                            <Trigger Property="IsHighlighted" Value="True">
+                                <Setter TargetName="Border" Property="Background" Value="{DynamicResource HoverBackgroundBrush}"/>
+                            </Trigger>
+                            <Trigger Property="IsEnabled" Value="False">
+                                <Setter Property="Foreground" Value="{DynamicResource SecondaryTextBrush}"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
         </Style>
 
         <!--  CheckBox  -->
         <Style TargetType="CheckBox">
             <Setter Property="Margin" Value="5" />
             <Setter Property="Foreground" Value="{DynamicResource PrimaryTextBrush}" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="CheckBox">
+                        <StackPanel Orientation="Horizontal">
+                            <Border Name="Border" Width="16" Height="16" BorderThickness="1" BorderBrush="{DynamicResource BorderBrush}" Background="{DynamicResource PrimaryBackgroundBrush}" CornerRadius="3">
+                                <Path Name="CheckMark" Width="10" Height="10" Stretch="Uniform" Stroke="{DynamicResource PrimaryTextBrush}" StrokeThickness="2" Data="M 0 5 L 3 8 L 8 0" Visibility="Collapsed"/>
+                            </Border>
+                            <ContentPresenter Margin="5,0,0,0" VerticalAlignment="Center" RecognizesAccessKey="True" TextBlock.Foreground="{TemplateBinding Foreground}"/>
+                        </StackPanel>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsChecked" Value="True">
+                                <Setter TargetName="CheckMark" Property="Visibility" Value="Visible"/>
+                            </Trigger>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="Border" Property="Background" Value="{DynamicResource HoverBackgroundBrush}"/>
+                            </Trigger>
+                            <Trigger Property="IsEnabled" Value="False">
+                                <Setter Property="Foreground" Value="{DynamicResource SecondaryTextBrush}"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
         </Style>
 
         <!--  TabControl  -->
@@ -145,7 +212,8 @@
         <!--  메뉴바  -->
         <Menu
             Grid.Row="0"
-            Background="{DynamicResource WindowBackgroundBrush}">
+            Background="{DynamicResource WindowBackgroundBrush}"
+            Foreground="{DynamicResource PrimaryTextBrush}">
             <MenuItem Header="{DynamicResource Menu_File}">
                 <MenuItem
                     Click="MenuExit_Click"
@@ -410,6 +478,144 @@
                         Content="{DynamicResource CheckBox_EnableNotification}"
                         ToolTip="{DynamicResource ToolTip_EnableNotification}" />
                 </StackPanel>
+            </TabItem>
+
+            <!--  수동 예약 다운로드  -->
+            <TabItem Header="{DynamicResource Tab_ManualSchedule}">
+                <Grid Margin="10">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="*" />
+                        <RowDefinition Height="Auto" />
+                    </Grid.RowDefinitions>
+
+                    <!--  상단: 채널 URL 입력  -->
+                    <StackPanel Grid.Row="0" Margin="0,0,0,10">
+                        <TextBlock
+                            Margin="5"
+                            FontWeight="Bold"
+                            Foreground="{DynamicResource PrimaryTextBrush}"
+                            Text="{DynamicResource Label_ManualSchedule}" />
+                        <DockPanel>
+                            <TextBox
+                                Name="txtScheduleChannelUrl"
+                                Width="600"
+                                Margin="5"
+                                VerticalAlignment="Center"
+                                ToolTip="{DynamicResource ToolTip_ScheduleChannelUrl}" />
+                            <TextBox
+                                Name="txtScheduleChannelName"
+                                Width="200"
+                                Margin="5"
+                                VerticalAlignment="Center"
+                                ToolTip="{DynamicResource ToolTip_ScheduleChannelName}" />
+                            <Button
+                                Width="100"
+                                Click="btnAddSchedule_Click"
+                                Content="{DynamicResource Button_AddSchedule}"
+                                ToolTip="{DynamicResource ToolTip_AddSchedule}" />
+                        </DockPanel>
+                    </StackPanel>
+
+                    <!--  중앙: 예약 목록  -->
+                    <Border
+                        Grid.Row="1"
+                        Background="{DynamicResource PrimaryBackgroundBrush}"
+                        BorderBrush="{DynamicResource BorderBrush}"
+                        BorderThickness="1"
+                        CornerRadius="6"
+                        Margin="5">
+                        <ListBox
+                            Name="lstScheduledChannels"
+                            Background="Transparent"
+                            BorderThickness="0"
+                            Foreground="{DynamicResource PrimaryTextBrush}"
+                            SelectionMode="Single" />
+                    </Border>
+
+                    <!--  하단: 버튼  -->
+                    <StackPanel
+                        Grid.Row="2"
+                        Margin="0,10,0,0"
+                        HorizontalAlignment="Right"
+                        Orientation="Horizontal">
+                        <Button
+                            Width="140"
+                            Click="btnRemoveSchedule_Click"
+                            Content="{DynamicResource Button_RemoveSchedule}"
+                            ToolTip="{DynamicResource ToolTip_RemoveSchedule}" />
+                        <Button
+                            Width="140"
+                            Click="btnRunScheduledDownloads_Click"
+                            Content="{DynamicResource Button_RunScheduledDownloads}"
+                            ToolTip="{DynamicResource ToolTip_RunScheduledDownloads}" />
+                    </StackPanel>
+                </Grid>
+            </TabItem>
+
+            <!--  자동 예약 설정  -->
+            <TabItem Header="{DynamicResource Tab_AutoSchedule}">
+                <Grid Margin="20">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="*" />
+                        <RowDefinition Height="Auto" />
+                    </Grid.RowDefinitions>
+
+                    <!--  설명  -->
+                    <StackPanel Grid.Row="0" Margin="0,0,0,20">
+                        <TextBlock
+                            FontSize="16"
+                            FontWeight="Bold"
+                            Foreground="{DynamicResource PrimaryTextBrush}"
+                            Text="{DynamicResource Label_AutoSchedule}" />
+                        <TextBlock
+                            Margin="0,10,0,0"
+                            TextWrapping="Wrap"
+                            Foreground="{DynamicResource SecondaryTextBrush}"
+                            Text="{DynamicResource Description_AutoSchedule}" />
+                    </StackPanel>
+
+                    <!--  현재 상태  -->
+                    <Border
+                        Grid.Row="1"
+                        Margin="0,0,0,20"
+                        Padding="15"
+                        Background="{DynamicResource SecondaryBackgroundBrush}"
+                        BorderBrush="{DynamicResource BorderBrush}"
+                        BorderThickness="1"
+                        CornerRadius="6">
+                        <StackPanel>
+                            <TextBlock
+                                FontWeight="Bold"
+                                Foreground="{DynamicResource PrimaryTextBrush}"
+                                Text="{DynamicResource Label_ScheduleStatus}" />
+                            <TextBlock
+                                Name="txtAutoScheduleStatus"
+                                Margin="0,5,0,0"
+                                Foreground="{DynamicResource SecondaryTextBrush}"
+                                Text="등록된 자동 예약이 없습니다." />
+                        </StackPanel>
+                    </Border>
+
+                    <!--  버튼  -->
+                    <StackPanel
+                        Grid.Row="3"
+                        HorizontalAlignment="Right"
+                        Orientation="Horizontal">
+                        <Button
+                            Width="140"
+                            Click="btnRefreshScheduleStatus_Click"
+                            Content="{DynamicResource Button_RefreshStatus}"
+                            ToolTip="{DynamicResource ToolTip_RefreshStatus}" />
+                        <Button
+                            Width="140"
+                            Click="btnAutoScheduleSettings_Click"
+                            Content="{DynamicResource Button_AutoScheduleSettings}"
+                            ToolTip="{DynamicResource ToolTip_AutoScheduleSettings}" />
+                    </StackPanel>
+                </Grid>
             </TabItem>
         </TabControl>
 
