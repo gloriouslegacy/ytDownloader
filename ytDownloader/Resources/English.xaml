@@ -18,6 +18,7 @@
     <!-- Tabs -->
     <system:String x:Key="Tab_BasicSettings">Basic Settings</system:String>
     <system:String x:Key="Tab_AdvancedSettings">Advanced Settings</system:String>
+    <system:String x:Key="Tab_ScheduledDownload">Scheduled Download</system:String>
 
     <!-- URL Input -->
     <system:String x:Key="Label_UrlInput">URL Input</system:String>
@@ -87,8 +88,12 @@
     <system:String x:Key="Label_ScheduledDownload">Scheduled Download</system:String>
     <system:String x:Key="Button_AddSchedule">Add Schedule</system:String>
     <system:String x:Key="Button_RemoveSchedule">Remove Schedule</system:String>
+    <system:String x:Key="Button_RunScheduledDownloads">Run All Schedules</system:String>
+    <system:String x:Key="ToolTip_ScheduleChannelUrl">Enter channel or playlist URL</system:String>
+    <system:String x:Key="ToolTip_ScheduleChannelName">Channel name (optional)</system:String>
     <system:String x:Key="ToolTip_AddSchedule">Add channel URL to schedule list</system:String>
     <system:String x:Key="ToolTip_RemoveSchedule">Remove selected schedule item</system:String>
+    <system:String x:Key="ToolTip_RunScheduledDownloads">Start downloading all scheduled channels/playlists</system:String>
     <system:String x:Key="CheckBox_EnableNotification">Download Complete Notification</system:String>
     <system:String x:Key="ToolTip_EnableNotification">Show notification when download completes</system:String>
 

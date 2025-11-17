@@ -43,6 +43,9 @@ namespace ytDownloader.Models
         /// <summary>다운로드 완료 알림 여부</summary>
         public bool EnableNotification { get; set; } = true;
 
+        /// <summary>예약된 채널 목록</summary>
+        public List<ScheduledChannel> ScheduledChannels { get; set; } = new List<ScheduledChannel>();
+
         /// <summary>
         /// 기본 다운로드 경로 반환
         /// </summary>

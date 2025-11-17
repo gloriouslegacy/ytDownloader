@@ -16,9 +16,9 @@ using ytDownloader.Services;
 // ✅ 로그 저장 기능
 // ✅ 언어 전환 (한국어/English)
 // ❌ 웹뷰 내장
-// ❌ 채널 예약 다운로드
+// ✅ 채널 예약 다운로드
 // ❌ 다운로드 정지/일시정지/재개
-// ❌ 다운로드 후 알림
+// ✅ 다운로드 후 알림
 
 namespace ytDownloader
 {
@@ -124,6 +124,9 @@ namespace ytDownloader
             comboFormat.SelectedIndex = (int)_currentSettings.Format;
             txtMaxDownloads.Text = _currentSettings.MaxDownloads.ToString();
             ChkEnableNotification.IsChecked = _currentSettings.EnableNotification;
+
+            // 예약 목록 로드
+            RefreshScheduledChannelsList();
         }
 
         /// <summary>
@@ -710,6 +713,112 @@ namespace ytDownloader
                     txtChannelUrl.AppendText(text.Trim() + Environment.NewLine);
                     AppendOutput("✅ 채널/재생목록 URL 드래그 앤 드롭 완료");
                 }
+            }
+        }
+
+        // ===== 예약 다운로드 =====
+
+        /// <summary>
+        /// 예약 목록 새로고침
+        /// </summary>
+        private void RefreshScheduledChannelsList()
+        {
+            lstScheduledChannels.Items.Clear();
+            foreach (var channel in _currentSettings.ScheduledChannels)
+            {
+                lstScheduledChannels.Items.Add(channel.ToString());
+            }
+        }
+
+        /// <summary>
+        /// 예약 추가 버튼 클릭
+        /// </summary>
+        private void btnAddSchedule_Click(object sender, RoutedEventArgs e)
+        {
+            string url = txtScheduleChannelUrl.Text.Trim();
+            string name = txtScheduleChannelName.Text.Trim();
+
+            if (string.IsNullOrWhiteSpace(url))
+            {
+                string message = _currentSettings.Language == "ko"
+                    ? "채널 URL을 입력하세요."
+                    : "Please enter a channel URL.";
+                string title = _currentSettings.Language == "ko"
+                    ? "입력 오류"
+                    : "Input Error";
+                MessageBox.Show(message, title, MessageBoxButton.OK, MessageBoxImage.Warning);
+                return;
+            }
+
+            var scheduledChannel = new ScheduledChannel
+            {
+                Url = url,
+                Name = name,
+                AddedDate = DateTime.Now
+            };
+
+            _currentSettings.ScheduledChannels.Add(scheduledChannel);
+            _settingsService.SaveSettings(_currentSettings);
+
+            RefreshScheduledChannelsList();
+
+            // 입력 필드 초기화
+            txtScheduleChannelUrl.Clear();
+            txtScheduleChannelName.Clear();
+
+            AppendOutput($"✅ 예약 추가: {scheduledChannel}");
+        }
+
+        /// <summary>
+        /// 예약 삭제 버튼 클릭
+        /// </summary>
+        private void btnRemoveSchedule_Click(object sender, RoutedEventArgs e)
+        {
+            int selectedIndex = lstScheduledChannels.SelectedIndex;
+            if (selectedIndex < 0)
+            {
+                string message = _currentSettings.Language == "ko"
+                    ? "삭제할 예약 항목을 선택하세요."
+                    : "Please select a schedule item to remove.";
+                string title = _currentSettings.Language == "ko"
+                    ? "선택 오류"
+                    : "Selection Error";
+                MessageBox.Show(message, title, MessageBoxButton.OK, MessageBoxImage.Warning);
+                return;
+            }
+
+            var removedChannel = _currentSettings.ScheduledChannels[selectedIndex];
+            _currentSettings.ScheduledChannels.RemoveAt(selectedIndex);
+            _settingsService.SaveSettings(_currentSettings);
+
+            RefreshScheduledChannelsList();
+
+            AppendOutput($"✅ 예약 삭제: {removedChannel}");
+        }
+
+        /// <summary>
+        /// 모든 예약 실행 버튼 클릭
+        /// </summary>
+        private void btnRunScheduledDownloads_Click(object sender, RoutedEventArgs e)
+        {
+            if (_currentSettings.ScheduledChannels.Count == 0)
+            {
+                string message = _currentSettings.Language == "ko"
+                    ? "예약된 채널이 없습니다."
+                    : "No scheduled channels.";
+                string title = _currentSettings.Language == "ko"
+                    ? "알림"
+                    : "Notice";
+                MessageBox.Show(message, title, MessageBoxButton.OK, MessageBoxImage.Information);
+                return;
+            }
+
+            AppendOutput($"🚀 예약된 {_currentSettings.ScheduledChannels.Count}개 채널 다운로드 시작...");
+
+            foreach (var channel in _currentSettings.ScheduledChannels)
+            {
+                var options = DownloadOptions.FromAppSettings(_currentSettings, channel.Url, isChannelMode: true);
+                _ = _downloadService.StartDownloadAsync(options);
             }
         }
     }
