@@ -64,8 +64,29 @@
                 <Setter.Value>
                     <ControlTemplate TargetType="ComboBox">
                         <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="20" />
+                            </Grid.ColumnDefinitions>
+
+                            <!--  Editable TextBox (IsEditable=True일 때만 표시)  -->
+                            <TextBox Name="PART_EditableTextBox"
+                                     Grid.Column="0"
+                                     Grid.ColumnSpan="2"
+                                     Padding="5,3"
+                                     Background="{TemplateBinding Background}"
+                                     Foreground="{TemplateBinding Foreground}"
+                                     BorderBrush="{DynamicResource BorderBrush}"
+                                     BorderThickness="1"
+                                     Focusable="True"
+                                     IsReadOnly="{TemplateBinding IsReadOnly}"
+                                     Visibility="Hidden"
+                                     VerticalAlignment="Center" />
+
+                            <!--  Non-Editable ToggleButton  -->
                             <ToggleButton Name="ToggleButton"
-                                          Grid.Column="2"
+                                          Grid.Column="0"
+                                          Grid.ColumnSpan="2"
                                           Focusable="false"
                                           IsChecked="{Binding Path=IsDropDownOpen, Mode=TwoWay, RelativeSource={RelativeSource TemplatedParent}}"
                                           ClickMode="Press"
@@ -94,6 +115,8 @@
                                           Data="M 0 0 L 4 4 L 8 0 Z"/>
                                 </Grid>
                             </ToggleButton>
+
+                            <!--  Dropdown Popup  -->
                             <Popup Name="Popup"
                                    Placement="Bottom"
                                    IsOpen="{TemplateBinding IsDropDownOpen}"
@@ -116,8 +139,15 @@
                             </Popup>
                         </Grid>
                         <ControlTemplate.Triggers>
+                            <!--  Editable 모드  -->
+                            <Trigger Property="IsEditable" Value="True">
+                                <Setter TargetName="PART_EditableTextBox" Property="Visibility" Value="Visible" />
+                                <Setter TargetName="ToggleButton" Property="Visibility" Value="Collapsed" />
+                            </Trigger>
+                            <!--  Hover 효과  -->
                             <Trigger Property="IsMouseOver" Value="True">
                                 <Setter TargetName="ToggleButton" Property="Background" Value="{DynamicResource HoverBackgroundBrush}"/>
+                                <Setter TargetName="PART_EditableTextBox" Property="Background" Value="{DynamicResource HoverBackgroundBrush}"/>
                             </Trigger>
                         </ControlTemplate.Triggers>
                     </ControlTemplate>
@@ -287,6 +317,66 @@
                     </ControlTemplate>
                 </Setter.Value>
             </Setter>
+        </Style>
+
+        <!--  TextBlock 전역 스타일  -->
+        <Style TargetType="TextBlock">
+            <Setter Property="Foreground" Value="{DynamicResource PrimaryTextBrush}" />
+        </Style>
+
+        <!--  Label 전역 스타일  -->
+        <Style TargetType="Label">
+            <Setter Property="Foreground" Value="{DynamicResource PrimaryTextBrush}" />
+        </Style>
+
+        <!--  Separator 스타일  -->
+        <Style TargetType="Separator">
+            <Setter Property="Background" Value="{DynamicResource BorderBrush}" />
+            <Setter Property="Height" Value="1" />
+            <Setter Property="Margin" Value="5,3" />
+        </Style>
+
+        <!--  ListBox 스타일  -->
+        <Style TargetType="ListBox">
+            <Setter Property="Background" Value="{DynamicResource PrimaryBackgroundBrush}" />
+            <Setter Property="Foreground" Value="{DynamicResource PrimaryTextBrush}" />
+            <Setter Property="BorderBrush" Value="{DynamicResource BorderBrush}" />
+        </Style>
+
+        <!--  ListBoxItem 스타일  -->
+        <Style TargetType="ListBoxItem">
+            <Setter Property="Foreground" Value="{DynamicResource PrimaryTextBrush}" />
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="Padding" Value="5,3" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="ListBoxItem">
+                        <Border Name="Border"
+                                Padding="{TemplateBinding Padding}"
+                                Background="{TemplateBinding Background}"
+                                BorderThickness="0">
+                            <ContentPresenter TextBlock.Foreground="{TemplateBinding Foreground}" />
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsSelected" Value="True">
+                                <Setter TargetName="Border" Property="Background" Value="{DynamicResource HoverBackgroundBrush}"/>
+                                <Setter Property="Foreground" Value="{DynamicResource PrimaryTextBrush}"/>
+                            </Trigger>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="Border" Property="Background" Value="{DynamicResource SecondaryBackgroundBrush}"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!--  ProgressBar 스타일  -->
+        <Style TargetType="ProgressBar">
+            <Setter Property="Background" Value="{DynamicResource PrimaryBackgroundBrush}" />
+            <Setter Property="Foreground" Value="{DynamicResource PressedBackgroundBrush}" />
+            <Setter Property="BorderBrush" Value="{DynamicResource BorderBrush}" />
+            <Setter Property="BorderThickness" Value="1" />
         </Style>
     </Window.Resources>
 
