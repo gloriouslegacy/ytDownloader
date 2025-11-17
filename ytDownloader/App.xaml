@@ -8,6 +8,8 @@
             <ResourceDictionary.MergedDictionaries>
                 <!-- 기본 테마: 다크 모드 -->
                 <ResourceDictionary Source="Themes/DarkTheme.xaml" />
+                <!-- 기본 언어: 한국어 -->
+                <ResourceDictionary Source="Resources/Korean.xaml" />
             </ResourceDictionary.MergedDictionaries>
         </ResourceDictionary>
     </Application.Resources>
