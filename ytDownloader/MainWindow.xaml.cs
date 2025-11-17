@@ -865,7 +865,12 @@ namespace ytDownloader
         /// </summary>
         private void btnRemoveSchedule_Click(object sender, RoutedEventArgs e)
         {
-            if (lstScheduledChannels.SelectedItems == null || lstScheduledChannels.SelectedItems.Count == 0)
+            // 체크박스로 선택된 항목들 필터링
+            var selectedChannels = _scheduledChannelsCollection
+                .Where(c => c.IsSelected)
+                .ToList();
+
+            if (selectedChannels.Count == 0)
             {
                 string message = _currentSettings.Language == "ko"
                     ? "삭제할 예약 항목을 선택하세요."
@@ -876,9 +881,6 @@ namespace ytDownloader
                 MessageBox.Show(message, title, MessageBoxButton.OK, MessageBoxImage.Warning);
                 return;
             }
-
-            // 선택된 항목들을 리스트로 복사 (컬렉션 수정 중 반복 방지)
-            var selectedChannels = lstScheduledChannels.SelectedItems.Cast<ScheduledChannel>().ToList();
 
             string confirmMessage = _currentSettings.Language == "ko"
                 ? $"선택한 {selectedChannels.Count}개 항목을 삭제하시겠습니까?"
@@ -942,11 +944,16 @@ namespace ytDownloader
         /// </summary>
         private void btnRunSelectedSchedule_Click(object sender, RoutedEventArgs e)
         {
-            if (lstScheduledChannels.SelectedItem == null || lstScheduledChannels.SelectedItem is not ScheduledChannel)
+            // 체크박스로 선택된 항목들 필터링
+            var selectedChannels = _scheduledChannelsCollection
+                .Where(c => c.IsSelected)
+                .ToList();
+
+            if (selectedChannels.Count == 0)
             {
                 string message = _currentSettings.Language == "ko"
                     ? "실행할 예약 항목을 선택하세요."
-                    : "Please select a schedule item to run.";
+                    : "Please select schedule items to run.";
                 string title = _currentSettings.Language == "ko"
                     ? "선택 오류"
                     : "Selection Error";
@@ -954,11 +961,14 @@ namespace ytDownloader
                 return;
             }
 
-            var selectedChannel = (ScheduledChannel)lstScheduledChannels.SelectedItem;
-            AppendOutput($"🚀 선택한 예약 채널 다운로드 시작: {selectedChannel.Name ?? selectedChannel.Url}");
+            AppendOutput($"🚀 선택한 {selectedChannels.Count}개 예약 채널 다운로드 시작...");
 
-            var options = DownloadOptions.FromAppSettings(_currentSettings, selectedChannel.Url, isChannelMode: true);
-            _ = _downloadService.StartDownloadAsync(options);
+            foreach (var channel in selectedChannels)
+            {
+                AppendOutput($"  - {channel.Name ?? channel.Url}");
+                var options = DownloadOptions.FromAppSettings(_currentSettings, channel.Url, isChannelMode: true);
+                _ = _downloadService.StartDownloadAsync(options);
+            }
         }
 
         /// <summary>
@@ -1142,8 +1152,10 @@ namespace ytDownloader
         /// </summary>
         private void btnDeleteSelectedAutoSchedule_Click(object sender, RoutedEventArgs e)
         {
-            // 선택된 항목들을 리스트로 복사
-            var selectedTasks = lstAutoScheduledTasks.SelectedItems.OfType<ScheduleTaskInfo>().ToList();
+            // 체크박스로 선택된 항목들 필터링
+            var selectedTasks = _autoScheduledTasksCollection
+                .Where(t => t.IsSelected)
+                .ToList();
 
             if (selectedTasks.Count == 0)
             {
@@ -1216,16 +1228,15 @@ namespace ytDownloader
         private void chkSelectAllManual_Changed(object sender, RoutedEventArgs e)
         {
             // 초기화 중일 수 있으므로 null 체크
-            if (lstScheduledChannels == null || !lstScheduledChannels.IsLoaded)
+            if (_scheduledChannelsCollection == null)
                 return;
 
-            if (chkSelectAllManual.IsChecked == true)
+            bool isChecked = chkSelectAllManual.IsChecked == true;
+
+            // 각 항목의 IsSelected 속성을 직접 업데이트
+            foreach (var channel in _scheduledChannelsCollection)
             {
-                lstScheduledChannels.SelectAll();
-            }
-            else
-            {
-                lstScheduledChannels.UnselectAll();
+                channel.IsSelected = isChecked;
             }
         }
 
@@ -1235,16 +1246,57 @@ namespace ytDownloader
         private void chkSelectAllAuto_Changed(object sender, RoutedEventArgs e)
         {
             // 초기화 중일 수 있으므로 null 체크
-            if (lstAutoScheduledTasks == null || !lstAutoScheduledTasks.IsLoaded)
+            if (_autoScheduledTasksCollection == null)
                 return;
 
-            if (chkSelectAllAuto.IsChecked == true)
+            bool isChecked = chkSelectAllAuto.IsChecked == true;
+
+            // 각 항목의 IsSelected 속성을 직접 업데이트
+            foreach (var task in _autoScheduledTasksCollection)
             {
-                lstAutoScheduledTasks.SelectAll();
+                task.IsSelected = isChecked;
             }
-            else
+        }
+
+        /// <summary>
+        /// 수동 예약 DataGrid 선택 변경 - 행 선택과 체크박스 동기화
+        /// </summary>
+        private void lstScheduledChannels_SelectionChanged(object sender, System.Windows.Controls.SelectionChangedEventArgs e)
+        {
+            if (_scheduledChannelsCollection == null)
+                return;
+
+            // 선택된 항목들의 체크박스를 체크
+            foreach (ScheduledChannel channel in e.AddedItems)
             {
-                lstAutoScheduledTasks.UnselectAll();
+                channel.IsSelected = true;
+            }
+
+            // 선택 해제된 항목들의 체크박스를 해제
+            foreach (ScheduledChannel channel in e.RemovedItems)
+            {
+                channel.IsSelected = false;
+            }
+        }
+
+        /// <summary>
+        /// 자동 예약 DataGrid 선택 변경 - 행 선택과 체크박스 동기화
+        /// </summary>
+        private void lstAutoScheduledTasks_SelectionChanged(object sender, System.Windows.Controls.SelectionChangedEventArgs e)
+        {
+            if (_autoScheduledTasksCollection == null)
+                return;
+
+            // 선택된 항목들의 체크박스를 체크
+            foreach (ScheduleTaskInfo task in e.AddedItems)
+            {
+                task.IsSelected = true;
+            }
+
+            // 선택 해제된 항목들의 체크박스를 해제
+            foreach (ScheduleTaskInfo task in e.RemovedItems)
+            {
+                task.IsSelected = false;
             }
         }
 

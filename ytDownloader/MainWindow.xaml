@@ -839,7 +839,8 @@
                                     CanUserReorderColumns="False"
                                     CanUserResizeRows="False"
                                     HeadersVisibility="Column"
-                                    SelectionMode="Extended">
+                                    SelectionMode="Extended"
+                                    SelectionChanged="lstScheduledChannels_SelectionChanged">
                                     <DataGrid.Resources>
                                         <Style TargetType="DataGridColumnHeader">
                                             <Setter Property="Background" Value="{DynamicResource SecondaryBackgroundBrush}" />
@@ -985,7 +986,8 @@
                                     CanUserReorderColumns="False"
                                     CanUserResizeRows="False"
                                     HeadersVisibility="Column"
-                                    SelectionMode="Extended">
+                                    SelectionMode="Extended"
+                                    SelectionChanged="lstAutoScheduledTasks_SelectionChanged">
                                     <DataGrid.Resources>
                                         <Style TargetType="DataGridColumnHeader">
                                             <Setter Property="Background" Value="{DynamicResource SecondaryBackgroundBrush}" />
