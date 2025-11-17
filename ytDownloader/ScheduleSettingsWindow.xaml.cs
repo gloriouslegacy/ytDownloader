@@ -1,3 +1,5 @@
+using System.IO;
+using System.Runtime.Versioning;
 using System.Windows;
 using System.Windows.Controls;
 using ytDownloader.Services;
@@ -98,6 +100,7 @@ namespace ytDownloader
         /// <summary>
         /// 저장 경로 찾기 버튼
         /// </summary>
+        [SupportedOSPlatform("windows")]
         private void btnBrowseSavePath_Click(object sender, RoutedEventArgs e)
         {
             using (var dialog = new System.Windows.Forms.FolderBrowserDialog())

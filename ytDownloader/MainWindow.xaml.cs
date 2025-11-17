@@ -3,6 +3,7 @@ using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
 using System.Reflection;
+using System.Runtime.Versioning;
 using System.Windows;
 using System.Windows.Input;
 using System.Windows.Navigation;
@@ -42,7 +43,7 @@ namespace ytDownloader
         private ObservableCollection<ScheduledChannel> _scheduledChannelsCollection = new ObservableCollection<ScheduledChannel>();
         private ObservableCollection<ScheduleTaskInfo> _autoScheduledTasksCollection = new ObservableCollection<ScheduleTaskInfo>();
 
-        public MainWindow(string[] args = null)
+        public MainWindow(string[]? args = null)
         {
             InitializeComponent();
 
@@ -397,6 +398,7 @@ namespace ytDownloader
         /// <summary>
         /// 저장 경로 찾기 버튼
         /// </summary>
+        [SupportedOSPlatform("windows")]
         private void btnBrowse_Click(object sender, RoutedEventArgs e)
         {
             using (var dialog = new System.Windows.Forms.FolderBrowserDialog())
@@ -411,6 +413,7 @@ namespace ytDownloader
         /// <summary>
         /// 폴더 열기 버튼
         /// </summary>
+        [SupportedOSPlatform("windows")]
         private void btnOpenFolder_Click(object sender, RoutedEventArgs e)
         {
             if (Directory.Exists(txtSavePath.Text))
