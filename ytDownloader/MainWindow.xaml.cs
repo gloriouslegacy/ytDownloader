@@ -501,9 +501,6 @@ namespace ytDownloader
             }
         }
 
-
-
-
         //string FormatEta(double seconds)
         //{
         //    if (seconds < 0) return "--:--";
@@ -1089,7 +1086,7 @@ namespace ytDownloader
 
         private void Window_Closing(object sender, CancelEventArgs e)
         {
-            // 설정은 이미 실시간으로 저장됨
+            // 설정  실시간으로 저장
         }
     }
 }

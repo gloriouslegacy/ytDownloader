@@ -79,18 +79,6 @@
         </Grid.RowDefinitions>
 
         <!--  헤더  -->
-        <Border
-            Grid.Row="0"
-            Margin="0,0,0,10"
-            Padding="15"
-            Background="#2A2F45"
-            CornerRadius="8">
-            <TextBlock
-                FontSize="22"
-                FontWeight="Bold"
-                Foreground="gray"
-                Text="ytDownloader(ytdlp)" />
-        </Border>
 
         <!--  메인 영역 (TabControl)  -->
         <TabControl
