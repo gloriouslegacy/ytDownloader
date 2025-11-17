@@ -900,15 +900,15 @@
                                     CornerRadius="6">
                                     <DataGrid
                                         Name="lstScheduledChannels"
-                                        MinHeight="80"
+                                        MinHeight="130"
                                         Background="Transparent"
                                         PreviewMouseLeftButtonDown="lstScheduledChannels_PreviewMouseLeftButtonDown"
-                                        SelectionMode="Single"
+                                        SelectionMode="None"
                                         SelectionUnit="FullRow">
                                         <DataGrid.Columns>
                                             <DataGridCheckBoxColumn
                                                 Width="50"
-                                                Binding="{Binding IsSelected, UpdateSourceTrigger=PropertyChanged}"
+                                                Binding="{Binding IsSelected, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                                                 Header="{DynamicResource Header_Select}" />
                                             <DataGridTextColumn
                                                 Width="200"
@@ -1008,15 +1008,15 @@
                                     CornerRadius="6">
                                     <DataGrid
                                         Name="lstAutoScheduledTasks"
-                                        MinHeight="80"
+                                        MinHeight="130"
                                         Background="Transparent"
                                         PreviewMouseLeftButtonDown="lstAutoScheduledTasks_PreviewMouseLeftButtonDown"
-                                        SelectionMode="Single"
+                                        SelectionMode="None"
                                         SelectionUnit="FullRow">
                                         <DataGrid.Columns>
                                             <DataGridCheckBoxColumn
                                                 Width="50"
-                                                Binding="{Binding IsSelected, UpdateSourceTrigger=PropertyChanged}"
+                                                Binding="{Binding IsSelected, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                                                 Header="{DynamicResource Header_Select}" />
                                             <DataGridTextColumn
                                                 Width="250"

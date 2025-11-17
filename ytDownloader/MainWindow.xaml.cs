@@ -1204,6 +1204,7 @@ namespace ytDownloader
             if (row != null && row.Item is ScheduledChannel channel)
             {
                 channel.IsSelected = !channel.IsSelected;
+                e.Handled = true; // 이벤트 전파 차단하여 중복 처리 방지
             }
         }
 
@@ -1241,6 +1242,7 @@ namespace ytDownloader
             if (row != null && row.Item is ScheduleTaskInfo task)
             {
                 task.IsSelected = !task.IsSelected;
+                e.Handled = true; // 이벤트 전파 차단하여 중복 처리 방지
             }
         }
 
