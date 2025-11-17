@@ -484,9 +484,13 @@
                     <Setter Property="Background" Value="#87CEEB" />
                     <Setter Property="Foreground" Value="#000000" />
                 </Trigger>
-                <Trigger Property="IsMouseOver" Value="True">
+                <MultiTrigger>
+                    <MultiTrigger.Conditions>
+                        <Condition Property="IsMouseOver" Value="True" />
+                        <Condition Property="IsSelected" Value="False" />
+                    </MultiTrigger.Conditions>
                     <Setter Property="Background" Value="{DynamicResource HoverBackgroundBrush}" />
-                </Trigger>
+                </MultiTrigger>
             </Style.Triggers>
         </Style>
 
@@ -496,6 +500,7 @@
             <Setter Property="Foreground" Value="{DynamicResource PrimaryTextBrush}" />
             <Setter Property="BorderThickness" Value="0" />
             <Setter Property="Padding" Value="8,5" />
+            <Setter Property="FocusVisualStyle" Value="{x:Null}" />
             <Setter Property="Template">
                 <Setter.Value>
                     <ControlTemplate TargetType="DataGridCell">
@@ -1005,9 +1010,13 @@
                                         MinHeight="80"
                                         SelectionChanged="lstAutoScheduledTasks_SelectionChanged">
                                         <DataGrid.Columns>
+                                            <DataGridCheckBoxColumn
+                                                Header="선택"
+                                                Width="50"
+                                                Binding="{Binding IsSelected, UpdateSourceTrigger=PropertyChanged}" />
                                             <DataGridTextColumn
                                                 Header="작업 이름"
-                                                Width="300"
+                                                Width="250"
                                                 Binding="{Binding TaskName}"
                                                 IsReadOnly="True" />
                                             <DataGridTextColumn
