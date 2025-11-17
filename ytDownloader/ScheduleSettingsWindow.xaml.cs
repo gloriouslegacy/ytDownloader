@@ -39,7 +39,7 @@ namespace ytDownloader
             if (settings != null)
             {
                 txtSchedulerChannelUrl.Text = settings.ChannelUrl ?? "";
-                txtSchedulerSavePath.Text = settings.SavePath ?? Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), "Downloads");
+                txtSchedulerSavePath.Text = settings.SavePath ?? Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), "Downloads");
                 cmbSchedulerFormat.SelectedIndex = (int)settings.Format;
                 chkSchedulerSubtitle.IsChecked = settings.DownloadSubtitle;
                 SetComboBoxValue(cmbSchedulerSubtitleFormat, settings.SubtitleFormat ?? "srt");
@@ -109,7 +109,7 @@ namespace ytDownloader
         {
             // 자동 예약 설정은 기본 설정값을 참조하지 않고 독립된 기본값 사용
             txtSchedulerChannelUrl.Text = "";
-            txtSchedulerSavePath.Text = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), "Downloads");
+            txtSchedulerSavePath.Text = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), "Downloads");
             cmbSchedulerFormat.SelectedIndex = 0; // 최고화질
             chkSchedulerSubtitle.IsChecked = false;
             SetComboBoxValue(cmbSchedulerSubtitleFormat, "srt");
