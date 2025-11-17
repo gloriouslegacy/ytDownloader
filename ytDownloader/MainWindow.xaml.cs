@@ -928,13 +928,19 @@ namespace ytDownloader
         private void UpdateSchedulerStatus()
         {
             var schedulerService = new TaskSchedulerService();
-            if (schedulerService.IsTaskScheduled())
+            lstAutoScheduledTasks.Items.Clear();
+
+            var tasks = schedulerService.GetAllScheduledTasks();
+            if (tasks.Count == 0)
             {
-                txtAutoScheduleStatus.Text = "✅ 자동 예약이 등록되어 있습니다.\nWindows 작업 스케줄러에서 상세 정보를 확인할 수 있습니다.";
+                lstAutoScheduledTasks.Items.Add("등록된 스케줄이 없습니다.");
             }
             else
             {
-                txtAutoScheduleStatus.Text = "등록된 자동 예약이 없습니다.";
+                foreach (var task in tasks)
+                {
+                    lstAutoScheduledTasks.Items.Add(task.DisplayText);
+                }
             }
         }
 
@@ -944,6 +950,127 @@ namespace ytDownloader
         private void btnRefreshScheduleStatus_Click(object sender, RoutedEventArgs e)
         {
             UpdateSchedulerStatus();
+        }
+
+        /// <summary>
+        /// 자동 예약 선택 삭제 버튼 클릭
+        /// </summary>
+        private void btnDeleteSelectedAutoSchedule_Click(object sender, RoutedEventArgs e)
+        {
+            if (lstAutoScheduledTasks.SelectedItem == null || lstAutoScheduledTasks.SelectedItem.ToString() == "등록된 스케줄이 없습니다.")
+            {
+                string message = _currentSettings.Language == "ko"
+                    ? "삭제할 스케줄을 선택해주세요."
+                    : "Please select a schedule to delete.";
+                string title = _currentSettings.Language == "ko"
+                    ? "알림"
+                    : "Notice";
+                MessageBox.Show(message, title, MessageBoxButton.OK, MessageBoxImage.Information);
+                return;
+            }
+
+            string confirmMessage = _currentSettings.Language == "ko"
+                ? "선택한 자동 예약을 삭제하시겠습니까?"
+                : "Do you want to delete the selected auto schedule?";
+            string confirmTitle = _currentSettings.Language == "ko"
+                ? "확인"
+                : "Confirm";
+
+            var result = MessageBox.Show(confirmMessage, confirmTitle, MessageBoxButton.YesNo, MessageBoxImage.Question);
+
+            if (result == MessageBoxResult.Yes)
+            {
+                var schedulerService = new TaskSchedulerService();
+                var tasks = schedulerService.GetAllScheduledTasks();
+                int selectedIndex = lstAutoScheduledTasks.SelectedIndex;
+
+                if (selectedIndex >= 0 && selectedIndex < tasks.Count)
+                {
+                    var taskToDelete = tasks[selectedIndex];
+                    bool success = schedulerService.DeleteScheduledTask(taskToDelete.TaskName);
+
+                    if (success)
+                    {
+                        string successMessage = _currentSettings.Language == "ko"
+                            ? "자동 예약이 삭제되었습니다."
+                            : "Auto schedule has been deleted.";
+                        string successTitle = _currentSettings.Language == "ko"
+                            ? "삭제 완료"
+                            : "Delete Complete";
+                        MessageBox.Show(successMessage, successTitle, MessageBoxButton.OK, MessageBoxImage.Information);
+                        UpdateSchedulerStatus();
+                        AppendOutput($"✅ 자동 예약 삭제: {taskToDelete.TaskName}");
+                    }
+                    else
+                    {
+                        string errorMessage = _currentSettings.Language == "ko"
+                            ? "자동 예약 삭제에 실패했습니다.\n관리자 권한이 필요할 수 있습니다."
+                            : "Failed to delete auto schedule.\nAdministrator privileges may be required.";
+                        string errorTitle = _currentSettings.Language == "ko"
+                            ? "삭제 실패"
+                            : "Delete Failed";
+                        MessageBox.Show(errorMessage, errorTitle, MessageBoxButton.OK, MessageBoxImage.Error);
+                    }
+                }
+            }
+        }
+
+        /// <summary>
+        /// 자동 예약 전체 삭제 버튼 클릭
+        /// </summary>
+        private void btnDeleteAllAutoSchedules_Click(object sender, RoutedEventArgs e)
+        {
+            var schedulerService = new TaskSchedulerService();
+            var tasks = schedulerService.GetAllScheduledTasks();
+
+            if (tasks.Count == 0)
+            {
+                string message = _currentSettings.Language == "ko"
+                    ? "삭제할 스케줄이 없습니다."
+                    : "No schedules to delete.";
+                string title = _currentSettings.Language == "ko"
+                    ? "알림"
+                    : "Notice";
+                MessageBox.Show(message, title, MessageBoxButton.OK, MessageBoxImage.Information);
+                return;
+            }
+
+            string confirmMessage = _currentSettings.Language == "ko"
+                ? $"모든 자동 예약({tasks.Count}개)을 삭제하시겠습니까?"
+                : $"Do you want to delete all auto schedules ({tasks.Count})?";
+            string confirmTitle = _currentSettings.Language == "ko"
+                ? "전체 삭제 확인"
+                : "Confirm Delete All";
+
+            var result = MessageBox.Show(confirmMessage, confirmTitle, MessageBoxButton.YesNo, MessageBoxImage.Question);
+
+            if (result == MessageBoxResult.Yes)
+            {
+                int deletedCount = schedulerService.DeleteAllScheduledTasks();
+
+                if (deletedCount > 0)
+                {
+                    string successMessage = _currentSettings.Language == "ko"
+                        ? $"{deletedCount}개의 자동 예약이 삭제되었습니다."
+                        : $"{deletedCount} auto schedule(s) have been deleted.";
+                    string successTitle = _currentSettings.Language == "ko"
+                        ? "삭제 완료"
+                        : "Delete Complete";
+                    MessageBox.Show(successMessage, successTitle, MessageBoxButton.OK, MessageBoxImage.Information);
+                    UpdateSchedulerStatus();
+                    AppendOutput($"✅ 자동 예약 전체 삭제: {deletedCount}개 항목 삭제됨");
+                }
+                else
+                {
+                    string errorMessage = _currentSettings.Language == "ko"
+                        ? "자동 예약 삭제에 실패했습니다.\n관리자 권한이 필요할 수 있습니다."
+                        : "Failed to delete auto schedules.\nAdministrator privileges may be required.";
+                    string errorTitle = _currentSettings.Language == "ko"
+                        ? "삭제 실패"
+                        : "Delete Failed";
+                    MessageBox.Show(errorMessage, errorTitle, MessageBoxButton.OK, MessageBoxImage.Error);
+                }
+            }
         }
     }
 
