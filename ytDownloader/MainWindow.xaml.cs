@@ -577,7 +577,7 @@ namespace ytDownloader
         /// <summary>
         /// 메뉴: 로그 저장
         /// </summary>
-        private void MenuSaveLog_Click(object sender, RoutedEventArgs e)
+        private async void MenuSaveLog_Click(object sender, RoutedEventArgs e)
         {
             try
             {
@@ -585,7 +585,7 @@ namespace ytDownloader
                 string logFileName = $"ytDownloader_log_{timestamp}.txt";
                 string logPath = Path.Combine(_currentSettings.SavePath, logFileName);
 
-                File.WriteAllText(logPath, txtOutput.Text);
+                await File.WriteAllTextAsync(logPath, txtOutput.Text);
 
                 MessageBox.Show(
                     $"로그가 저장되었습니다:\n{logPath}",
@@ -809,6 +809,42 @@ namespace ytDownloader
             RefreshScheduledChannelsList();
 
             AppendOutput($"✅ 예약 삭제: {removedChannel}");
+        }
+
+        /// <summary>
+        /// 예약 전체삭제 버튼 클릭
+        /// </summary>
+        private void btnRemoveAllSchedules_Click(object sender, RoutedEventArgs e)
+        {
+            if (_currentSettings.ScheduledChannels.Count == 0)
+            {
+                string message = _currentSettings.Language == "ko"
+                    ? "삭제할 예약 항목이 없습니다."
+                    : "No schedule items to remove.";
+                string title = _currentSettings.Language == "ko"
+                    ? "알림"
+                    : "Notice";
+                MessageBox.Show(message, title, MessageBoxButton.OK, MessageBoxImage.Information);
+                return;
+            }
+
+            string confirmMessage = _currentSettings.Language == "ko"
+                ? $"모든 예약 항목({_currentSettings.ScheduledChannels.Count}개)을 삭제하시겠습니까?"
+                : $"Do you want to remove all schedule items ({_currentSettings.ScheduledChannels.Count})?";
+            string confirmTitle = _currentSettings.Language == "ko"
+                ? "예약 전체삭제 확인"
+                : "Confirm Remove All Schedules";
+
+            if (MessageBox.Show(confirmMessage, confirmTitle, MessageBoxButton.YesNo, MessageBoxImage.Question) == MessageBoxResult.Yes)
+            {
+                int count = _currentSettings.ScheduledChannels.Count;
+                _currentSettings.ScheduledChannels.Clear();
+                _settingsService.SaveSettings(_currentSettings);
+
+                RefreshScheduledChannelsList();
+
+                AppendOutput($"✅ 예약 전체삭제: {count}개 항목 삭제됨");
+            }
         }
 
         /// <summary>

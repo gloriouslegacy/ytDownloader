@@ -18,6 +18,7 @@
     <!-- 탭 -->
     <system:String x:Key="Tab_BasicSettings">기본 설정</system:String>
     <system:String x:Key="Tab_AdvancedSettings">고급 설정</system:String>
+    <system:String x:Key="Tab_Schedule">예약</system:String>
     <system:String x:Key="Tab_ManualSchedule">수동 예약</system:String>
     <system:String x:Key="Tab_AutoSchedule">자동 예약</system:String>
 
@@ -93,12 +94,14 @@
     <system:String x:Key="Button_AddSchedule">예약 추가</system:String>
     <system:String x:Key="Button_RefreshStatus">상태 새로고침</system:String>
     <system:String x:Key="Button_RemoveSchedule">예약 삭제</system:String>
+    <system:String x:Key="Button_RemoveAllSchedules">예약 전체삭제</system:String>
     <system:String x:Key="Button_AutoScheduleSettings">자동 예약 설정</system:String>
     <system:String x:Key="Button_RunScheduledDownloads">모든 예약 실행</system:String>
     <system:String x:Key="ToolTip_ScheduleChannelUrl">채널 또는 재생목록 URL 입력</system:String>
     <system:String x:Key="ToolTip_ScheduleChannelName">채널 이름 (선택사항)</system:String>
     <system:String x:Key="ToolTip_AddSchedule">채널 URL을 예약 목록에 추가</system:String>
     <system:String x:Key="ToolTip_RemoveSchedule">선택한 예약 항목 삭제</system:String>
+    <system:String x:Key="ToolTip_RemoveAllSchedules">모든 예약 항목을 삭제</system:String>
     <system:String x:Key="ToolTip_AutoScheduleSettings">자동 예약 실행 시간 및 주기 설정</system:String>
     <system:String x:Key="ToolTip_RefreshStatus">자동 예약 상태 새로고침</system:String>
     <system:String x:Key="ToolTip_RunScheduledDownloads">예약된 모든 채널/재생목록 다운로드 시작</system:String>
