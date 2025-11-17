@@ -129,6 +129,8 @@
     <system:String x:Key="Header_Frequency">Frequency</system:String>
     <system:String x:Key="Header_ExecutionTime">Execution Time</system:String>
     <system:String x:Key="Header_NextRun">Next Run</system:String>
+    <system:String x:Key="Button_EditSchedule">Edit Schedule</system:String>
+    <system:String x:Key="ToolTip_EditSchedule">Edit selected auto schedule</system:String>
     <system:String x:Key="Button_RemoveSelectedAutoSchedule">Remove Selected Auto Schedules</system:String>
     <system:String x:Key="ToolTip_RemoveSelectedAutoSchedule">Delete selected auto schedule items</system:String>
     <system:String x:Key="Button_RemoveAllAutoSchedules">Remove All Auto Schedules</system:String>
