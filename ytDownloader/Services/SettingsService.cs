@@ -52,7 +52,8 @@ namespace ytDownloader.Services
                         Format = (VideoFormat)(settings["Format"]?.ToObject<int>() ?? 0),
                         MaxDownloads = settings["MaxDownloads"]?.ToObject<int>() ?? 5,
                         Theme = settings["Theme"]?.ToString() ?? "Dark",
-                        Language = settings["Language"]?.ToString() ?? "ko"
+                        Language = settings["Language"]?.ToString() ?? "ko",
+                        EnableNotification = settings["EnableNotification"]?.ToObject<bool>() ?? true
                     };
                 }
                 else
@@ -101,7 +102,8 @@ namespace ytDownloader.Services
                     ["Format"] = (int)settings.Format,
                     ["MaxDownloads"] = settings.MaxDownloads,
                     ["Theme"] = settings.Theme,
-                    ["Language"] = settings.Language
+                    ["Language"] = settings.Language,
+                    ["EnableNotification"] = settings.EnableNotification
                 };
 
                 File.WriteAllText(_settingsFile, json.ToString());

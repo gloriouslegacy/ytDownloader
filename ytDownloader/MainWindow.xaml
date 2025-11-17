@@ -62,6 +62,18 @@
             <Setter Property="Foreground" Value="{DynamicResource PrimaryTextBrush}" />
         </Style>
 
+        <!--  ComboBoxItem  -->
+        <Style TargetType="ComboBoxItem">
+            <Setter Property="Foreground" Value="{DynamicResource PrimaryTextBrush}" />
+            <Setter Property="Background" Value="{DynamicResource PrimaryBackgroundBrush}" />
+        </Style>
+
+        <!--  MenuItem  -->
+        <Style TargetType="MenuItem">
+            <Setter Property="Foreground" Value="{DynamicResource PrimaryTextBrush}" />
+            <Setter Property="Background" Value="{DynamicResource WindowBackgroundBrush}" />
+        </Style>
+
         <!--  CheckBox  -->
         <Style TargetType="CheckBox">
             <Setter Property="Margin" Value="5" />
@@ -133,41 +145,43 @@
         <!--  메뉴바  -->
         <Menu
             Grid.Row="0"
-            Background="{DynamicResource WindowBackgroundBrush}"
-            Foreground="{DynamicResource PrimaryTextBrush}">
-            <MenuItem Foreground="{DynamicResource PrimaryTextBrush}" Header="파일(_F)">
+            Background="{DynamicResource WindowBackgroundBrush}">
+            <MenuItem Header="{DynamicResource Menu_File}">
                 <MenuItem
                     Click="MenuExit_Click"
-                    Header="종료(_X)"
+                    Header="{DynamicResource Menu_Exit}"
                     InputGestureText="Alt+F4" />
             </MenuItem>
-            <MenuItem Foreground="{DynamicResource PrimaryTextBrush}" Header="설정(_S)">
+            <MenuItem Header="{DynamicResource Menu_Settings}">
                 <MenuItem
                     Name="MenuTheme"
                     Click="MenuTheme_Click"
-                    Header="테마 전환"
+                    Header="{DynamicResource Menu_ThemeSwitch}"
                     InputGestureText="Ctrl+T" />
                 <MenuItem
                     Name="MenuLanguage"
                     Click="MenuLanguage_Click"
-                    Header="언어 전환 (한국어/English)"
+                    Header="{DynamicResource Menu_LanguageSwitch}"
                     InputGestureText="Ctrl+L" />
                 <MenuItem
                     Click="MenuSaveLog_Click"
-                    Header="로그 저장"
+                    Header="{DynamicResource Menu_SaveLog}"
                     InputGestureText="Ctrl+S" />
             </MenuItem>
-            <MenuItem Foreground="{DynamicResource PrimaryTextBrush}" Header="도움말(_H)">
+            <MenuItem Header="{DynamicResource Menu_Help}">
                 <MenuItem
                     Click="MenuGitHub_Click"
-                    Header="GitHub 릴리스" />
+                    Header="{DynamicResource Menu_GitHubRelease}" />
                 <MenuItem
                     Click="MenuYtDlp_Click"
-                    Header="yt-dlp 릴리스" />
+                    Header="{DynamicResource Menu_YtDlpRelease}" />
+                <MenuItem
+                    Click="MenuBtbN_Click"
+                    Header="{DynamicResource Menu_BtbNRelease}" />
                 <Separator />
                 <MenuItem
                     Click="MenuAbout_Click"
-                    Header="정보(_A)" />
+                    Header="{DynamicResource Menu_About}" />
             </MenuItem>
         </Menu>
 
@@ -383,13 +397,18 @@
                             VerticalAlignment="Center"
                             FontWeight="Bold"
                             Foreground="{DynamicResource PrimaryTextBrush}"
-                            Text="최대 다운로드 개수" />
+                            Text="{DynamicResource Label_MaxDownloads}" />
                         <TextBox
                             Name="txtMaxDownloads"
                             Grid.Column="1"
                             Width="80"
-                            ToolTip="채널/재생목록 다운로드 시 최대 다운로드 개수 (예: 5)" />
+                            ToolTip="{DynamicResource ToolTip_MaxDownloads}" />
                     </Grid>
+
+                    <CheckBox
+                        Name="ChkEnableNotification"
+                        Content="{DynamicResource CheckBox_EnableNotification}"
+                        ToolTip="{DynamicResource ToolTip_EnableNotification}" />
                 </StackPanel>
             </TabItem>
         </TabControl>
@@ -425,10 +444,10 @@
                     VerticalAlignment="Center"
                     Orientation="Horizontal">
                     <!--  ProgressBar with percentage overlay  -->
-                    <Grid Width="827" Height="20" Margin="5">
+                    <Grid Width="700" Height="20" Margin="5">
                         <ProgressBar
                             Name="progressBar"
-                            Width="827"
+                            Width="700"
                             Height="20" />
                         <TextBlock
                             Name="txtProgress"
@@ -442,10 +461,10 @@
                         Margin="15,0,5,0"
                         VerticalAlignment="Center"
                         Foreground="{DynamicResource PrimaryTextBrush}"
-                        Text="속도:" />
+                        Text="{DynamicResource Label_Speed}" />
                     <TextBlock
                         Name="txtSpeed"
-                        Width="100"
+                        Width="80"
                         VerticalAlignment="Center"
                         Foreground="{DynamicResource SecondaryTextBrush}"
                         Text="-" />
@@ -453,13 +472,19 @@
                         Margin="15,0,5,0"
                         VerticalAlignment="Center"
                         Foreground="{DynamicResource PrimaryTextBrush}"
-                        Text="ETA:" />
+                        Text="{DynamicResource Label_ETA}" />
                     <TextBlock
                         Name="txtEta"
-                        Width="100"
+                        Width="80"
                         VerticalAlignment="Center"
                         Foreground="{DynamicResource SecondaryTextBrush}"
                         Text="-" />
+                    <Button
+                        Name="btnStopDownload"
+                        Width="80"
+                        Click="btnStopDownload_Click"
+                        Content="{DynamicResource Button_Stop}"
+                        ToolTip="{DynamicResource ToolTip_Stop}" />
                 </StackPanel>
             </Grid>
         </Border>
