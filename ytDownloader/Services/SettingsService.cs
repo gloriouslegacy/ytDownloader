@@ -175,7 +175,10 @@ namespace ytDownloader.Services
                     ["SubtitleLang"] = settings.SubtitleLang,
                     ["SubtitleFormat"] = settings.SubtitleFormat,
                     ["EnableNotification"] = settings.EnableNotification,
-                    ["MaxDownloads"] = settings.MaxDownloads
+                    ["MaxDownloads"] = settings.MaxDownloads,
+                    ["UseStructuredFolder"] = settings.UseStructuredFolder,
+                    ["SaveThumbnail"] = settings.SaveThumbnail,
+                    ["SingleVideoOnly"] = settings.SingleVideoOnly
                 };
 
                 File.WriteAllText(filePath, json.ToString());
@@ -213,7 +216,10 @@ namespace ytDownloader.Services
                         SubtitleLang = settings["SubtitleLang"]?.ToString() ?? "ko",
                         SubtitleFormat = settings["SubtitleFormat"]?.ToString() ?? "srt",
                         EnableNotification = settings["EnableNotification"]?.ToObject<bool>() ?? true,
-                        MaxDownloads = settings["MaxDownloads"]?.ToObject<int>() ?? 5
+                        MaxDownloads = settings["MaxDownloads"]?.ToObject<int>() ?? 5,
+                        UseStructuredFolder = settings["UseStructuredFolder"]?.ToObject<bool>() ?? true,
+                        SaveThumbnail = settings["SaveThumbnail"]?.ToObject<bool>() ?? false,
+                        SingleVideoOnly = settings["SingleVideoOnly"]?.ToObject<bool>() ?? false
                     };
                 }
 
@@ -257,7 +263,10 @@ namespace ytDownloader.Services
                             SubtitleLang = settings["SubtitleLang"]?.ToString() ?? "ko",
                             SubtitleFormat = settings["SubtitleFormat"]?.ToString() ?? "srt",
                             EnableNotification = settings["EnableNotification"]?.ToObject<bool>() ?? true,
-                            MaxDownloads = settings["MaxDownloads"]?.ToObject<int>() ?? 5
+                            MaxDownloads = settings["MaxDownloads"]?.ToObject<int>() ?? 5,
+                            UseStructuredFolder = settings["UseStructuredFolder"]?.ToObject<bool>() ?? true,
+                            SaveThumbnail = settings["SaveThumbnail"]?.ToObject<bool>() ?? false,
+                            SingleVideoOnly = settings["SingleVideoOnly"]?.ToObject<bool>() ?? false
                         };
 
                         if (!string.IsNullOrEmpty(schedulerSettings.TaskName))
