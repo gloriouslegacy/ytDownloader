@@ -55,12 +55,12 @@ namespace ytDownloader
                 string daysStr = task.FrequencyDays.Replace("일마다", "").Trim();
                 if (int.TryParse(daysStr, out int days))
                 {
-                    // cmbSchedulerFrequency에서 해당 값 찾기
-                    for (int i = 0; i < cmbSchedulerFrequency.Items.Count; i++)
+                    // cmbFrequency에서 해당 값 찾기
+                    for (int i = 0; i < cmbFrequency.Items.Count; i++)
                     {
-                        if (cmbSchedulerFrequency.Items[i] is ComboBoxItem item && item.Tag is int tagValue && tagValue == days)
+                        if (cmbFrequency.Items[i] is ComboBoxItem item && item.Tag is int tagValue && tagValue == days)
                         {
-                            cmbSchedulerFrequency.SelectedIndex = i;
+                            cmbFrequency.SelectedIndex = i;
                             break;
                         }
                     }
@@ -74,21 +74,21 @@ namespace ytDownloader
                 if (timeParts.Length == 2 && int.TryParse(timeParts[0], out int hour) && int.TryParse(timeParts[1], out int minute))
                 {
                     // 시간 콤보박스 설정
-                    for (int i = 0; i < cmbSchedulerHour.Items.Count; i++)
+                    for (int i = 0; i < cmbHour.Items.Count; i++)
                     {
-                        if (cmbSchedulerHour.Items[i] is ComboBoxItem item && item.Tag is int tagValue && tagValue == hour)
+                        if (cmbHour.Items[i] is ComboBoxItem item && item.Tag is int tagValue && tagValue == hour)
                         {
-                            cmbSchedulerHour.SelectedIndex = i;
+                            cmbHour.SelectedIndex = i;
                             break;
                         }
                     }
 
                     // 분 콤보박스 설정
-                    for (int i = 0; i < cmbSchedulerMinute.Items.Count; i++)
+                    for (int i = 0; i < cmbMinute.Items.Count; i++)
                     {
-                        if (cmbSchedulerMinute.Items[i] is ComboBoxItem item && item.Tag is int tagValue && tagValue == minute)
+                        if (cmbMinute.Items[i] is ComboBoxItem item && item.Tag is int tagValue && tagValue == minute)
                         {
-                            cmbSchedulerMinute.SelectedIndex = i;
+                            cmbMinute.SelectedIndex = i;
                             break;
                         }
                     }
