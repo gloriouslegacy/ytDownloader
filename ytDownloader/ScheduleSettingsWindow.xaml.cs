@@ -74,7 +74,8 @@ namespace ytDownloader
             {
                 foreach (var task in tasks)
                 {
-                    lstScheduledTasks.Items.Add(task.DisplayText);
+                    // 객체를 직접 추가 (ToString()이 자동으로 호출됨)
+                    lstScheduledTasks.Items.Add(task);
                 }
             }
         }
@@ -129,9 +130,22 @@ namespace ytDownloader
         /// </summary>
         private void btnDeleteSelected_Click(object sender, RoutedEventArgs e)
         {
-            if (lstScheduledTasks.SelectedItem == null || lstScheduledTasks.SelectedItem.ToString() == "등록된 스케줄이 없습니다.")
+            if (lstScheduledTasks.SelectedItem == null)
             {
                 MessageBox.Show("삭제할 스케줄을 선택해주세요.", "알림", MessageBoxButton.OK, MessageBoxImage.Information);
+                return;
+            }
+
+            // "등록된 스케줄이 없습니다." 문자열 체크
+            if (lstScheduledTasks.SelectedItem is string)
+            {
+                MessageBox.Show("삭제할 스케줄을 선택해주세요.", "알림", MessageBoxButton.OK, MessageBoxImage.Information);
+                return;
+            }
+
+            // ScheduleTaskInfo 객체로 캐스팅
+            if (lstScheduledTasks.SelectedItem is not ScheduleTaskInfo selectedTask)
+            {
                 return;
             }
 
@@ -144,28 +158,21 @@ namespace ytDownloader
 
             if (result == MessageBoxResult.Yes)
             {
-                var tasks = _schedulerService.GetAllScheduledTasks();
-                int selectedIndex = lstScheduledTasks.SelectedIndex;
+                bool success = _schedulerService.DeleteScheduledTask(selectedTask.TaskName);
 
-                if (selectedIndex >= 0 && selectedIndex < tasks.Count)
+                if (success)
                 {
-                    var taskToDelete = tasks[selectedIndex];
-                    bool success = _schedulerService.DeleteScheduledTask(taskToDelete.TaskName);
-
-                    if (success)
-                    {
-                        MessageBox.Show("자동 예약이 삭제되었습니다.", "삭제 완료", MessageBoxButton.OK, MessageBoxImage.Information);
-                        UpdateStatus();
-                    }
-                    else
-                    {
-                        MessageBox.Show(
-                            "자동 예약 삭제에 실패했습니다.\n관리자 권한이 필요할 수 있습니다.",
-                            "삭제 실패",
-                            MessageBoxButton.OK,
-                            MessageBoxImage.Error
-                        );
-                    }
+                    MessageBox.Show("자동 예약이 삭제되었습니다.", "삭제 완료", MessageBoxButton.OK, MessageBoxImage.Information);
+                    UpdateStatus();
+                }
+                else
+                {
+                    MessageBox.Show(
+                        "자동 예약 삭제에 실패했습니다.\n관리자 권한이 필요할 수 있습니다.",
+                        "삭제 실패",
+                        MessageBoxButton.OK,
+                        MessageBoxImage.Error
+                    );
                 }
             }
         }

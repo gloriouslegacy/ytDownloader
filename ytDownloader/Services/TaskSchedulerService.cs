@@ -64,8 +64,9 @@ namespace ytDownloader.Services
                     return null;
                 }
 
-                // 고유한 작업 이름 생성 (타임스탬프 사용)
-                string taskName = $"{TaskNamePrefix}{DateTime.Now:yyyyMMdd_HHmmss}";
+                // 작업 이름에 주기 정보 포함 (파싱 용이)
+                // 형식: ytDownloader_Schedule_{frequency}D_{hour:D2}{minute:D2}_{timestamp}
+                string taskName = $"{TaskNamePrefix}{frequency}D_{hour:D2}{minute:D2}_{DateTime.Now:yyyyMMdd_HHmmss}";
 
                 // schtasks 명령어로 작업 생성
                 string arguments = $"/Create /TN \"{taskName}\" " +
@@ -197,50 +198,20 @@ namespace ytDownloader.Services
         }
 
         /// <summary>
-        /// XML에서 작업 정보 추출
+        /// 작업 이름에서 작업 정보 추출
         /// </summary>
         private ScheduleTaskInfo? GetTaskInfoFromXml(string taskName)
         {
             try
             {
-                var processInfo = new ProcessStartInfo
+                // 작업 이름 형식: ytDownloader_Schedule_{frequency}D_{hour:D2}{minute:D2}_{timestamp}
+                // 예: ytDownloader_Schedule_3D_0200_20251118_020000
+                var match = Regex.Match(taskName, @"ytDownloader_Schedule_(\d+)D_(\d{2})(\d{2})_");
+                if (match.Success)
                 {
-                    FileName = "schtasks.exe",
-                    Arguments = $"/Query /TN \"{taskName}\" /XML",
-                    CreateNoWindow = true,
-                    UseShellExecute = false,
-                    RedirectStandardOutput = true,
-                    RedirectStandardError = true
-                };
-
-                using (var process = Process.Start(processInfo))
-                {
-                    if (process == null) return null;
-
-                    string xmlOutput = process.StandardOutput.ReadToEnd();
-                    process.WaitForExit();
-
-                    if (process.ExitCode != 0) return null;
-
-                    // XML 파싱하여 주기와 시간 추출
-                    int frequency = 1;
-                    int hour = 0;
-                    int minute = 0;
-
-                    // Interval 추출 (예: <Interval>P3D</Interval> -> 3일)
-                    var intervalMatch = Regex.Match(xmlOutput, @"<Interval>P(\d+)D</Interval>");
-                    if (intervalMatch.Success)
-                    {
-                        frequency = int.Parse(intervalMatch.Groups[1].Value);
-                    }
-
-                    // StartBoundary에서 시간 추출 (예: <StartBoundary>2025-11-18T02:00:00</StartBoundary>)
-                    var timeMatch = Regex.Match(xmlOutput, @"<StartBoundary>\d{4}-\d{2}-\d{2}T(\d{2}):(\d{2}):\d{2}</StartBoundary>");
-                    if (timeMatch.Success)
-                    {
-                        hour = int.Parse(timeMatch.Groups[1].Value);
-                        minute = int.Parse(timeMatch.Groups[2].Value);
-                    }
+                    int frequency = int.Parse(match.Groups[1].Value);
+                    int hour = int.Parse(match.Groups[2].Value);
+                    int minute = int.Parse(match.Groups[3].Value);
 
                     return new ScheduleTaskInfo
                     {
@@ -250,6 +221,15 @@ namespace ytDownloader.Services
                         Minute = minute
                     };
                 }
+
+                // 파싱 실패 시 기본값 반환 (하위 호환성)
+                return new ScheduleTaskInfo
+                {
+                    TaskName = taskName,
+                    Frequency = 1,
+                    Hour = 0,
+                    Minute = 0
+                };
             }
             catch
             {
