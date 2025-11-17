@@ -69,12 +69,12 @@ namespace ytDownloader.Models
                 Url = url,
                 SavePath = settings.SavePath,
                 Format = settings.Format,
-                SingleVideoOnly = false, // 스케줄러는 항상 채널/재생목록 모드
+                SingleVideoOnly = settings.SingleVideoOnly,
                 DownloadSubtitle = settings.DownloadSubtitle,
                 SubtitleLang = settings.SubtitleLang,
                 SubtitleFormat = settings.SubtitleFormat,
-                SaveThumbnail = false, // 스케줄러는 썸네일 저장 안 함
-                UseStructuredFolder = true, // 스케줄러는 항상 폴더 구조 사용
+                SaveThumbnail = settings.SaveThumbnail,
+                UseStructuredFolder = settings.UseStructuredFolder,
                 IsChannelMode = isChannelMode,
                 MaxDownloads = settings.MaxDownloads
             };

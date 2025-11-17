@@ -32,6 +32,15 @@ namespace ytDownloader.Models
         /// <summary>채널 다운로드 시 최대 개수</summary>
         public int MaxDownloads { get; set; } = 5;
 
+        /// <summary>썸네일 저장 여부</summary>
+        public bool SaveThumbnail { get; set; }
+
+        /// <summary>채널/재생목록 폴더 구조 사용 여부</summary>
+        public bool UseStructuredFolder { get; set; } = true;
+
+        /// <summary>단일 비디오만 다운로드 (재생목록 무시)</summary>
+        public bool SingleVideoOnly { get; set; }
+
         /// <summary>
         /// 기본 설정값으로 초기화
         /// </summary>
@@ -46,7 +55,10 @@ namespace ytDownloader.Models
                 SubtitleLang = defaultSettings.SubtitleLang,
                 SubtitleFormat = defaultSettings.SubtitleFormat,
                 EnableNotification = defaultSettings.EnableNotification,
-                MaxDownloads = defaultSettings.MaxDownloads
+                MaxDownloads = defaultSettings.MaxDownloads,
+                SaveThumbnail = defaultSettings.SaveThumbnail,
+                UseStructuredFolder = defaultSettings.UseStructuredFolder,
+                SingleVideoOnly = defaultSettings.SingleVideoOnly
             };
         }
     }

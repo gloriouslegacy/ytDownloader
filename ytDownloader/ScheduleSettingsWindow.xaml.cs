@@ -46,6 +46,9 @@ namespace ytDownloader
                 SetComboBoxValue(cmbSchedulerSubtitleLang, settings.SubtitleLang ?? "ko");
                 chkSchedulerNotification.IsChecked = settings.EnableNotification;
                 txtSchedulerMaxDownloads.Text = settings.MaxDownloads.ToString();
+                chkSchedulerStructuredFolders.IsChecked = settings.UseStructuredFolder;
+                chkSchedulerThumbnail.IsChecked = settings.SaveThumbnail;
+                chkSchedulerSingleVideo.IsChecked = settings.SingleVideoOnly;
             }
 
             // 주기 및 시간 설정
@@ -113,6 +116,9 @@ namespace ytDownloader
             SetComboBoxValue(cmbSchedulerSubtitleLang, "ko");
             chkSchedulerNotification.IsChecked = true;
             txtSchedulerMaxDownloads.Text = "5";
+            chkSchedulerStructuredFolders.IsChecked = true;
+            chkSchedulerThumbnail.IsChecked = false;
+            chkSchedulerSingleVideo.IsChecked = false;
         }
 
         /// <summary>
@@ -310,7 +316,10 @@ namespace ytDownloader
                     SubtitleFormat = GetComboBoxValue(cmbSchedulerSubtitleFormat),
                     SubtitleLang = GetComboBoxValue(cmbSchedulerSubtitleLang),
                     EnableNotification = chkSchedulerNotification.IsChecked ?? true,
-                    MaxDownloads = maxDownloads
+                    MaxDownloads = maxDownloads,
+                    UseStructuredFolder = chkSchedulerStructuredFolders.IsChecked ?? true,
+                    SaveThumbnail = chkSchedulerThumbnail.IsChecked ?? false,
+                    SingleVideoOnly = chkSchedulerSingleVideo.IsChecked ?? false
                 };
 
                 // 개별 파일로 저장
