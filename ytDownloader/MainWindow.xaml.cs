@@ -2,6 +2,7 @@ using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using System.Reflection;
 using System.Runtime.Versioning;
 using System.Windows;
@@ -864,16 +865,18 @@ namespace ytDownloader
         }
 
         /// <summary>
-        /// 예약 삭제 버튼 클릭
+        /// 예약 삭제 버튼 클릭 (체크박스 선택된 항목들 삭제)
         /// </summary>
         private void btnRemoveSchedule_Click(object sender, RoutedEventArgs e)
         {
-            // ListBox에서 선택된 항목 가져오기
-            if (lstScheduledChannels.SelectedItem is not ScheduledChannel selectedChannel)
+            // IsSelected=true인 항목들 찾기
+            var selectedChannels = _currentSettings.ScheduledChannels.Where(c => c.IsSelected).ToList();
+
+            if (selectedChannels.Count == 0)
             {
                 string message = _currentSettings.Language == "ko"
-                    ? "삭제할 예약 항목을 선택하세요."
-                    : "Please select schedule item to remove.";
+                    ? "삭제할 예약 항목을 체크박스로 선택하세요."
+                    : "Please check items to remove.";
                 string title = _currentSettings.Language == "ko"
                     ? "선택 오류"
                     : "Selection Error";
@@ -882,19 +885,22 @@ namespace ytDownloader
             }
 
             string confirmMessage = _currentSettings.Language == "ko"
-                ? "선택한 항목을 삭제하시겠습니까?"
-                : "Do you want to remove selected item?";
+                ? $"선택한 {selectedChannels.Count}개 항목을 삭제하시겠습니까?"
+                : $"Do you want to remove {selectedChannels.Count} selected item(s)?";
             string confirmTitle = _currentSettings.Language == "ko"
                 ? "삭제 확인"
                 : "Confirm Removal";
 
             if (MessageBox.Show(confirmMessage, confirmTitle, MessageBoxButton.YesNo, MessageBoxImage.Question) == MessageBoxResult.Yes)
             {
-                _currentSettings.ScheduledChannels.Remove(selectedChannel);
+                foreach (var channel in selectedChannels)
+                {
+                    _currentSettings.ScheduledChannels.Remove(channel);
+                }
                 _settingsService.SaveSettings(_currentSettings);
                 RefreshScheduledChannelsList();
 
-                AppendOutput($"✅ 수동 예약 삭제: {selectedChannel}");
+                AppendOutput($"✅ 수동 예약 삭제: {selectedChannels.Count}개 항목");
             }
         }
 
@@ -935,16 +941,18 @@ namespace ytDownloader
         }
 
         /// <summary>
-        /// 선택 예약 실행 버튼 클릭
+        /// 선택 예약 실행 버튼 클릭 (체크박스 선택된 항목들 실행)
         /// </summary>
         private void btnRunSelectedSchedule_Click(object sender, RoutedEventArgs e)
         {
-            // ListBox에서 선택된 항목 가져오기
-            if (lstScheduledChannels.SelectedItem is not ScheduledChannel selectedChannel)
+            // IsSelected=true인 항목들 찾기
+            var selectedChannels = _currentSettings.ScheduledChannels.Where(c => c.IsSelected).ToList();
+
+            if (selectedChannels.Count == 0)
             {
                 string message = _currentSettings.Language == "ko"
-                    ? "실행할 예약 항목을 선택하세요."
-                    : "Please select schedule item to run.";
+                    ? "실행할 예약 항목을 체크박스로 선택하세요."
+                    : "Please check items to run.";
                 string title = _currentSettings.Language == "ko"
                     ? "선택 오류"
                     : "Selection Error";
@@ -952,10 +960,14 @@ namespace ytDownloader
                 return;
             }
 
-            AppendOutput($"🚀 선택한 예약 채널 다운로드 시작: {selectedChannel.Name ?? selectedChannel.Url}");
+            AppendOutput($"🚀 선택한 {selectedChannels.Count}개 예약 채널 다운로드 시작...");
 
-            var options = DownloadOptions.FromAppSettings(_currentSettings, selectedChannel.Url, isChannelMode: true);
-            _ = _downloadService.StartDownloadAsync(options);
+            foreach (var channel in selectedChannels)
+            {
+                AppendOutput($"📥 채널 다운로드 시작: {channel.Name ?? channel.Url}");
+                var options = DownloadOptions.FromAppSettings(_currentSettings, channel.Url, isChannelMode: true);
+                _ = _downloadService.StartDownloadAsync(options);
+            }
         }
 
         /// <summary>
@@ -1146,32 +1158,82 @@ namespace ytDownloader
         }
 
         /// <summary>
-        /// 수동 예약 DataGrid SelectionChanged 이벤트
+        /// 수동 예약 DataGrid 행 클릭 시 체크박스 토글
         /// </summary>
-        private void lstScheduledChannels_SelectionChanged(object sender, System.Windows.Controls.SelectionChangedEventArgs e)
+        private void lstScheduledChannels_MouseLeftButtonUp(object sender, MouseButtonEventArgs e)
         {
-            // 선택 상태 유지 - 아무 작업도 하지 않음 (선택 해제 방지)
+            // 체크박스 컬럼을 클릭한 경우는 자동 처리되므로 제외
+            var grid = sender as System.Windows.Controls.DataGrid;
+            if (grid == null) return;
+
+            // 클릭된 셀 확인
+            var hit = e.OriginalSource as System.Windows.DependencyObject;
+            while (hit != null && !(hit is System.Windows.Controls.DataGridCell) && !(hit is System.Windows.Controls.DataGridRow))
+            {
+                hit = System.Windows.Media.VisualTreeHelper.GetParent(hit);
+            }
+
+            // 체크박스 컬럼이 아닌 경우에만 토글
+            if (hit is System.Windows.Controls.DataGridCell cell)
+            {
+                if (cell.Column.DisplayIndex == 0) return; // 체크박스 컬럼
+            }
+
+            // 현재 선택된 항목들의 IsSelected 토글
+            foreach (var item in grid.SelectedItems)
+            {
+                if (item is ScheduledChannel channel)
+                {
+                    channel.IsSelected = !channel.IsSelected;
+                }
+            }
         }
 
         /// <summary>
-        /// 자동 예약 DataGrid SelectionChanged 이벤트
+        /// 자동 예약 DataGrid 행 클릭 시 체크박스 토글
         /// </summary>
-        private void lstAutoScheduledTasks_SelectionChanged(object sender, System.Windows.Controls.SelectionChangedEventArgs e)
+        private void lstAutoScheduledTasks_MouseLeftButtonUp(object sender, MouseButtonEventArgs e)
         {
-            // 선택 상태 유지 - 아무 작업도 하지 않음 (선택 해제 방지)
+            // 체크박스 컬럼을 클릭한 경우는 자동 처리되므로 제외
+            var grid = sender as System.Windows.Controls.DataGrid;
+            if (grid == null) return;
+
+            // 클릭된 셀 확인
+            var hit = e.OriginalSource as System.Windows.DependencyObject;
+            while (hit != null && !(hit is System.Windows.Controls.DataGridCell) && !(hit is System.Windows.Controls.DataGridRow))
+            {
+                hit = System.Windows.Media.VisualTreeHelper.GetParent(hit);
+            }
+
+            // 체크박스 컬럼이 아닌 경우에만 토글
+            if (hit is System.Windows.Controls.DataGridCell cell)
+            {
+                if (cell.Column.DisplayIndex == 0) return; // 체크박스 컬럼
+            }
+
+            // 현재 선택된 항목들의 IsSelected 토글
+            foreach (var item in grid.SelectedItems)
+            {
+                if (item is ScheduleTaskInfo task)
+                {
+                    task.IsSelected = !task.IsSelected;
+                }
+            }
         }
 
         /// <summary>
-        /// 자동 예약 선택 삭제 버튼 클릭
+        /// 자동 예약 선택 삭제 버튼 클릭 (체크박스 선택된 항목들 삭제)
         /// </summary>
         private void btnDeleteSelectedAutoSchedule_Click(object sender, RoutedEventArgs e)
         {
-            // ListBox에서 선택된 항목 가져오기
-            if (lstAutoScheduledTasks.SelectedItem is not ScheduleTaskInfo selectedTask)
+            // IsSelected=true인 항목들 찾기
+            var selectedTasks = _autoScheduledTasksCollection.Where(t => t.IsSelected).ToList();
+
+            if (selectedTasks.Count == 0)
             {
                 string message = _currentSettings.Language == "ko"
-                    ? "삭제할 스케줄을 선택해주세요."
-                    : "Please select schedule to delete.";
+                    ? "삭제할 스케줄을 체크박스로 선택해주세요."
+                    : "Please check schedules to delete.";
                 string title = _currentSettings.Language == "ko"
                     ? "알림"
                     : "Notice";
@@ -1180,8 +1242,8 @@ namespace ytDownloader
             }
 
             string confirmMessage = _currentSettings.Language == "ko"
-                ? "선택한 자동 예약을 삭제하시겠습니까?"
-                : "Do you want to delete selected auto schedule?";
+                ? $"선택한 {selectedTasks.Count}개 자동 예약을 삭제하시겠습니까?"
+                : $"Do you want to delete {selectedTasks.Count} selected auto schedule(s)?";
             string confirmTitle = _currentSettings.Language == "ko"
                 ? "확인"
                 : "Confirm";
@@ -1191,33 +1253,36 @@ namespace ytDownloader
             if (result == MessageBoxResult.Yes)
             {
                 var schedulerService = new TaskSchedulerService();
+                int successCount = 0;
+                int failCount = 0;
 
-                if (schedulerService.DeleteScheduledTask(selectedTask.TaskName))
+                foreach (var task in selectedTasks)
                 {
-                    // 관련 스케줄러 설정 파일도 함께 삭제
-                    _settingsService.DeleteSchedulerSettings(selectedTask.TaskName);
-
-                    string successMessage = _currentSettings.Language == "ko"
-                        ? "자동 예약이 삭제되었습니다."
-                        : "Auto schedule has been deleted.";
-                    string successTitle = _currentSettings.Language == "ko"
-                        ? "삭제 완료"
-                        : "Delete Complete";
-                    MessageBox.Show(successMessage, successTitle, MessageBoxButton.OK, MessageBoxImage.Information);
-                    UpdateSchedulerStatus();
-
-                    AppendOutput($"✅ 자동 예약 삭제: {selectedTask.TaskName}");
+                    if (schedulerService.DeleteScheduledTask(task.TaskName))
+                    {
+                        // 관련 스케줄러 설정 파일도 함께 삭제
+                        _settingsService.DeleteSchedulerSettings(task.TaskName);
+                        successCount++;
+                        AppendOutput($"✅ 자동 예약 삭제: {task.TaskName}");
+                    }
+                    else
+                    {
+                        failCount++;
+                        AppendOutput($"❌ 자동 예약 삭제 실패: {task.TaskName}");
+                    }
                 }
-                else
-                {
-                    string errorMessage = _currentSettings.Language == "ko"
-                        ? "자동 예약 삭제에 실패했습니다.\n관리자 권한이 필요할 수 있습니다."
-                        : "Failed to delete auto schedule.\nAdministrator privileges may be required.";
-                    string errorTitle = _currentSettings.Language == "ko"
-                        ? "삭제 실패"
-                        : "Delete Failed";
-                    MessageBox.Show(errorMessage, errorTitle, MessageBoxButton.OK, MessageBoxImage.Error);
-                }
+
+                UpdateSchedulerStatus();
+
+                string resultMessage = _currentSettings.Language == "ko"
+                    ? $"삭제 완료: {successCount}개, 실패: {failCount}개"
+                    : $"Deleted: {successCount}, Failed: {failCount}";
+                string resultTitle = _currentSettings.Language == "ko"
+                    ? "삭제 결과"
+                    : "Delete Result";
+
+                MessageBoxImage icon = failCount > 0 ? MessageBoxImage.Warning : MessageBoxImage.Information;
+                MessageBox.Show(resultMessage, resultTitle, MessageBoxButton.OK, icon);
             }
         }
 

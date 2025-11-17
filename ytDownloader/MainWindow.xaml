@@ -902,7 +902,9 @@
                                         Name="lstScheduledChannels"
                                         Background="Transparent"
                                         MinHeight="80"
-                                        SelectionChanged="lstScheduledChannels_SelectionChanged">
+                                        SelectionMode="Extended"
+                                        SelectionUnit="FullRow"
+                                        MouseLeftButtonUp="lstScheduledChannels_MouseLeftButtonUp">
                                         <DataGrid.Columns>
                                             <DataGridCheckBoxColumn
                                                 Header="선택"
@@ -1008,7 +1010,9 @@
                                         Name="lstAutoScheduledTasks"
                                         Background="Transparent"
                                         MinHeight="80"
-                                        SelectionChanged="lstAutoScheduledTasks_SelectionChanged">
+                                        SelectionMode="Extended"
+                                        SelectionUnit="FullRow"
+                                        MouseLeftButtonUp="lstAutoScheduledTasks_MouseLeftButtonUp">
                                         <DataGrid.Columns>
                                             <DataGridCheckBoxColumn
                                                 Header="선택"
