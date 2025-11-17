@@ -661,154 +661,186 @@
                 </StackPanel>
             </TabItem>
 
-            <!--  수동 예약 다운로드  -->
-            <TabItem Header="{DynamicResource Tab_ManualSchedule}">
-                <Grid Margin="10">
-                    <Grid.RowDefinitions>
-                        <RowDefinition Height="Auto" />
-                        <RowDefinition Height="*" />
-                        <RowDefinition Height="Auto" />
-                    </Grid.RowDefinitions>
+            <!--  예약 (수동 + 자동 통합)  -->
+            <TabItem Header="{DynamicResource Tab_Schedule}">
+                <ScrollViewer VerticalScrollBarVisibility="Auto">
+                    <Grid Margin="10">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                        </Grid.RowDefinitions>
 
-                    <!--  상단: 채널 URL 입력  -->
-                    <StackPanel Grid.Row="0" Margin="0,0,0,10">
-                        <TextBlock
-                            Margin="5"
-                            FontWeight="Bold"
-                            Foreground="{DynamicResource PrimaryTextBrush}"
-                            Text="{DynamicResource Label_ManualSchedule}" />
-                        <DockPanel>
-                            <TextBlock
-                                Margin="5,0,5,0"
-                                VerticalAlignment="Center"
-                                FontWeight="SemiBold"
-                                Foreground="{DynamicResource PrimaryTextBrush}"
-                                Text="URL 입력:" />
-                            <TextBox
-                                Name="txtScheduleChannelUrl"
-                                Width="530"
-                                Margin="5"
-                                VerticalAlignment="Center"
-                                ToolTip="{DynamicResource ToolTip_ScheduleChannelUrl}" />
-                            <TextBlock
-                                Margin="10,0,5,0"
-                                VerticalAlignment="Center"
-                                FontWeight="SemiBold"
-                                Foreground="{DynamicResource PrimaryTextBrush}"
-                                Text="채널 이름:" />
-                            <TextBox
-                                Name="txtScheduleChannelName"
-                                Width="140"
-                                Margin="5"
-                                VerticalAlignment="Center"
-                                ToolTip="{DynamicResource ToolTip_ScheduleChannelName}" />
-                            <Button
-                                Width="100"
-                                Click="btnAddSchedule_Click"
-                                Content="{DynamicResource Button_AddSchedule}"
-                                ToolTip="{DynamicResource ToolTip_AddSchedule}" />
-                        </DockPanel>
-                    </StackPanel>
+                        <!--  수동 예약 섹션  -->
+                        <Border
+                            Grid.Row="0"
+                            Margin="0,0,0,20"
+                            Padding="15"
+                            Background="{DynamicResource SecondaryBackgroundBrush}"
+                            BorderBrush="{DynamicResource BorderBrush}"
+                            BorderThickness="1"
+                            CornerRadius="6">
+                            <Grid>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto" />
+                                    <RowDefinition Height="Auto" />
+                                    <RowDefinition Height="250" />
+                                    <RowDefinition Height="Auto" />
+                                </Grid.RowDefinitions>
 
-                    <!--  중앙: 예약 목록  -->
-                    <Border
-                        Grid.Row="1"
-                        Background="{DynamicResource PrimaryBackgroundBrush}"
-                        BorderBrush="{DynamicResource BorderBrush}"
-                        BorderThickness="1"
-                        CornerRadius="6"
-                        Margin="5">
-                        <ListBox
-                            Name="lstScheduledChannels"
-                            Background="Transparent"
-                            BorderThickness="0"
-                            Foreground="{DynamicResource PrimaryTextBrush}"
-                            SelectionMode="Single" />
-                    </Border>
+                                <!--  제목  -->
+                                <TextBlock
+                                    Grid.Row="0"
+                                    Margin="0,0,0,10"
+                                    FontSize="16"
+                                    FontWeight="Bold"
+                                    Foreground="{DynamicResource PrimaryTextBrush}"
+                                    Text="{DynamicResource Label_ManualSchedule}" />
 
-                    <!--  하단: 버튼  -->
-                    <StackPanel
-                        Grid.Row="2"
-                        Margin="0,10,0,0"
-                        HorizontalAlignment="Right"
-                        Orientation="Horizontal">
-                        <Button
-                            Width="140"
-                            Click="btnRemoveSchedule_Click"
-                            Content="{DynamicResource Button_RemoveSchedule}"
-                            ToolTip="{DynamicResource ToolTip_RemoveSchedule}" />
-                        <Button
-                            Width="140"
-                            Click="btnRunScheduledDownloads_Click"
-                            Content="{DynamicResource Button_RunScheduledDownloads}"
-                            ToolTip="{DynamicResource ToolTip_RunScheduledDownloads}" />
-                    </StackPanel>
-                </Grid>
-            </TabItem>
+                                <!--  채널 URL 입력  -->
+                                <DockPanel Grid.Row="1" Margin="0,0,0,10">
+                                    <TextBlock
+                                        Margin="5,0,5,0"
+                                        VerticalAlignment="Center"
+                                        FontWeight="SemiBold"
+                                        Foreground="{DynamicResource PrimaryTextBrush}"
+                                        Text="URL 입력:" />
+                                    <TextBox
+                                        Name="txtScheduleChannelUrl"
+                                        Width="530"
+                                        Margin="5"
+                                        VerticalAlignment="Center"
+                                        ToolTip="{DynamicResource ToolTip_ScheduleChannelUrl}" />
+                                    <TextBlock
+                                        Margin="10,0,5,0"
+                                        VerticalAlignment="Center"
+                                        FontWeight="SemiBold"
+                                        Foreground="{DynamicResource PrimaryTextBrush}"
+                                        Text="채널 이름:" />
+                                    <TextBox
+                                        Name="txtScheduleChannelName"
+                                        Width="140"
+                                        Margin="5"
+                                        VerticalAlignment="Center"
+                                        ToolTip="{DynamicResource ToolTip_ScheduleChannelName}" />
+                                    <Button
+                                        Width="100"
+                                        Click="btnAddSchedule_Click"
+                                        Content="{DynamicResource Button_AddSchedule}"
+                                        ToolTip="{DynamicResource ToolTip_AddSchedule}" />
+                                </DockPanel>
 
-            <!--  자동 예약 설정  -->
-            <TabItem Header="{DynamicResource Tab_AutoSchedule}">
-                <Grid Margin="20">
-                    <Grid.RowDefinitions>
-                        <RowDefinition Height="Auto" />
-                        <RowDefinition Height="Auto" />
-                        <RowDefinition Height="*" />
-                        <RowDefinition Height="Auto" />
-                    </Grid.RowDefinitions>
+                                <!--  예약 목록  -->
+                                <Border
+                                    Grid.Row="2"
+                                    Background="{DynamicResource PrimaryBackgroundBrush}"
+                                    BorderBrush="{DynamicResource BorderBrush}"
+                                    BorderThickness="1"
+                                    CornerRadius="6"
+                                    Margin="5">
+                                    <ListBox
+                                        Name="lstScheduledChannels"
+                                        Background="Transparent"
+                                        BorderThickness="0"
+                                        Foreground="{DynamicResource PrimaryTextBrush}"
+                                        SelectionMode="Single" />
+                                </Border>
 
-                    <!--  설명  -->
-                    <StackPanel Grid.Row="0" Margin="0,0,0,20">
-                        <TextBlock
-                            FontSize="16"
-                            FontWeight="Bold"
-                            Foreground="{DynamicResource PrimaryTextBrush}"
-                            Text="{DynamicResource Label_AutoSchedule}" />
-                        <TextBlock
-                            Margin="0,10,0,0"
-                            TextWrapping="Wrap"
-                            Foreground="{DynamicResource SecondaryTextBrush}"
-                            Text="{DynamicResource Description_AutoSchedule}" />
-                    </StackPanel>
+                                <!--  버튼  -->
+                                <StackPanel
+                                    Grid.Row="3"
+                                    Margin="0,10,0,0"
+                                    HorizontalAlignment="Right"
+                                    Orientation="Horizontal">
+                                    <Button
+                                        Width="140"
+                                        Click="btnRemoveSchedule_Click"
+                                        Content="{DynamicResource Button_RemoveSchedule}"
+                                        ToolTip="{DynamicResource ToolTip_RemoveSchedule}" />
+                                    <Button
+                                        Width="140"
+                                        Click="btnRemoveAllSchedules_Click"
+                                        Content="{DynamicResource Button_RemoveAllSchedules}"
+                                        ToolTip="{DynamicResource ToolTip_RemoveAllSchedules}" />
+                                    <Button
+                                        Width="140"
+                                        Click="btnRunScheduledDownloads_Click"
+                                        Content="{DynamicResource Button_RunScheduledDownloads}"
+                                        ToolTip="{DynamicResource ToolTip_RunScheduledDownloads}" />
+                                </StackPanel>
+                            </Grid>
+                        </Border>
 
-                    <!--  현재 상태  -->
-                    <Border
-                        Grid.Row="1"
-                        Margin="0,0,0,20"
-                        Padding="15"
-                        Background="{DynamicResource SecondaryBackgroundBrush}"
-                        BorderBrush="{DynamicResource BorderBrush}"
-                        BorderThickness="1"
-                        CornerRadius="6">
-                        <StackPanel>
-                            <TextBlock
-                                FontWeight="Bold"
-                                Foreground="{DynamicResource PrimaryTextBrush}"
-                                Text="{DynamicResource Label_ScheduleStatus}" />
-                            <TextBlock
-                                Name="txtAutoScheduleStatus"
-                                Margin="0,5,0,0"
-                                Foreground="{DynamicResource SecondaryTextBrush}"
-                                Text="등록된 자동 예약이 없습니다." />
-                        </StackPanel>
-                    </Border>
+                        <!--  자동 예약 섹션  -->
+                        <Border
+                            Grid.Row="1"
+                            Padding="15"
+                            Background="{DynamicResource SecondaryBackgroundBrush}"
+                            BorderBrush="{DynamicResource BorderBrush}"
+                            BorderThickness="1"
+                            CornerRadius="6">
+                            <Grid>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto" />
+                                    <RowDefinition Height="Auto" />
+                                    <RowDefinition Height="Auto" />
+                                </Grid.RowDefinitions>
 
-                    <!--  버튼  -->
-                    <StackPanel
-                        Grid.Row="3"
-                        HorizontalAlignment="Right"
-                        Orientation="Horizontal">
-                        <Button
-                            Width="140"
-                            Click="btnRefreshScheduleStatus_Click"
-                            Content="{DynamicResource Button_RefreshStatus}"
-                            ToolTip="{DynamicResource ToolTip_RefreshStatus}" />
-                        <Button
-                            Width="140"
-                            Click="btnAutoScheduleSettings_Click"
-                            Content="{DynamicResource Button_AutoScheduleSettings}"
-                            ToolTip="{DynamicResource ToolTip_AutoScheduleSettings}" />
-                    </StackPanel>
-                </Grid>
+                                <!--  제목 및 설명  -->
+                                <StackPanel Grid.Row="0" Margin="0,0,0,15">
+                                    <TextBlock
+                                        FontSize="16"
+                                        FontWeight="Bold"
+                                        Foreground="{DynamicResource PrimaryTextBrush}"
+                                        Text="{DynamicResource Label_AutoSchedule}" />
+                                    <TextBlock
+                                        Margin="0,10,0,0"
+                                        TextWrapping="Wrap"
+                                        Foreground="{DynamicResource SecondaryTextBrush}"
+                                        Text="{DynamicResource Description_AutoSchedule}" />
+                                </StackPanel>
+
+                                <!--  현재 상태  -->
+                                <Border
+                                    Grid.Row="1"
+                                    Margin="0,0,0,15"
+                                    Padding="15"
+                                    Background="{DynamicResource PrimaryBackgroundBrush}"
+                                    BorderBrush="{DynamicResource BorderBrush}"
+                                    BorderThickness="1"
+                                    CornerRadius="6">
+                                    <StackPanel>
+                                        <TextBlock
+                                            FontWeight="Bold"
+                                            Foreground="{DynamicResource PrimaryTextBrush}"
+                                            Text="{DynamicResource Label_ScheduleStatus}" />
+                                        <TextBlock
+                                            Name="txtAutoScheduleStatus"
+                                            Margin="0,5,0,0"
+                                            Foreground="{DynamicResource SecondaryTextBrush}"
+                                            Text="등록된 자동 예약이 없습니다." />
+                                    </StackPanel>
+                                </Border>
+
+                                <!--  버튼  -->
+                                <StackPanel
+                                    Grid.Row="2"
+                                    HorizontalAlignment="Right"
+                                    Orientation="Horizontal">
+                                    <Button
+                                        Width="140"
+                                        Click="btnRefreshScheduleStatus_Click"
+                                        Content="{DynamicResource Button_RefreshStatus}"
+                                        ToolTip="{DynamicResource ToolTip_RefreshStatus}" />
+                                    <Button
+                                        Width="140"
+                                        Click="btnAutoScheduleSettings_Click"
+                                        Content="{DynamicResource Button_AutoScheduleSettings}"
+                                        ToolTip="{DynamicResource ToolTip_AutoScheduleSettings}" />
+                                </StackPanel>
+                            </Grid>
+                        </Border>
+                    </Grid>
+                </ScrollViewer>
             </TabItem>
         </TabControl>
 
