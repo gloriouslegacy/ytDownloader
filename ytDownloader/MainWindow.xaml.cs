@@ -33,6 +33,9 @@ namespace ytDownloader
         // 현재 설정
         private AppSettings _currentSettings;
 
+        // 스케줄러 모드 플래그
+        private bool _isScheduledMode = false;
+
         public MainWindow(string[] args = null)
         {
             InitializeComponent();
@@ -40,6 +43,7 @@ namespace ytDownloader
             // 명령줄 인수 처리 (스케줄러에서 실행 시)
             if (args != null && args.Length > 0 && args[0] == "--scheduled")
             {
+                _isScheduledMode = true;
                 // 자동 실행 모드
                 AutoExecuteScheduledDownloads();
             }
@@ -68,8 +72,12 @@ namespace ytDownloader
             // 키보드 단축키 설정
             SetupKeyboardShortcuts();
 
-            // 도구 및 앱 업데이트 시작
-            _ = UpdateToolsAndAppSequentiallyAsync();
+            // 스케줄러 모드가 아닐 때만 도구 및 앱 업데이트 시작
+            // (예약 실행 시 업데이트로 인한 지연 방지)
+            if (!_isScheduledMode)
+            {
+                _ = UpdateToolsAndAppSequentiallyAsync();
+            }
         }
 
         /// <summary>
@@ -881,6 +889,9 @@ namespace ytDownloader
             var scheduleWindow = new ScheduleSettingsWindow();
             scheduleWindow.Owner = this;
             scheduleWindow.ShowDialog();
+
+            // 다이얼로그가 닫히면 자동으로 스케줄러 상태 업데이트
+            UpdateSchedulerStatus();
         }
 
         /// <summary>
@@ -912,9 +923,9 @@ namespace ytDownloader
         }
 
         /// <summary>
-        /// 상태 새로고침 버튼 클릭
+        /// 스케줄러 상태 업데이트
         /// </summary>
-        private void btnRefreshScheduleStatus_Click(object sender, RoutedEventArgs e)
+        private void UpdateSchedulerStatus()
         {
             var schedulerService = new TaskSchedulerService();
             if (schedulerService.IsTaskScheduled())
@@ -925,6 +936,14 @@ namespace ytDownloader
             {
                 txtAutoScheduleStatus.Text = "등록된 자동 예약이 없습니다.";
             }
+        }
+
+        /// <summary>
+        /// 상태 새로고침 버튼 클릭
+        /// </summary>
+        private void btnRefreshScheduleStatus_Click(object sender, RoutedEventArgs e)
+        {
+            UpdateSchedulerStatus();
         }
     }
 
