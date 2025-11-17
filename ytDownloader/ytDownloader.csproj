@@ -7,6 +7,7 @@
 		<UseWPF>true</UseWPF>
 		<ImplicitUsings>enable</ImplicitUsings>
 		<ApplicationIcon>icon_ytDownloader.ico</ApplicationIcon>
+		<ApplicationManifest>app.manifest</ApplicationManifest>
 
 		<!-- 버전은 GitHub Actions에서 -p:Version으로 주입됨 -->
 		<Version>0.0.0</Version>
