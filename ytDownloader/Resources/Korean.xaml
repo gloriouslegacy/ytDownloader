@@ -1,8 +1,9 @@
-<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-                    xmlns:system="clr-namespace:System;assembly=mscorlib">
+<ResourceDictionary
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:system="clr-namespace:System;assembly=mscorlib">
 
-    <!-- 메뉴 -->
+    <!--  메뉴  -->
     <system:String x:Key="Menu_File">파일(_F)</system:String>
     <system:String x:Key="Menu_Exit">종료(_X)</system:String>
     <system:String x:Key="Menu_Settings">설정(_S)</system:String>
@@ -15,14 +16,14 @@
     <system:String x:Key="Menu_BtbNRelease">BtbN 릴리스</system:String>
     <system:String x:Key="Menu_About">정보(_A)</system:String>
 
-    <!-- 탭 -->
+    <!--  탭  -->
     <system:String x:Key="Tab_BasicSettings">기본 설정</system:String>
     <system:String x:Key="Tab_AdvancedSettings">고급 설정</system:String>
     <system:String x:Key="Tab_Schedule">예약</system:String>
     <system:String x:Key="Tab_ManualSchedule">수동 예약</system:String>
     <system:String x:Key="Tab_AutoSchedule">자동 예약</system:String>
 
-    <!-- URL 입력 -->
+    <!--  URL 입력  -->
     <system:String x:Key="Label_UrlInput">URL 입력</system:String>
     <system:String x:Key="Button_Paste">붙여넣기</system:String>
     <system:String x:Key="Button_Clear">지우기</system:String>
@@ -31,14 +32,14 @@
     <system:String x:Key="ToolTip_Clear">입력한 모든 URL 제거</system:String>
     <system:String x:Key="ToolTip_Download">입력한 URL 목록을 개별적으로 다운로드</system:String>
 
-    <!-- 채널/재생목록 -->
+    <!--  채널/재생목록  -->
     <system:String x:Key="Label_ChannelPlaylist">채널 / 재생목록 URL 입력</system:String>
     <system:String x:Key="Button_ChannelDownload">채널 / 재생목록 다운로드</system:String>
     <system:String x:Key="ToolTip_ChannelPaste">클립보드의 채널/재생목록 URL 붙여넣기</system:String>
     <system:String x:Key="ToolTip_ChannelClear">입력한 모든 채널/재생목록 URL 제거</system:String>
     <system:String x:Key="ToolTip_ChannelDownload">채널 또는 재생목록의 모든 영상 다운로드 (최대 개수: 고급 설정 참조)</system:String>
 
-    <!-- 저장 경로 -->
+    <!--  저장 경로  -->
     <system:String x:Key="Label_SavePath">저장 경로</system:String>
     <system:String x:Key="Button_Browse">찾기</system:String>
     <system:String x:Key="Button_Open">열기</system:String>
@@ -46,7 +47,7 @@
     <system:String x:Key="ToolTip_Browse">저장 경로 변경</system:String>
     <system:String x:Key="ToolTip_Open">탐색기에서 저장 폴더 열기</system:String>
 
-    <!-- 포맷 -->
+    <!--  포맷  -->
     <system:String x:Key="Label_Format">포맷 선택</system:String>
     <system:String x:Key="Format_BestVideo">영상 (최고화질)</system:String>
     <system:String x:Key="Format_Video1080p">영상 (1080p)</system:String>
@@ -57,15 +58,15 @@
     <system:String x:Key="Format_AudioFLAC">음악 (FLAC 무손실 변환)</system:String>
     <system:String x:Key="ToolTip_Format">다운로드할 영상/음악 품질 선택</system:String>
 
-    <!-- 체크박스 -->
+    <!--  체크박스  -->
     <system:String x:Key="CheckBox_SingleVideo">단일 다운로드(재생목록 무시)</system:String>
     <system:String x:Key="ToolTip_SingleVideo">재생목록 URL을 입력해도 첫 번째 영상만 다운로드</system:String>
 
-    <!-- 프로그램 재시작 -->
+    <!--  프로그램 재시작  -->
     <system:String x:Key="Button_Restart">프로그램 재시작</system:String>
     <system:String x:Key="ToolTip_Restart">프로그램을 종료하고 다시 시작</system:String>
 
-    <!-- 고급 설정 -->
+    <!--  고급 설정  -->
     <system:String x:Key="CheckBox_StructuredFolders">채널/재생목록 폴더 구조</system:String>
     <system:String x:Key="ToolTip_StructuredFolders">채널명 또는 재생목록명으로 폴더를 생성하여 정리</system:String>
     <system:String x:Key="CheckBox_Thumbnail">썸네일 저장</system:String>
@@ -78,7 +79,7 @@
     <system:String x:Key="Label_MaxDownloads">최대 다운로드 개수 (0은 무한)</system:String>
     <system:String x:Key="ToolTip_MaxDownloads">채널/재생목록 다운로드 시 최대 다운로드 개수 (0은 무한)</system:String>
 
-    <!-- 다운로드 제어 -->
+    <!--  다운로드 제어  -->
     <system:String x:Key="Button_Pause">일시정지</system:String>
     <system:String x:Key="Button_Resume">재개</system:String>
     <system:String x:Key="Button_Stop">정지</system:String>
@@ -86,7 +87,7 @@
     <system:String x:Key="ToolTip_Resume">일시정지된 다운로드 재개</system:String>
     <system:String x:Key="ToolTip_Stop">현재 다운로드 정지</system:String>
 
-    <!-- 예약 다운로드 -->
+    <!--  예약 다운로드  -->
     <system:String x:Key="Label_ManualSchedule">수동 예약 다운로드</system:String>
     <system:String x:Key="Label_AutoSchedule">자동 예약 설정</system:String>
     <system:String x:Key="Description_AutoSchedule">윈도우 작업 스케줄러를 이용하여 예약된 채널들을 지정한 시간에 자동으로 다운로드합니다.</system:String>
@@ -108,7 +109,7 @@
     <system:String x:Key="CheckBox_EnableNotification">다운로드 완료 알림</system:String>
     <system:String x:Key="ToolTip_EnableNotification">다운로드 완료 시 알림 표시</system:String>
 
-    <!-- 예약 DataGrid 헤더 및 라벨 -->
+    <!--  예약 DataGrid 헤더 및 라벨  -->
     <system:String x:Key="Label_UrlInput_Schedule">URL 입력:</system:String>
     <system:String x:Key="Button_Paste_Schedule">붙여넣기</system:String>
     <system:String x:Key="ToolTip_Paste_Schedule">클립보드의 URL을 붙여넣기</system:String>
@@ -133,7 +134,7 @@
     <system:String x:Key="Button_RemoveAllAutoSchedules">자동 예약 전체 삭제</system:String>
     <system:String x:Key="ToolTip_RemoveAllAutoSchedules">모든 자동 예약 스케줄을 삭제합니다</system:String>
 
-    <!-- 진행 상태 -->
+    <!--  진행 상태  -->
     <system:String x:Key="Label_Speed">속도:</system:String>
     <system:String x:Key="Label_ETA">ETA:</system:String>
 
