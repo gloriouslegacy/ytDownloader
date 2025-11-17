@@ -839,7 +839,6 @@
                                     CanUserReorderColumns="False"
                                     CanUserResizeRows="False"
                                     HeadersVisibility="Column"
-                                    IsReadOnly="True"
                                     SelectionMode="Extended">
                                     <DataGrid.Resources>
                                         <Style TargetType="DataGridColumnHeader">
@@ -876,14 +875,20 @@
                                         </Style>
                                     </DataGrid.Resources>
                                     <DataGrid.Columns>
+                                        <DataGridCheckBoxColumn
+                                            Width="50"
+                                            Binding="{Binding IsSelected, UpdateSourceTrigger=PropertyChanged}"
+                                            Header="선택" />
                                         <DataGridTextColumn
                                             Width="*"
                                             Binding="{Binding Name}"
-                                            Header="채널 이름" />
+                                            Header="채널 이름"
+                                            IsReadOnly="True" />
                                         <DataGridTextColumn
                                             Width="2*"
                                             Binding="{Binding Url}"
-                                            Header="URL" />
+                                            Header="URL"
+                                            IsReadOnly="True" />
                                     </DataGrid.Columns>
                                 </DataGrid>
 
@@ -980,7 +985,6 @@
                                     CanUserReorderColumns="False"
                                     CanUserResizeRows="False"
                                     HeadersVisibility="Column"
-                                    IsReadOnly="True"
                                     SelectionMode="Extended">
                                     <DataGrid.Resources>
                                         <Style TargetType="DataGridColumnHeader">
@@ -1017,10 +1021,15 @@
                                         </Style>
                                     </DataGrid.Resources>
                                     <DataGrid.Columns>
+                                        <DataGridCheckBoxColumn
+                                            Width="50"
+                                            Binding="{Binding IsSelected, UpdateSourceTrigger=PropertyChanged}"
+                                            Header="선택" />
                                         <DataGridTextColumn
                                             Width="*"
                                             Binding="{Binding DisplayText}"
-                                            Header="스케줄 정보" />
+                                            Header="스케줄 정보"
+                                            IsReadOnly="True" />
                                     </DataGrid.Columns>
                                 </DataGrid>
 

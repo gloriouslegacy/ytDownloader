@@ -74,7 +74,9 @@ namespace ytDownloader.Services
                         {
                             if (process != null && !process.HasExited)
                             {
-                                process.Kill();
+                                // 프로세스 트리 전체 종료 (자식 프로세스 포함)
+                                // .NET 5.0 이상에서는 Kill(true)를 사용하여 자식 프로세스도 함께 종료
+                                process.Kill(entireProcessTree: true);
                             }
                         }
                         catch
