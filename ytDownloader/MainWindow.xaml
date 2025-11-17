@@ -69,16 +69,40 @@
     <Grid Margin="15">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
-            <!--  상단 메뉴  -->
+            <!--  메뉴바  -->
             <RowDefinition Height="Auto" />
-            <!--  버튼/옵션  -->
-            <RowDefinition Height="Auto" />
-            <!--  참고 링크 (추가됨)  -->
+            <!--  TabControl  -->
             <RowDefinition Height="*" />
             <!--  로그창  -->
         </Grid.RowDefinitions>
 
-        <!--  헤더  -->
+        <!--  메뉴바  -->
+        <Menu
+            Grid.Row="0"
+            Background="#1E1E2E"
+            Foreground="White">
+            <MenuItem Foreground="White" Header="파일(_F)">
+                <MenuItem
+                    Click="MenuExit_Click"
+                    Foreground="Black"
+                    Header="종료(_X)" />
+            </MenuItem>
+            <MenuItem Foreground="White" Header="도움말(_H)">
+                <MenuItem
+                    Click="MenuGitHub_Click"
+                    Foreground="Black"
+                    Header="GitHub 릴리스" />
+                <MenuItem
+                    Click="MenuYtDlp_Click"
+                    Foreground="Black"
+                    Header="yt-dlp 릴리스" />
+                <Separator />
+                <MenuItem
+                    Click="MenuAbout_Click"
+                    Foreground="Black"
+                    Header="정보(_A)" />
+            </MenuItem>
+        </Menu>
 
         <!--  메인 영역 (TabControl)  -->
         <TabControl
@@ -271,35 +295,9 @@
             </TabItem>
         </TabControl>
 
-        <!--  참고 링크 (gloriouslegacy, yt-dlp)  -->
-        <TextBlock
-            Grid.Row="2"
-            Grid.Column="0"
-            Grid.ColumnSpan="2"
-            Margin="0,5,10,5"
-            HorizontalAlignment="Right"
-            VerticalAlignment="Center"
-            FontSize="12"
-            Foreground="LightGray">
-
-            <Hyperlink
-                Foreground="SkyBlue"
-                NavigateUri="https://github.com/gloriouslegacy/ytDownloader/releases"
-                RequestNavigate="Hyperlink_RequestNavigate">
-                gloriouslegacy
-            </Hyperlink>
-            <Run Text=" " />
-            <Hyperlink
-                Foreground="SkyBlue"
-                NavigateUri="https://github.com/yt-dlp/yt-dlp/releases"
-                RequestNavigate="Hyperlink_RequestNavigate">
-                yt-dlp
-            </Hyperlink>
-        </TextBlock>
-
         <!--  로그 & 진행 상태  -->
         <Border
-            Grid.Row="3"
+            Grid.Row="2"
             Grid.Column="0"
             Grid.ColumnSpan="2"
             Padding="10"

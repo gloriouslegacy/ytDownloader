@@ -1,727 +1,161 @@
-﻿using Newtonsoft.Json.Linq;
 using System.ComponentModel;
 using System.Diagnostics;
-using System.IO;
-using System.IO.Compression;
-using System.Net.Http;
 using System.Reflection;
-using System.Text;
-using System.Text.RegularExpressions;
 using System.Windows;
 using System.Windows.Navigation;
+using ytDownloader.Models;
+using ytDownloader.Services;
 
 // 2025-09-21 .NET 8.0, C# 12.0
 // ✅ 자동 업데이트
 // ❌ 웹뷰 내장
 // ❌ 채널 예약 다운로드
 // ❌ 라이트 / 다크 모드 전환
-// ❌ 드래그 앤 드롭 
+// ❌ 드래그 앤 드롭
 // ❌ 다운로드 정지/일시정지/재개
 // ❌ 다운로드 후 알림
 // ❌ 다국어 지원
-
-
 
 namespace ytDownloader
 {
     public partial class MainWindow : Window
     {
-        private readonly string toolsPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "tools");
-        private readonly string ytdlpPath;
-        private readonly string ffmpegPath;
-        private readonly string settingsPath;
-        private readonly string settingsFile;
+        // 서비스
+        private readonly SettingsService _settingsService;
+        private readonly ToolUpdateService _toolUpdateService;
+        private readonly AppUpdateService _appUpdateService;
+        private readonly DownloadService _downloadService;
+
+        // 현재 설정
+        private AppSettings _currentSettings;
 
         public MainWindow()
         {
-            ytdlpPath = Path.Combine(toolsPath, "yt-dlp.exe");
-            ffmpegPath = Path.Combine(toolsPath, "ffmpeg.exe");
-
-            // %appdata%\ytDownloader 폴더에 설정 저장
-            settingsPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "ytDownloader");
-            settingsFile = Path.Combine(settingsPath, "settings.json");
-
-            if (!Directory.Exists(settingsPath))
-            {
-                Directory.CreateDirectory(settingsPath);
-            }
-
             InitializeComponent();
-            LoadSettings();
+
+            // 서비스 초기화
+            _settingsService = new SettingsService();
+            _toolUpdateService = new ToolUpdateService();
+            _appUpdateService = new AppUpdateService();
+            _downloadService = new DownloadService();
+
+            // 서비스 이벤트 구독
+            _toolUpdateService.LogMessage += AppendOutput;
+            _appUpdateService.LogMessage += AppendOutput;
+            _downloadService.LogMessage += AppendOutput;
+            _downloadService.ProgressChanged += OnDownloadProgressChanged;
+
+            // 설정 로드 및 UI 초기화
+            _currentSettings = _settingsService.LoadSettings();
+            LoadSettingsToUI();
             AttachSettingsEventHandlers();
 
-            if (!Directory.Exists(toolsPath))
-            {
-                Directory.CreateDirectory(toolsPath);
-            }
-
-            _ = UpdateToolsSequentially();
+            // 도구 및 앱 업데이트 시작
+            _ = UpdateToolsAndAppSequentiallyAsync();
         }
 
-        private async Task UpdateToolsSequentially()
+        /// <summary>
+        /// 도구 및 앱 업데이트 순차 실행
+        /// </summary>
+        private async Task UpdateToolsAndAppSequentiallyAsync()
         {
             await Task.Run(async () =>
             {
-                await UpdateYtDlp();
-                await UpdateFfmpeg();
-                await CheckForUpdate();
+                await _toolUpdateService.UpdateAllToolsAsync();
+                await CheckForUpdateAsync();
             });
         }
 
-        private async Task UpdateYtDlp()
+        /// <summary>
+        /// 앱 업데이트 확인
+        /// </summary>
+        private async Task CheckForUpdateAsync()
         {
-            if (!File.Exists(ytdlpPath))
-            {
-                AppendOutput("⏳ yt-dlp.exe가 tools 폴더에 없습니다. 다운로드 중...");
-                try
-                {
-                    using var httpClient = new HttpClient();
-                    httpClient.DefaultRequestHeaders.UserAgent.ParseAdd("ytDownloader/1.0");
+            var updateInfo = await _appUpdateService.CheckForUpdateAsync();
 
-                    var response = await httpClient.GetAsync("https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp.exe");
-                    if (response.IsSuccessStatusCode)
+            if (updateInfo != null && updateInfo.UpdateAvailable)
+            {
+                await Dispatcher.InvokeAsync(async () =>
+                {
+                    string preMsg = updateInfo.IsPrerelease ? "Pre-release" : "정식 릴리스";
+                    if (MessageBox.Show(
+                        $"새 {preMsg} {updateInfo.LatestVersion} 버전이 있습니다. 업데이트 하시겠습니까?",
+                        "업데이트 확인",
+                        MessageBoxButton.YesNo,
+                        MessageBoxImage.Question) == MessageBoxResult.Yes)
                     {
-                        var data = await response.Content.ReadAsByteArrayAsync();
-                        await File.WriteAllBytesAsync(ytdlpPath, data);
-                        AppendOutput("✅ yt-dlp.exe 다운로드 완료");
-                    }
-                    else
-                    {
-                        AppendOutput($"❌ yt-dlp.exe 다운로드 실패: {response.StatusCode}");
-                        return;
-                    }
-                }
-                catch (Exception ex)
-                {
-                    AppendOutput($"❌ yt-dlp.exe 다운로드 오류: {ex.Message}");
-                    return;
-                }
-            }
-
-            try
-            {
-                AppendOutput("⏳ yt-dlp 업데이트 확인 중...");
-                ProcessStartInfo psi = new ProcessStartInfo
-                {
-                    FileName = ytdlpPath,
-                    Arguments = "-U",
-                    RedirectStandardError = true,
-                    RedirectStandardOutput = true,
-                    UseShellExecute = false,
-                    CreateNoWindow = true,
-                    StandardOutputEncoding = Encoding.UTF8,
-                    StandardErrorEncoding = Encoding.UTF8
-                };
-
-                using (Process proc = new Process())
-                {
-                    proc.StartInfo = psi;
-                    proc.OutputDataReceived += (s, ev) => { if (!string.IsNullOrEmpty(ev.Data)) AppendOutput(ev.Data); };
-                    proc.ErrorDataReceived += (s, ev) => { if (!string.IsNullOrEmpty(ev.Data)) AppendOutput(ev.Data); };
-
-                    proc.Start();
-                    proc.BeginOutputReadLine();
-                    proc.BeginErrorReadLine();
-                    await proc.WaitForExitAsync();
-                }
-
-                AppendOutput("✅ yt-dlp 업데이트 확인 완료");
-            }
-            catch (Exception ex)
-            {
-                AppendOutput("❌ 업데이트 오류: " + ex.Message);
-            }
-        }
-
-        private async Task UpdateFfmpeg()
-        {
-            AppendOutput($"[DEBUG] ffmpegPath: {ffmpegPath}");
-            AppendOutput($"[DEBUG] File.Exists: {File.Exists(ffmpegPath)}");
-
-            if (!File.Exists(ffmpegPath))
-            {
-                AppendOutput("⏳ ffmpeg.exe가 tools 폴더에 없습니다. 다운로드 중...");
-
-                try
-                {
-                    using var httpClient = new HttpClient();
-                    httpClient.DefaultRequestHeaders.UserAgent.ParseAdd("ytDownloader/1.0");
-
-                    string downloadUrl = "https://github.com/BtbN/FFmpeg-Builds/releases/download/latest/ffmpeg-master-latest-win64-gpl-shared.zip";
-                    await DownloadAndExtractFfmpeg(downloadUrl);
-                }
-                catch (Exception ex)
-                {
-                    AppendOutput($"❌ ffmpeg.exe 다운로드 오류: {ex.Message}");
-                    return;
-                }
-            }
-
-            try
-            {
-                AppendOutput("⏳ ffmpeg 업데이트 확인 중...");
-
-                // 현재 설치된 ffmpeg 버전 확인
-                string currentVersion = await GetCurrentFfmpegVersion();
-                AppendOutput($"[INFO] 현재 ffmpeg 버전: {currentVersion}");
-
-                // GitHub에서 최신 버전 확인
-                using var httpClient = new HttpClient();
-                httpClient.DefaultRequestHeaders.UserAgent.ParseAdd("ytDownloader/1.0");
-
-                var response = await httpClient.GetAsync("https://api.github.com/repos/BtbN/FFmpeg-Builds/releases/latest");
-                if (!response.IsSuccessStatusCode)
-                {
-                    AppendOutput($"❌ ffmpeg 업데이트 확인 실패: {response.StatusCode}");
-                    return;
-                }
-
-                var json = await response.Content.ReadAsStringAsync();
-                var release = JObject.Parse(json);
-
-                string latestTag = release["tag_name"]?.ToString() ?? "";
-                AppendOutput($"[INFO] 최신 ffmpeg 버전: {latestTag}");
-
-                // 버전 비교
-                if (IsNewerFfmpegVersion(currentVersion, latestTag))
-                {
-                    AppendOutput($"ℹ️ 새로운 ffmpeg 버전 발견: {latestTag}");
-
-                    // Windows용 빌드 찾기 (ffmpeg-master-latest-win64-gpl-shared.zip)
-                    var asset = release["assets"]?
-                        .FirstOrDefault(a =>
+                        bool success = await _appUpdateService.RunUpdateAsync(updateInfo);
+                        if (success)
                         {
-                            string name = a["name"]?.ToString() ?? "";
-                            return name.Contains("master-latest-win64-gpl-shared") && name.EndsWith(".zip");
-                        });
-
-                    if (asset != null)
-                    {
-                        string downloadUrl = asset["browser_download_url"]?.ToString();
-                        if (!string.IsNullOrEmpty(downloadUrl))
+                            Application.Current.Shutdown();
+                        }
+                        else
                         {
-                            await DownloadAndExtractFfmpeg(downloadUrl);
+                            MessageBox.Show("업데이트 실행 실패", "오류", MessageBoxButton.OK, MessageBoxImage.Error);
                         }
                     }
-                    else
-                    {
-                        AppendOutput("❌ Windows용 ffmpeg 빌드를 찾을 수 없습니다.");
-                    }
-                }
-                else
-                {
-                    AppendOutput("✅ ffmpeg는 최신 버전입니다.");
-                }
-            }
-            catch (Exception ex)
-            {
-                AppendOutput($"❌ ffmpeg 업데이트 오류: {ex.Message}");
+                });
             }
         }
 
-        private async Task<string> GetCurrentFfmpegVersion()
+        /// <summary>
+        /// 설정을 UI에 로드
+        /// </summary>
+        private void LoadSettingsToUI()
+        {
+            txtSavePath.Text = _currentSettings.SavePath;
+            ChkSingleVideo.IsChecked = _currentSettings.SingleVideoOnly;
+            SubtitleCheckBox.IsChecked = _currentSettings.DownloadSubtitle;
+            SetComboBoxValue(SubtitleLangComboBox, _currentSettings.SubtitleLang);
+            SetComboBoxValue(SubtitleFormatComboBox, _currentSettings.SubtitleFormat);
+            ChkWriteThumbnail.IsChecked = _currentSettings.SaveThumbnail;
+            ChkStructuredFolders.IsChecked = _currentSettings.UseStructuredFolder;
+            comboFormat.SelectedIndex = (int)_currentSettings.Format;
+            txtMaxDownloads.Text = _currentSettings.MaxDownloads.ToString();
+        }
+
+        /// <summary>
+        /// UI 설정 변경 이벤트 핸들러 연결
+        /// </summary>
+        private void AttachSettingsEventHandlers()
+        {
+            txtSavePath.TextChanged += (s, e) => SaveCurrentSettings();
+            ChkSingleVideo.Checked += (s, e) => SaveCurrentSettings();
+            ChkSingleVideo.Unchecked += (s, e) => SaveCurrentSettings();
+            SubtitleCheckBox.Checked += (s, e) => SaveCurrentSettings();
+            SubtitleCheckBox.Unchecked += (s, e) => SaveCurrentSettings();
+            SubtitleLangComboBox.SelectionChanged += (s, e) => SaveCurrentSettings();
+            SubtitleLangComboBox.AddHandler(System.Windows.Controls.Primitives.TextBoxBase.TextChangedEvent,
+                new System.Windows.Controls.TextChangedEventHandler((s, e) => SaveCurrentSettings()));
+            SubtitleFormatComboBox.SelectionChanged += (s, e) => SaveCurrentSettings();
+            SubtitleFormatComboBox.AddHandler(System.Windows.Controls.Primitives.TextBoxBase.TextChangedEvent,
+                new System.Windows.Controls.TextChangedEventHandler((s, e) => SaveCurrentSettings()));
+            ChkWriteThumbnail.Checked += (s, e) => SaveCurrentSettings();
+            ChkWriteThumbnail.Unchecked += (s, e) => SaveCurrentSettings();
+            ChkStructuredFolders.Checked += (s, e) => SaveCurrentSettings();
+            ChkStructuredFolders.Unchecked += (s, e) => SaveCurrentSettings();
+            comboFormat.SelectionChanged += (s, e) => SaveCurrentSettings();
+            txtMaxDownloads.TextChanged += (s, e) => SaveCurrentSettings();
+        }
+
+        /// <summary>
+        /// 현재 UI 설정을 저장
+        /// </summary>
+        private void SaveCurrentSettings()
         {
             try
             {
-                var psi = new ProcessStartInfo
-                {
-                    FileName = ffmpegPath,
-                    Arguments = "-version",
-                    RedirectStandardOutput = true,
-                    UseShellExecute = false,
-                    CreateNoWindow = true,
-                    StandardOutputEncoding = Encoding.UTF8
-                };
-
-                using var proc = Process.Start(psi);
-                if (proc != null)
-                {
-                    string output = await proc.StandardOutput.ReadToEndAsync();
-                    await proc.WaitForExitAsync();
-
-                    // 첫 줄에서 버전 추출 (예: "ffmpeg version N-109542-g7d2bdd5176")
-                    var match = Regex.Match(output, @"ffmpeg version ([\w\-\.]+)");
-                    if (match.Success)
-                        return match.Groups[1].Value;
-                }
-            }
-            catch (Exception ex)
-            {
-                AppendOutput($"[DEBUG] ffmpeg 버전 확인 오류: {ex.Message}");
-            }
-
-            return "unknown";
-        }
-
-        private bool IsNewerFfmpegVersion(string current, string latest)
-        {
-            // current가 "unknown"이면 업데이트 시도
-            if (current == "unknown")
-                return true;
-
-            // latest에서 버전 번호 추출 (예: "autobuild-2024-01-15-12-55" -> "20240115")
-            var latestMatch = Regex.Match(latest, @"(\d{4})-(\d{2})-(\d{2})");
-            if (!latestMatch.Success)
-                return false;
-
-            string latestDate = latestMatch.Groups[1].Value + latestMatch.Groups[2].Value + latestMatch.Groups[3].Value;
-
-            // current에서 빌드 번호 추출 (예: "N-109542" -> 109542)
-            var currentMatch = Regex.Match(current, @"N-(\d+)");
-            if (!currentMatch.Success)
-                return true; // 형식을 모르면 업데이트 시도
-
-            // 간단하게 빌드 번호가 다르면 업데이트
-            // 실제로는 날짜 기반 비교가 더 정확하지만, 복잡도를 위해 단순화
-            return true; // 새 릴리스가 있으면 항상 업데이트 (안전한 방법)
-        }
-
-        private async Task DownloadAndExtractFfmpeg(string zipUrl)
-        {
-            try
-            {
-                AppendOutput("⏳ ffmpeg 다운로드 중... (파일이 크므로 시간이 걸릴 수 있습니다)");
-
-                using var httpClient = new HttpClient();
-                httpClient.Timeout = TimeSpan.FromMinutes(10); // 타임아웃 증가
-
-                string tempZip = Path.Combine(Path.GetTempPath(), "ffmpeg_update.zip");
-
-                // 기존 임시 파일 삭제
-                if (File.Exists(tempZip))
-                    File.Delete(tempZip);
-
-                using (var response = await httpClient.GetAsync(zipUrl, HttpCompletionOption.ResponseHeadersRead))
-                {
-                    response.EnsureSuccessStatusCode();
-
-                    long? totalBytes = response.Content.Headers.ContentLength;
-                    await using var contentStream = await response.Content.ReadAsStreamAsync();
-                    await using var fs = new FileStream(tempZip, FileMode.Create, FileAccess.Write, FileShare.None, 8192, true);
-
-                    byte[] buffer = new byte[8192];
-                    long totalRead = 0;
-                    int bytesRead;
-
-                    while ((bytesRead = await contentStream.ReadAsync(buffer, 0, buffer.Length)) > 0)
-                    {
-                        await fs.WriteAsync(buffer, 0, bytesRead);
-                        totalRead += bytesRead;
-
-                        if (totalBytes.HasValue)
-                        {
-                            double percent = (double)totalRead / totalBytes.Value * 100;
-                            if (totalRead % (1024 * 1024 * 5) == 0 || percent >= 99) // 5MB마다 또는 마지막에 로그
-                            {
-                                AppendOutput($"[INFO] 다운로드 진행: {percent:F1}% ({totalRead / 1024 / 1024}MB / {totalBytes.Value / 1024 / 1024}MB)");
-                            }
-                        }
-                    }
-                }
-
-                AppendOutput("✅ ffmpeg 다운로드 완료");
-                AppendOutput("⏳ ffmpeg 압축 해제 중...");
-
-                // ZIP에서 bin 폴더의 모든 파일 추출
-                string tempExtract = Path.Combine(Path.GetTempPath(), "ffmpeg_extract_" + Guid.NewGuid().ToString("N"));
-
-                try
-                {
-                    Directory.CreateDirectory(tempExtract);
-                    ZipFile.ExtractToDirectory(tempZip, tempExtract);
-
-                    // bin 폴더 찾기
-                    var binDir = Directory.GetDirectories(tempExtract, "bin", SearchOption.AllDirectories)
-                        .FirstOrDefault();
-
-                    if (binDir != null)
-                    {
-                        // bin 폴더의 모든 파일을 tools 폴더로 복사
-                        foreach (var file in Directory.GetFiles(binDir))
-                        {
-                            string fileName = Path.GetFileName(file);
-                            string destPath = Path.Combine(toolsPath, fileName);
-
-                            // 기존 파일 백업
-                            string backupPath = destPath + ".bak";
-                            if (File.Exists(destPath))
-                            {
-                                if (File.Exists(backupPath))
-                                    File.Delete(backupPath);
-                                File.Move(destPath, backupPath);
-                            }
-
-                            // 새 파일 복사
-                            File.Copy(file, destPath, true);
-
-                            // 백업 삭제
-                            if (File.Exists(backupPath))
-                                File.Delete(backupPath);
-                        }
-
-                        AppendOutput("✅ ffmpeg 업데이트 완료 (bin 폴더의 모든 파일 복사)");
-                    }
-                    else
-                    {
-                        AppendOutput("❌ 압축 파일에서 bin 폴더를 찾을 수 없습니다.");
-                    }
-                }
-                finally
-                {
-                    // 임시 파일 정리
-                    if (File.Exists(tempZip))
-                    {
-                        try { File.Delete(tempZip); }
-                        catch { }
-                    }
-
-                    if (Directory.Exists(tempExtract))
-                    {
-                        try { Directory.Delete(tempExtract, true); }
-                        catch { }
-                    }
-                }
-            }
-            catch (Exception ex)
-            {
-                AppendOutput($"❌ ffmpeg 다운로드/설치 실패: {ex.Message}");
-            }
-        }
-
-        private async Task CheckForUpdate()
-        {
-            try
-            {
-                using var httpClient = new HttpClient();
-                httpClient.DefaultRequestHeaders.UserAgent.ParseAdd("ytDownloader/1.0");
-
-                var response = await httpClient.GetAsync("https://api.github.com/repos/gloriouslegacy/ytDownloader/releases");
-                if (!response.IsSuccessStatusCode)
-                {
-                    AppendOutput($"❌ 업데이트 확인 실패: {response.StatusCode}");
-                    return;
-                }
-
-                var json = await response.Content.ReadAsStringAsync();
-                var releases = JArray.Parse(json);
-
-                if (releases == null || releases.Count == 0)
-                {
-                    AppendOutput("ℹ️ 첫 버전입니다. 아직 등록된 릴리스가 없습니다.");
-                    return;
-                }
-
-                var latest = releases[0];
-                string latestTag = latest["tag_name"]?.ToString() ?? "";
-                bool isPre = latest["prerelease"]?.ToObject<bool>() ?? false;
-
-                // 현재 실행 중인 버전
-                string currentVersionStr = Assembly
-                    .GetExecutingAssembly()
-                    .GetCustomAttribute<AssemblyInformationalVersionAttribute>()?
-                    .InformationalVersion ?? "0.0.0";
-
-                // '+' 뒤 빌드 메타데이터 제거
-                int plusIdx = currentVersionStr.IndexOf('+');
-                if (plusIdx >= 0)
-                    currentVersionStr = currentVersionStr.Substring(0, plusIdx);
-
-                // GitHub 태그에서 'v' 제거
-                string latestTagClean = latestTag.StartsWith("v", StringComparison.OrdinalIgnoreCase)
-                    ? latestTag.Substring(1)
-                    : latestTag;
-
-                // 문자열을 Version 객체로 변환
-                Version currentV, latestV;
-                if (!Version.TryParse(currentVersionStr, out currentV))
-                    currentV = new Version(0, 0, 0);
-
-                if (!Version.TryParse(latestTagClean, out latestV))
-                    latestV = new Version(0, 0, 0);
-
-                AppendOutput($"[INFO] 현재 버전: {currentV}");
-                AppendOutput($"[INFO] 최신 버전: {latestV}");
-
-                if (currentV < latestV)
-                {
-                    Dispatcher.Invoke(() =>
-                    {
-                        string preMsg = isPre ? "Pre-release" : "정식 릴리스";
-                        // ...
-                        if (MessageBox.Show($"새 {preMsg} {latestTag} 버전이 있습니다. 업데이트 하시겠습니까?",
-                            "업데이트 확인", MessageBoxButton.YesNo, MessageBoxImage.Question) == MessageBoxResult.Yes)
-                        {
-                            string baseDir = AppDomain.CurrentDomain.BaseDirectory;
-                            string installDir = Path.GetDirectoryName(Process.GetCurrentProcess().MainModule!.FileName) ?? baseDir;
-                            bool isInstalledVersion = installDir.Contains(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "ytDownloader", "app"));
-
-                            string targetAssetName = isInstalledVersion ? "ytDownloader-setup.exe" : "ytdownloader.zip";
-
-                            var updateAsset = latest["assets"]?
-                                .FirstOrDefault(a =>
-                                {
-                                    string assetName = a["name"]?.ToString() ?? "";
-                                    return string.Equals(assetName, targetAssetName, StringComparison.OrdinalIgnoreCase);
-                                });
-
-                            if (updateAsset != null)
-                            {
-                                string assetUrl = updateAsset["browser_download_url"]?.ToString();
-                                string assetName = updateAsset["name"]?.ToString() ?? "";
-
-                                AppendOutput($"[INFO] 설치형 여부: {isInstalledVersion}");
-                                AppendOutput($"[INFO] 선택된 에셋: {assetName}");
-                                AppendOutput($"[INFO] 다운로드 URL: {assetUrl}");
-
-                                if (!string.IsNullOrEmpty(assetUrl))
-                                {
-                                    _ = RunUpdateAsync(assetUrl, isInstalledVersion);
-                                }
-                            }
-                            else
-                            {
-                                AppendOutput($"❌ 업데이트 파일을 찾을 수 없습니다: {targetAssetName}");
-                                AppendOutput("[INFO] 사용 가능한 에셋들:");
-                                foreach (var asset in latest["assets"] ?? new JArray())
-                                {
-                                    AppendOutput($"[INFO]   - {asset["name"]}");
-                                }
-                            }
-                        }
-                    });
-                }
-                else
-                {
-                    AppendOutput("✅ 최신 버전을 사용 중입니다.");
-                }
-            }
-            catch (Exception ex)
-            {
-                AppendOutput($"❌ 업데이트 확인 실패: {ex.Message}");
-            }
-        }
-
-        //string FormatEta(double seconds)
-        //{
-        //    if (seconds < 0) return "--:--";
-        //    TimeSpan ts = TimeSpan.FromSeconds(seconds);
-
-        //    if (ts.TotalHours >= 1)
-        //        return $"{(int)ts.TotalHours:D2}:{ts.Minutes:D2}:{ts.Seconds:D2}";  
-        //    else
-        //        return $"{(int)ts.TotalMinutes:D2}:{ts.Seconds:D2}";  
-        //}
-
-        //string FormatSize(double bytes)
-        //{
-        //    if (bytes < 1024) return $"{bytes:F0} B";
-        //    double kb = bytes / 1024d;
-        //    if (kb < 1024) return $"{kb:F1} KB";
-        //    double mb = kb / 1024d;
-        //    if (mb < 1024) return $"{mb:F1} MB";
-        //    double gb = mb / 1024d;
-        //    return $"{gb:F2} GB";
-        //}
-
-        //string FormatSpeed(double bps)
-        //    {
-        //        if (bps <= 0) return "-";
-        //        if (bps < 1024) return $"{bps:F0} B/s";
-        //        if (bps < 1024 * 1024) return $"{bps / 1024:F1} KB/s";
-        //        return $"{bps / (1024 * 1024):F1} MB/s";
-        //    }
-
-        private async Task RunUpdateAsync(string downloadUrl, bool isInstalledVersion)
-        {
-            string downloadPath = isInstalledVersion
-                ? Path.Combine(Path.GetTempPath(), "ytDownloader-setup.exe")
-                : Path.Combine(Path.GetTempPath(), "ytDownloader_update.zip");
-
-            try
-            {
-                using var httpClient = new HttpClient();
-
-                AppendOutput("[INFO] 업데이트 파일 다운로드 시작");
-                using (var response = await httpClient.GetAsync(downloadUrl, HttpCompletionOption.ResponseHeadersRead))
-                {
-                    response.EnsureSuccessStatusCode();
-                    await using var fs = new FileStream(downloadPath, FileMode.Create, FileAccess.Write, FileShare.None);
-                    await response.Content.CopyToAsync(fs);
-                }
-                AppendOutput($"[INFO] 다운로드 완료: {downloadPath}");
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show("업데이트 파일 다운로드 실패: " + ex.Message,
-                    "업데이트 오류", MessageBoxButton.OK, MessageBoxImage.Error);
-                AppendOutput("[ERROR] 다운로드 실패: " + ex);
-                return;
-            }
-
-            if (isInstalledVersion)
-            {
-                // 설치형: setup.exe 실행
-                await RunSetupInstallerAsync(downloadPath);
-            }
-            else
-            {
-                // 포터블: Updater.exe 사용
-                await RunPortableUpdateAsync(downloadPath);
-            }
-        }
-
-        private async Task RunSetupInstallerAsync(string setupPath)
-        {
-            try
-            {
-                AppendOutput("[INFO] 설치 프로그램 실행 중...");
-
-                var psi = new ProcessStartInfo
-                {
-                    FileName = setupPath,
-                    UseShellExecute = true,
-                    Arguments = "/VERYSILENT /CLOSEAPPLICATIONS"
-                };
-
-                Process.Start(psi);
-                AppendOutput("[INFO] 설치 프로그램이 실행되었습니다. 현재 앱을 종료합니다.");
-
-                await Task.Delay(1000);
-                Application.Current.Shutdown();
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show("설치 프로그램 실행 실패: " + ex.Message, "오류", MessageBoxButton.OK, MessageBoxImage.Error);
-                AppendOutput($"[ERROR] 설치 실행 실패: {ex}");
-            }
-        }
-
-        private async Task RunPortableUpdateAsync(string zipPath)
-        {
-            string baseDir = AppDomain.CurrentDomain.BaseDirectory;
-            string updaterPath = Path.Combine(baseDir, "updater", "Updater.exe");
-
-            if (!File.Exists(updaterPath))
-                updaterPath = Path.Combine(baseDir, "Updater.exe");
-
-            string targetExe = Process.GetCurrentProcess().MainModule!.FileName;
-            targetExe = Path.GetFullPath(targetExe).Trim('"');
-            string installDir = Path.GetDirectoryName(targetExe) ?? baseDir;
-            installDir = Path.GetFullPath(installDir).TrimEnd('\\', '/').Trim('"');
-
-            AppendOutput("[INFO] Updater 실행 준비");
-            AppendOutput($"[INFO] baseDir     = '{baseDir}'");
-            AppendOutput($"[INFO] updaterPath = '{updaterPath}'");
-            AppendOutput($"[INFO] installDir  = '{installDir}'");
-            AppendOutput($"[INFO] targetExe   = '{targetExe}'");
-
-            if (!File.Exists(updaterPath))
-            {
-                AppendOutput("[ERROR] Updater.exe를 찾을 수 없습니다.");
-                AppendOutput($"[ERROR] 시도 경로 1: {Path.Combine(baseDir, "updater", "Updater.exe")}");
-                AppendOutput($"[ERROR] 시도 경로 2: {Path.Combine(baseDir, "Updater.exe")}");
-                return;
-            }
-
-            try
-            {
-                string workingDir = Path.GetDirectoryName(updaterPath) ?? baseDir;
-                string arguments = $"\"{zipPath}\" \"{installDir}\" \"{targetExe}\"";
-
-                var psi = new ProcessStartInfo
-                {
-                    FileName = updaterPath,
-                    Arguments = arguments,
-                    UseShellExecute = true,
-                    Verb = "runas",
-                    WindowStyle = ProcessWindowStyle.Normal,
-                    WorkingDirectory = workingDir
-                };
-
-                AppendOutput($"[INFO] Updater 실행: {psi.FileName} {psi.Arguments}");
-                var process = Process.Start(psi);
-                if (process == null)
-                {
-                    AppendOutput("[ERROR] Updater 프로세스 시작 실패");
-                    return;
-                }
-
-                AppendOutput("[INFO] Updater가 실행되었습니다. 현재 앱을 종료합니다.");
-                await Task.Delay(1000);
-                Application.Current.Shutdown();
-            }
-            catch (Exception ex)
-            {
-                AppendOutput("[ERROR] Updater 실행 실패: " + ex);
-            }
-        }
-
-
-
-        private void LoadSettings()
-        {
-            try
-            {
-                if (File.Exists(settingsFile))
-                {
-                    var json = File.ReadAllText(settingsFile);
-                    var settings = JObject.Parse(json);
-
-                    txtSavePath.Text = settings["SavePath"]?.ToString() ?? Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), "Downloads");
-                    ChkSingleVideo.IsChecked = settings["SingleVideoOnly"]?.ToObject<bool>() ?? false;
-                    SubtitleCheckBox.IsChecked = settings["DownloadSubtitle"]?.ToObject<bool>() ?? false;
-
-                    string subtitleLang = settings["SubtitleLang"]?.ToString() ?? "ko";
-                    SetComboBoxValue(SubtitleLangComboBox, subtitleLang);
-
-                    string subtitleFormat = settings["SubtitleFormat"]?.ToString() ?? "srt";
-                    SetComboBoxValue(SubtitleFormatComboBox, subtitleFormat);
-
-                    ChkWriteThumbnail.IsChecked = settings["SaveThumbnail"]?.ToObject<bool>() ?? false;
-                    ChkStructuredFolders.IsChecked = settings["UseStructuredFolder"]?.ToObject<bool>() ?? false;
-                    comboFormat.SelectedIndex = settings["Format"]?.ToObject<int>() ?? 0;
-                    txtMaxDownloads.Text = (settings["MaxDownloads"]?.ToObject<int>() ?? 5).ToString();
-                }
-                else
-                {
-                    // 기본값 설정
-                    txtSavePath.Text = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), "Downloads");
-                    ChkSingleVideo.IsChecked = false;
-                    SubtitleCheckBox.IsChecked = false;
-                    SetComboBoxValue(SubtitleLangComboBox, "ko");
-                    SetComboBoxValue(SubtitleFormatComboBox, "srt");
-                    ChkWriteThumbnail.IsChecked = false;
-                    ChkStructuredFolders.IsChecked = false;
-                    comboFormat.SelectedIndex = 0;
-                    txtMaxDownloads.Text = "5";
-
-                    SaveSettings();
-                }
-            }
-            catch (Exception ex)
-            {
-                AppendOutput($"❌ 설정 로드 오류: {ex.Message}");
-            }
-        }
-
-        private void SaveSettings()
-        {
-            try
-            {
-                var settings = new JObject
-                {
-                    ["SavePath"] = txtSavePath.Text,
-                    ["SingleVideoOnly"] = ChkSingleVideo.IsChecked ?? false,
-                    ["DownloadSubtitle"] = SubtitleCheckBox.IsChecked ?? false,
-                    ["SubtitleLang"] = GetComboBoxValue(SubtitleLangComboBox),
-                    ["SubtitleFormat"] = GetComboBoxValue(SubtitleFormatComboBox),
-                    ["SaveThumbnail"] = ChkWriteThumbnail.IsChecked ?? false,
-                    ["UseStructuredFolder"] = ChkStructuredFolders.IsChecked ?? false,
-                    ["Format"] = comboFormat.SelectedIndex,
-                    ["MaxDownloads"] = int.TryParse(txtMaxDownloads.Text, out int n) ? n : 5
-                };
-
-                File.WriteAllText(settingsFile, settings.ToString());
+                _currentSettings.SavePath = txtSavePath.Text;
+                _currentSettings.SingleVideoOnly = ChkSingleVideo.IsChecked ?? false;
+                _currentSettings.DownloadSubtitle = SubtitleCheckBox.IsChecked ?? false;
+                _currentSettings.SubtitleLang = GetComboBoxValue(SubtitleLangComboBox);
+                _currentSettings.SubtitleFormat = GetComboBoxValue(SubtitleFormatComboBox);
+                _currentSettings.SaveThumbnail = ChkWriteThumbnail.IsChecked ?? false;
+                _currentSettings.UseStructuredFolder = ChkStructuredFolders.IsChecked ?? false;
+                _currentSettings.Format = (VideoFormat)(comboFormat.SelectedIndex >= 0 ? comboFormat.SelectedIndex : 0);
+                _currentSettings.MaxDownloads = int.TryParse(txtMaxDownloads.Text, out int n) ? n : 5;
+
+                _settingsService.SaveSettings(_currentSettings);
             }
             catch (Exception ex)
             {
@@ -729,6 +163,9 @@ namespace ytDownloader
             }
         }
 
+        /// <summary>
+        /// ComboBox에 값 설정
+        /// </summary>
         private void SetComboBoxValue(System.Windows.Controls.ComboBox comboBox, string value)
         {
             if (comboBox.IsEditable)
@@ -742,7 +179,6 @@ namespace ytDownloader
                     var item = comboBox.Items[i];
                     string itemValue = "";
 
-                    // ComboBoxItem인 경우 Content 추출
                     if (item is System.Windows.Controls.ComboBoxItem comboBoxItem)
                     {
                         itemValue = comboBoxItem.Content?.ToString() ?? "";
@@ -758,16 +194,17 @@ namespace ytDownloader
                         return;
                     }
                 }
-                // 항목이 없으면 Text로 설정 시도
                 comboBox.Text = value;
             }
         }
 
+        /// <summary>
+        /// ComboBox에서 값 가져오기
+        /// </summary>
         private string GetComboBoxValue(System.Windows.Controls.ComboBox comboBox)
         {
             if (comboBox.SelectedItem != null)
             {
-                // ComboBoxItem인 경우 Content 추출
                 if (comboBox.SelectedItem is System.Windows.Controls.ComboBoxItem item)
                 {
                     return item.Content?.ToString() ?? "";
@@ -777,26 +214,9 @@ namespace ytDownloader
             return comboBox.Text ?? "";
         }
 
-        private void AttachSettingsEventHandlers()
-        {
-            // UI 컨트롤 변경 시 즉시 저장
-            txtSavePath.TextChanged += (s, e) => SaveSettings();
-            ChkSingleVideo.Checked += (s, e) => SaveSettings();
-            ChkSingleVideo.Unchecked += (s, e) => SaveSettings();
-            SubtitleCheckBox.Checked += (s, e) => SaveSettings();
-            SubtitleCheckBox.Unchecked += (s, e) => SaveSettings();
-            SubtitleLangComboBox.SelectionChanged += (s, e) => SaveSettings();
-            SubtitleLangComboBox.AddHandler(System.Windows.Controls.Primitives.TextBoxBase.TextChangedEvent, new System.Windows.Controls.TextChangedEventHandler((s, e) => SaveSettings()));
-            SubtitleFormatComboBox.SelectionChanged += (s, e) => SaveSettings();
-            SubtitleFormatComboBox.AddHandler(System.Windows.Controls.Primitives.TextBoxBase.TextChangedEvent, new System.Windows.Controls.TextChangedEventHandler((s, e) => SaveSettings()));
-            ChkWriteThumbnail.Checked += (s, e) => SaveSettings();
-            ChkWriteThumbnail.Unchecked += (s, e) => SaveSettings();
-            ChkStructuredFolders.Checked += (s, e) => SaveSettings();
-            ChkStructuredFolders.Unchecked += (s, e) => SaveSettings();
-            comboFormat.SelectionChanged += (s, e) => SaveSettings();
-            txtMaxDownloads.TextChanged += (s, e) => SaveSettings();
-        }
-
+        /// <summary>
+        /// 로그 출력
+        /// </summary>
         private void AppendOutput(string message)
         {
             Dispatcher.Invoke(() =>
@@ -806,228 +226,86 @@ namespace ytDownloader
             });
         }
 
-        private void StartDownload(string url, bool isChannelMode = false)
+        /// <summary>
+        /// 다운로드 진행률 변경 이벤트
+        /// </summary>
+        private void OnDownloadProgressChanged(object? sender, DownloadProgressEventArgs e)
         {
-            if (!File.Exists(ytdlpPath) || !File.Exists(ffmpegPath))
-            {
-                AppendOutput("❌ tools 폴더에 yt-dlp.exe 또는 ffmpeg.exe가 없습니다.");
-                return;
-            }
-
-            string savePath = txtSavePath.Text;
-            if (string.IsNullOrWhiteSpace(savePath))
-            {
-                AppendOutput("❌ 저장 경로가 비어 있습니다.");
-                return;
-            }
-
-            Directory.CreateDirectory(savePath);
-
-            string timestamp = DateTime.Now.ToString("yyyyMMdd_HHmmss");
-
-            StringBuilder args = new StringBuilder();
-
-            // 한글 출력을 위한 환경 변수 설정을 위해 args에 추가
-            args.Append("--encoding utf-8 ");
-
-            if (comboFormat.SelectedIndex == 0)
-            {
-                string outputTemplate = $"%(title)s_{timestamp}_best.%(ext)s";
-                args.Append($"-o \"{Path.Combine(savePath, outputTemplate)}\" ");
-                args.Append("-f bestvideo+bestaudio ");
-            }
-            else if (comboFormat.SelectedIndex == 1)
-            {
-                string outputTemplate = $"%(title)s_{timestamp}_1080p.%(ext)s";
-                args.Append($"-o \"{Path.Combine(savePath, outputTemplate)}\" ");
-                args.Append("-f \"bestvideo[height=1080]+bestaudio/best[height=1080]\" ");
-            }
-            else if (comboFormat.SelectedIndex == 2)
-            {
-                string outputTemplate = $"%(title)s_{timestamp}_720p.%(ext)s";
-                args.Append($"-o \"{Path.Combine(savePath, outputTemplate)}\" ");
-                args.Append("-f \"bestvideo[height=720]+bestaudio/best[height=720]\" ");
-            }
-            else if (comboFormat.SelectedIndex == 3)
-            {
-                string outputTemplate = $"%(title)s_{timestamp}_480p.%(ext)s";
-                args.Append($"-o \"{Path.Combine(savePath, outputTemplate)}\" ");
-                args.Append("-f \"bestvideo[height=480]+bestaudio/best[height=480]\" ");
-            }
-            else if (comboFormat.SelectedIndex == 4)
-            {
-                string outputTemplate = $"%(title)s_{timestamp}_audio_mp3.%(ext)s";
-                args.Append($"-o \"{Path.Combine(savePath, outputTemplate)}\" ");
-                args.Append("--extract-audio --audio-format mp3 --audio-quality 0 ");
-                args.Append("--embed-thumbnail --add-metadata ");
-            }
-            else if (comboFormat.SelectedIndex == 5)
-            {
-                string outputTemplate = $"%(title)s_{timestamp}_audio_best.%(ext)s";
-                args.Append($"-o \"{Path.Combine(savePath, outputTemplate)}\" ");
-                args.Append("--extract-audio --audio-format best ");
-                args.Append("--embed-thumbnail --add-metadata ");
-            }
-            else if (comboFormat.SelectedIndex == 6)
-            {
-                string outputTemplate = $"%(title)s_{timestamp}_audio_flac.%(ext)s";
-                args.Append($"-o \"{Path.Combine(savePath, outputTemplate)}\" ");
-                args.Append("--extract-audio --audio-format flac ");
-                args.Append("--embed-thumbnail --add-metadata ");
-            }
-
-            if (ChkSingleVideo.IsChecked == true)
-                args.Append("--no-playlist ");
-
-            if (SubtitleCheckBox.IsChecked == true)
-                args.Append($"--write-sub --sub-lang {SubtitleLangComboBox.Text} --sub-format {SubtitleFormatComboBox.Text} ");
-
-            if (ChkWriteThumbnail.IsChecked == true)
-                args.Append("--write-thumbnail ");
-
-            if (ChkStructuredFolders.IsChecked == true)
-            {
-                string structuredTemplate = $"%(uploader)s/%(playlist)s/%(title)s_{timestamp}_%(ext)s.%(ext)s";
-                args.Append($"-o \"{Path.Combine(savePath, structuredTemplate)}\" ");
-            }
-
-            if (isChannelMode)
-            {
-                int max = int.TryParse(txtMaxDownloads.Text, out int n) ? n : 5;
-                args.Append($"--max-downloads {max} ");
-            }
-
-            args.Append("--windows-filenames ");
-            args.Append($"\"{url}\"");
-
             Dispatcher.Invoke(() =>
             {
-                progressBar.Value = 0;
-                txtSpeed.Text = "-";
-                txtEta.Text = "-";
-            });
-
-            Task.Run(() =>
-            {
-                try
-                {
-                    ProcessStartInfo psi = new ProcessStartInfo
-                    {
-                        FileName = ytdlpPath,
-                        Arguments = args.ToString(),
-                        RedirectStandardError = true,
-                        RedirectStandardOutput = true,
-                        UseShellExecute = false,
-                        CreateNoWindow = true,
-                        StandardOutputEncoding = Encoding.UTF8,
-                        StandardErrorEncoding = Encoding.UTF8
-                    };
-
-                    // 환경 변수 설정으로 UTF-8 출력 강제
-                    psi.EnvironmentVariables["PYTHONIOENCODING"] = "utf-8";
-                    psi.EnvironmentVariables["PYTHONUTF8"] = "1";
-
-                    using (Process proc = new Process())
-                    {
-                        proc.StartInfo = psi;
-                        proc.OutputDataReceived += (s, e) =>
-                        {
-                            if (!string.IsNullOrEmpty(e.Data))
-                            {
-                                // UTF-8로 다시 디코딩 시도
-                                string decodedData = e.Data;
-                                try
-                                {
-                                    // CP949로 인코딩된 바이트를 UTF-8로 재해석
-                                    byte[] bytes = Encoding.GetEncoding("CP949").GetBytes(e.Data);
-                                    decodedData = Encoding.UTF8.GetString(bytes);
-                                }
-                                catch
-                                {
-                                    // 변환 실패시 원본 사용
-                                    decodedData = e.Data;
-                                }
-
-                                AppendOutput(decodedData);
-
-                                var match = Regex.Match(decodedData, @"(\d+(?:\.\d+)?)%.*?of.*?at\s+([0-9.]+\w+/s).*?ETA\s+([\d:]+)");
-                                if (match.Success)
-                                {
-                                    double percent = double.Parse(match.Groups[1].Value);
-                                    string speed = match.Groups[2].Value;
-                                    string eta = match.Groups[3].Value;
-
-                                    Dispatcher.Invoke(() =>
-                                    {
-                                        progressBar.Value = percent;
-                                        txtSpeed.Text = speed;
-                                        txtEta.Text = eta;
-                                    });
-                                }
-                            }
-                        };
-
-                        proc.ErrorDataReceived += (s, e) =>
-                        {
-                            if (!string.IsNullOrEmpty(e.Data))
-                            {
-                                // 에러 출력도 동일하게 처리
-                                string decodedData = e.Data;
-                                try
-                                {
-                                    byte[] bytes = Encoding.GetEncoding("CP949").GetBytes(e.Data);
-                                    decodedData = Encoding.UTF8.GetString(bytes);
-                                }
-                                catch
-                                {
-                                    decodedData = e.Data;
-                                }
-                                AppendOutput(decodedData);
-                            }
-                        };
-
-                        proc.Start();
-                        proc.BeginOutputReadLine();
-                        proc.BeginErrorReadLine();
-                        proc.WaitForExit();
-                    }
-
-                    AppendOutput("✅ 다운로드 완료");
-                    Dispatcher.Invoke(() =>
-                    {
-                        progressBar.Value = 100;
-                        txtSpeed.Text = "-";
-                        txtEta.Text = "완료 ✅";
-                    });
-                }
-                catch (Exception ex)
-                {
-                    AppendOutput("❌ 오류: " + ex.Message);
-                }
+                progressBar.Value = e.Percent;
+                txtSpeed.Text = e.Speed;
+                txtEta.Text = e.Eta;
             });
         }
 
-
-
+        /// <summary>
+        /// URL 다운로드 버튼 클릭
+        /// </summary>
         private void btnDownload_Click(object sender, RoutedEventArgs e)
         {
             string[] urls = txtUrls.Text.Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries);
             foreach (var url in urls)
-                StartDownload(url, false);
+            {
+                var options = DownloadOptions.FromAppSettings(_currentSettings, url.Trim(), isChannelMode: false);
+                _ = _downloadService.StartDownloadAsync(options);
+            }
         }
 
+        /// <summary>
+        /// 채널 다운로드 버튼 클릭
+        /// </summary>
         private void btnChannelDownload_Click(object sender, RoutedEventArgs e)
         {
             string[] urls = txtChannelUrl.Text.Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries);
             foreach (var url in urls)
-                StartDownload(url, true);
+            {
+                var options = DownloadOptions.FromAppSettings(_currentSettings, url.Trim(), isChannelMode: true);
+                _ = _downloadService.StartDownloadAsync(options);
+            }
         }
 
-        private void btnPaste_Click(object sender, RoutedEventArgs e) => txtUrls.AppendText(Clipboard.ContainsText() ? Clipboard.GetText() + Environment.NewLine : "");
-        private void btnUrlsClear_Click(object sender, RoutedEventArgs e) => txtUrls.Clear();
-        private void btnChannelPaste_Click(object sender, RoutedEventArgs e) => txtChannelUrl.AppendText(Clipboard.ContainsText() ? Clipboard.GetText() + Environment.NewLine : "");
-        private void btnChannelClear_Click(object sender, RoutedEventArgs e) => txtChannelUrl.Clear();
+        /// <summary>
+        /// 붙여넣기 버튼 (URL)
+        /// </summary>
+        private void btnPaste_Click(object sender, RoutedEventArgs e)
+        {
+            if (Clipboard.ContainsText())
+            {
+                txtUrls.AppendText(Clipboard.GetText() + Environment.NewLine);
+            }
+        }
 
+        /// <summary>
+        /// 지우기 버튼 (URL)
+        /// </summary>
+        private void btnUrlsClear_Click(object sender, RoutedEventArgs e)
+        {
+            txtUrls.Clear();
+        }
+
+        /// <summary>
+        /// 붙여넣기 버튼 (채널)
+        /// </summary>
+        private void btnChannelPaste_Click(object sender, RoutedEventArgs e)
+        {
+            if (Clipboard.ContainsText())
+            {
+                txtChannelUrl.AppendText(Clipboard.GetText() + Environment.NewLine);
+            }
+        }
+
+        /// <summary>
+        /// 지우기 버튼 (채널)
+        /// </summary>
+        private void btnChannelClear_Click(object sender, RoutedEventArgs e)
+        {
+            txtChannelUrl.Clear();
+        }
+
+        /// <summary>
+        /// 저장 경로 찾기 버튼
+        /// </summary>
         private void btnBrowse_Click(object sender, RoutedEventArgs e)
         {
             using (var dialog = new System.Windows.Forms.FolderBrowserDialog())
@@ -1039,13 +317,20 @@ namespace ytDownloader
             }
         }
 
+        /// <summary>
+        /// 폴더 열기 버튼
+        /// </summary>
         private void btnOpenFolder_Click(object sender, RoutedEventArgs e)
         {
             if (Directory.Exists(txtSavePath.Text))
+            {
                 Process.Start("explorer.exe", txtSavePath.Text);
+            }
         }
 
-
+        /// <summary>
+        /// 하이퍼링크 클릭 이벤트
+        /// </summary>
         private void Hyperlink_RequestNavigate(object sender, RequestNavigateEventArgs e)
         {
             Process.Start(new ProcessStartInfo
@@ -1056,6 +341,9 @@ namespace ytDownloader
             e.Handled = true;
         }
 
+        /// <summary>
+        /// 프로그램 재시작 버튼
+        /// </summary>
         private void pgRestart_Click(object sender, RoutedEventArgs e)
         {
             try
@@ -1067,14 +355,12 @@ namespace ytDownloader
                     return;
                 }
 
-                // 현재 프로그램 다시 실행
                 Process.Start(new ProcessStartInfo
                 {
                     FileName = exePath,
                     UseShellExecute = true
                 });
 
-                // 현재 인스턴스 종료
                 Application.Current.Shutdown();
             }
             catch (Exception ex)
@@ -1083,10 +369,71 @@ namespace ytDownloader
             }
         }
 
-
+        /// <summary>
+        /// 창 닫기 이벤트
+        /// </summary>
         private void Window_Closing(object sender, CancelEventArgs e)
         {
-            // 설정  실시간으로 저장
+            // 설정은 실시간으로 저장되므로 추가 작업 불필요
+        }
+
+        // ===== 메뉴 이벤트 핸들러 =====
+
+        /// <summary>
+        /// 메뉴: 종료
+        /// </summary>
+        private void MenuExit_Click(object sender, RoutedEventArgs e)
+        {
+            Application.Current.Shutdown();
+        }
+
+        /// <summary>
+        /// 메뉴: GitHub 릴리스
+        /// </summary>
+        private void MenuGitHub_Click(object sender, RoutedEventArgs e)
+        {
+            Process.Start(new ProcessStartInfo
+            {
+                FileName = "https://github.com/gloriouslegacy/ytDownloader/releases",
+                UseShellExecute = true
+            });
+        }
+
+        /// <summary>
+        /// 메뉴: yt-dlp 릴리스
+        /// </summary>
+        private void MenuYtDlp_Click(object sender, RoutedEventArgs e)
+        {
+            Process.Start(new ProcessStartInfo
+            {
+                FileName = "https://github.com/yt-dlp/yt-dlp/releases",
+                UseShellExecute = true
+            });
+        }
+
+        /// <summary>
+        /// 메뉴: 정보
+        /// </summary>
+        private void MenuAbout_Click(object sender, RoutedEventArgs e)
+        {
+            string version = Assembly.GetExecutingAssembly()
+                .GetCustomAttribute<AssemblyInformationalVersionAttribute>()?
+                .InformationalVersion ?? "0.0.0";
+
+            // '+' 뒤 빌드 메타데이터 제거
+            int plusIdx = version.IndexOf('+');
+            if (plusIdx >= 0)
+                version = version.Substring(0, plusIdx);
+
+            MessageBox.Show(
+                $"ytDownloader v{version}\n\n" +
+                $"YouTube 다운로더 (yt-dlp 기반)\n\n" +
+                $"© gloriouslegacy\n" +
+                $"https://github.com/gloriouslegacy/ytDownloader",
+                "정보",
+                MessageBoxButton.OK,
+                MessageBoxImage.Information
+            );
         }
     }
 }
