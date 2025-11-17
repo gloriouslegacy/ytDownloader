@@ -76,7 +76,7 @@ namespace ytDownloader.Services
                     : latestTag;
 
                 // 문자열을 Version 객체로 변환
-                Version currentV, latestV;
+                Version? currentV, latestV;
                 if (!Version.TryParse(currentVersionStr, out currentV))
                     currentV = new Version(0, 0, 0);
 

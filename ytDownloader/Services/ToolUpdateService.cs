@@ -187,7 +187,7 @@ namespace ytDownloader.Services
 
                     if (asset != null)
                     {
-                        string downloadUrl = asset["browser_download_url"]?.ToString();
+                        string? downloadUrl = asset["browser_download_url"]?.ToString();
                         if (!string.IsNullOrEmpty(downloadUrl))
                         {
                             await DownloadAndExtractFfmpegAsync(downloadUrl);
