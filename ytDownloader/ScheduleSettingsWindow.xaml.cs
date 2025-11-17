@@ -194,7 +194,7 @@ namespace ytDownloader
 
             if (taskName != null)
             {
-                // 스케줄러별 설정 저장
+                // 스케줄러별 설정 저장 (개별 파일로)
                 var schedulerSettings = new SchedulerSettings
                 {
                     TaskName = taskName,
@@ -207,8 +207,8 @@ namespace ytDownloader
                     MaxDownloads = maxDownloads
                 };
 
-                _currentSettings.SchedulerSettingsMap[taskName] = schedulerSettings;
-                _settingsService.SaveSettings(_currentSettings);
+                // 개별 파일로 저장
+                _settingsService.SaveSchedulerSettings(schedulerSettings);
 
                 MessageBox.Show(
                     $"자동 예약이 등록되었습니다.\n\n" +
@@ -269,12 +269,8 @@ namespace ytDownloader
 
                 if (success)
                 {
-                    // 관련 스케줄러 설정도 함께 삭제
-                    if (_currentSettings.SchedulerSettingsMap.ContainsKey(selectedTask.TaskName))
-                    {
-                        _currentSettings.SchedulerSettingsMap.Remove(selectedTask.TaskName);
-                        _settingsService.SaveSettings(_currentSettings);
-                    }
+                    // 관련 스케줄러 설정 파일도 함께 삭제
+                    _settingsService.DeleteSchedulerSettings(selectedTask.TaskName);
 
                     MessageBox.Show("자동 예약이 삭제되었습니다.", "삭제 완료", MessageBoxButton.OK, MessageBoxImage.Information);
                     UpdateStatus();
@@ -313,20 +309,16 @@ namespace ytDownloader
 
             if (result == MessageBoxResult.Yes)
             {
-                // 각 태스크의 설정도 함께 삭제
+                // 각 태스크의 설정 파일도 함께 삭제
                 foreach (var task in tasks)
                 {
-                    if (_currentSettings.SchedulerSettingsMap.ContainsKey(task.TaskName))
-                    {
-                        _currentSettings.SchedulerSettingsMap.Remove(task.TaskName);
-                    }
+                    _settingsService.DeleteSchedulerSettings(task.TaskName);
                 }
 
                 int deletedCount = _schedulerService.DeleteAllScheduledTasks();
 
                 if (deletedCount > 0)
                 {
-                    _settingsService.SaveSettings(_currentSettings);
 
                     MessageBox.Show(
                         $"{deletedCount}개의 자동 예약이 삭제되었습니다.",

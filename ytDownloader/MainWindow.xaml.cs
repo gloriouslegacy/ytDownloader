@@ -1156,11 +1156,8 @@ namespace ytDownloader
                     {
                         successCount++;
 
-                        // 관련 스케줄러 설정도 함께 삭제
-                        if (_currentSettings.SchedulerSettingsMap.ContainsKey(task.TaskName))
-                        {
-                            _currentSettings.SchedulerSettingsMap.Remove(task.TaskName);
-                        }
+                        // 관련 스케줄러 설정 파일도 함께 삭제
+                        _settingsService.DeleteSchedulerSettings(task.TaskName);
 
                         AppendOutput($"✅ 자동 예약 삭제: {task.TaskName}");
                     }
@@ -1253,20 +1250,16 @@ namespace ytDownloader
 
             if (result == MessageBoxResult.Yes)
             {
-                // 각 태스크의 설정도 함께 삭제
+                // 각 태스크의 설정 파일도 함께 삭제
                 foreach (var task in tasks)
                 {
-                    if (_currentSettings.SchedulerSettingsMap.ContainsKey(task.TaskName))
-                    {
-                        _currentSettings.SchedulerSettingsMap.Remove(task.TaskName);
-                    }
+                    _settingsService.DeleteSchedulerSettings(task.TaskName);
                 }
 
                 int deletedCount = schedulerService.DeleteAllScheduledTasks();
 
                 if (deletedCount > 0)
                 {
-                    _settingsService.SaveSettings(_currentSettings);
 
                     string successMessage = _currentSettings.Language == "ko"
                         ? $"{deletedCount}개의 자동 예약이 삭제되었습니다."
