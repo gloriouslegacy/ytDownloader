@@ -235,6 +235,7 @@ namespace ytDownloader
             Dispatcher.Invoke(() =>
             {
                 progressBar.Value = e.Percent;
+                txtProgress.Text = $"{e.Percent:F0}%";
                 txtSpeed.Text = e.Speed;
                 txtEta.Text = e.Eta;
             });
