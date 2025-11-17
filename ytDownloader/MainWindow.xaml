@@ -453,10 +453,10 @@
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
             <!--  메뉴바  -->
-            <RowDefinition Height="5*" />
-            <!--  TabControl (50%)  -->
-            <RowDefinition Height="5*" />
-            <!--  로그창 (50%)  -->
+            <RowDefinition Height="8*" />
+            <!--  TabControl (80%)  -->
+            <RowDefinition Height="2*" />
+            <!--  로그창 (20%)  -->
         </Grid.RowDefinitions>
 
         <!--  메뉴바  -->
@@ -832,7 +832,7 @@
                                     SelectionMode="Multiple">
                                     <ListBox.ItemTemplate>
                                         <DataTemplate>
-                                            <CheckBox Content="{Binding}" IsChecked="{Binding RelativeSource={RelativeSource AncestorType=ListBoxItem}, Path=IsSelected}" />
+                                            <CheckBox Content="{Binding}" IsChecked="{Binding RelativeSource={RelativeSource AncestorType=ListBoxItem}, Path=IsSelected, Mode=TwoWay}" />
                                         </DataTemplate>
                                     </ListBox.ItemTemplate>
                                 </ListBox>
@@ -937,7 +937,7 @@
                                     SelectionMode="Multiple">
                                     <ListBox.ItemTemplate>
                                         <DataTemplate>
-                                            <CheckBox Content="{Binding}" IsChecked="{Binding RelativeSource={RelativeSource AncestorType=ListBoxItem}, Path=IsSelected}" />
+                                            <CheckBox Content="{Binding}" IsChecked="{Binding RelativeSource={RelativeSource AncestorType=ListBoxItem}, Path=IsSelected, Mode=TwoWay}" />
                                         </DataTemplate>
                                     </ListBox.ItemTemplate>
                                 </ListBox>
