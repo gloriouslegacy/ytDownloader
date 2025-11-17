@@ -716,11 +716,16 @@
                                     Content="{DynamicResource CheckBox_EnableNotification}"
                                     ToolTip="{DynamicResource ToolTip_EnableNotification}" />
 
-                                <!--  프로그램 재시작 버튼  -->
+                                <!--  다운로드중지 및 프로그램 재시작 버튼  -->
                                 <StackPanel
                                     Margin="0,20,0,0"
                                     HorizontalAlignment="Right"
                                     Orientation="Horizontal">
+                                    <Button
+                                        Width="140"
+                                        Click="btnStopDownload_Click"
+                                        Content="다운로드 중지"
+                                        ToolTip="진행 중인 다운로드를 중지합니다" />
                                     <Button
                                         Width="140"
                                         Click="pgRestart_Click"
@@ -821,30 +826,66 @@
                                 </DockPanel>
 
                                 <!--  예약 목록  -->
-                                <ListBox
+                                <DataGrid
                                     Name="lstScheduledChannels"
                                     Grid.Row="2"
                                     Margin="5"
+                                    AutoGenerateColumns="False"
                                     Background="{DynamicResource PrimaryBackgroundBrush}"
                                     BorderBrush="{DynamicResource BorderBrush}"
                                     BorderThickness="1"
-                                    Foreground="{DynamicResource PrimaryTextBrush}"
-                                    SelectionMode="Multiple">
-                                    <ListBox.ItemContainerStyle>
-                                        <Style TargetType="ListBoxItem">
-                                            <Setter Property="HorizontalContentAlignment" Value="Stretch" />
-                                            <Setter Property="Padding" Value="2" />
+                                    CanUserAddRows="False"
+                                    CanUserDeleteRows="False"
+                                    CanUserReorderColumns="False"
+                                    CanUserResizeRows="False"
+                                    HeadersVisibility="Column"
+                                    IsReadOnly="True"
+                                    SelectionMode="Extended">
+                                    <DataGrid.Resources>
+                                        <Style TargetType="DataGridColumnHeader">
+                                            <Setter Property="Background" Value="{DynamicResource SecondaryBackgroundBrush}" />
+                                            <Setter Property="Foreground" Value="{DynamicResource PrimaryTextBrush}" />
+                                            <Setter Property="FontWeight" Value="Bold" />
+                                            <Setter Property="Padding" Value="8,5" />
+                                            <Setter Property="BorderBrush" Value="{DynamicResource BorderBrush}" />
+                                            <Setter Property="BorderThickness" Value="0,0,1,1" />
                                         </Style>
-                                    </ListBox.ItemContainerStyle>
-                                    <ListBox.ItemTemplate>
-                                        <DataTemplate>
-                                            <CheckBox
-                                                Content="{Binding}"
-                                                IsChecked="{Binding RelativeSource={RelativeSource AncestorType=ListBoxItem}, Path=IsSelected, Mode=TwoWay}"
-                                                Click="CheckBox_Click" />
-                                        </DataTemplate>
-                                    </ListBox.ItemTemplate>
-                                </ListBox>
+                                        <Style TargetType="DataGridCell">
+                                            <Setter Property="Foreground" Value="{DynamicResource PrimaryTextBrush}" />
+                                            <Setter Property="Background" Value="Transparent" />
+                                            <Setter Property="BorderBrush" Value="{DynamicResource BorderBrush}" />
+                                            <Setter Property="Padding" Value="5" />
+                                            <Style.Triggers>
+                                                <Trigger Property="IsSelected" Value="True">
+                                                    <Setter Property="Background" Value="{DynamicResource HoverBackgroundBrush}" />
+                                                    <Setter Property="Foreground" Value="{DynamicResource PrimaryTextBrush}" />
+                                                </Trigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                        <Style TargetType="DataGridRow">
+                                            <Setter Property="Background" Value="{DynamicResource PrimaryBackgroundBrush}" />
+                                            <Setter Property="Foreground" Value="{DynamicResource PrimaryTextBrush}" />
+                                            <Style.Triggers>
+                                                <Trigger Property="IsSelected" Value="True">
+                                                    <Setter Property="Background" Value="{DynamicResource HoverBackgroundBrush}" />
+                                                </Trigger>
+                                                <Trigger Property="IsMouseOver" Value="True">
+                                                    <Setter Property="Background" Value="{DynamicResource SecondaryBackgroundBrush}" />
+                                                </Trigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </DataGrid.Resources>
+                                    <DataGrid.Columns>
+                                        <DataGridTextColumn
+                                            Width="*"
+                                            Binding="{Binding Name}"
+                                            Header="채널 이름" />
+                                        <DataGridTextColumn
+                                            Width="2*"
+                                            Binding="{Binding Url}"
+                                            Header="URL" />
+                                    </DataGrid.Columns>
+                                </DataGrid>
 
                                 <!--  버튼  -->
                                 <StackPanel
@@ -911,16 +952,7 @@
                                             Unchecked="chkSelectAllAuto_Changed" />
                                     </DockPanel>
                                     <TextBlock
-
-                                        TextWrapping="Wrap"
-
-                                        FontSize="16"
-                                        FontWeight="Bold"
-                                        Foreground="{DynamicResource PrimaryTextBrush}"
-                                        Text="{DynamicResource Label_AutoSchedule}" />
-                                    <TextBlock
                                         Margin="0,10,0,0"
-
                                         Foreground="{DynamicResource SecondaryTextBrush}"
                                         Text="{DynamicResource Description_AutoSchedule}"
                                         TextWrapping="Wrap" />
@@ -935,30 +967,62 @@
                                     Text="등록된 스케줄 목록" />
 
                                 <!--  스케줄 목록  -->
-                                <ListBox
+                                <DataGrid
                                     Name="lstAutoScheduledTasks"
                                     Grid.Row="2"
                                     Margin="0,0,0,15"
+                                    AutoGenerateColumns="False"
                                     Background="{DynamicResource PrimaryBackgroundBrush}"
                                     BorderBrush="{DynamicResource BorderBrush}"
                                     BorderThickness="1"
-                                    Foreground="{DynamicResource PrimaryTextBrush}"
-                                    SelectionMode="Multiple">
-                                    <ListBox.ItemContainerStyle>
-                                        <Style TargetType="ListBoxItem">
-                                            <Setter Property="HorizontalContentAlignment" Value="Stretch" />
-                                            <Setter Property="Padding" Value="2" />
+                                    CanUserAddRows="False"
+                                    CanUserDeleteRows="False"
+                                    CanUserReorderColumns="False"
+                                    CanUserResizeRows="False"
+                                    HeadersVisibility="Column"
+                                    IsReadOnly="True"
+                                    SelectionMode="Extended">
+                                    <DataGrid.Resources>
+                                        <Style TargetType="DataGridColumnHeader">
+                                            <Setter Property="Background" Value="{DynamicResource SecondaryBackgroundBrush}" />
+                                            <Setter Property="Foreground" Value="{DynamicResource PrimaryTextBrush}" />
+                                            <Setter Property="FontWeight" Value="Bold" />
+                                            <Setter Property="Padding" Value="8,5" />
+                                            <Setter Property="BorderBrush" Value="{DynamicResource BorderBrush}" />
+                                            <Setter Property="BorderThickness" Value="0,0,1,1" />
                                         </Style>
-                                    </ListBox.ItemContainerStyle>
-                                    <ListBox.ItemTemplate>
-                                        <DataTemplate>
-                                            <CheckBox
-                                                Content="{Binding}"
-                                                IsChecked="{Binding RelativeSource={RelativeSource AncestorType=ListBoxItem}, Path=IsSelected, Mode=TwoWay}"
-                                                Click="CheckBox_Click" />
-                                        </DataTemplate>
-                                    </ListBox.ItemTemplate>
-                                </ListBox>
+                                        <Style TargetType="DataGridCell">
+                                            <Setter Property="Foreground" Value="{DynamicResource PrimaryTextBrush}" />
+                                            <Setter Property="Background" Value="Transparent" />
+                                            <Setter Property="BorderBrush" Value="{DynamicResource BorderBrush}" />
+                                            <Setter Property="Padding" Value="5" />
+                                            <Style.Triggers>
+                                                <Trigger Property="IsSelected" Value="True">
+                                                    <Setter Property="Background" Value="{DynamicResource HoverBackgroundBrush}" />
+                                                    <Setter Property="Foreground" Value="{DynamicResource PrimaryTextBrush}" />
+                                                </Trigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                        <Style TargetType="DataGridRow">
+                                            <Setter Property="Background" Value="{DynamicResource PrimaryBackgroundBrush}" />
+                                            <Setter Property="Foreground" Value="{DynamicResource PrimaryTextBrush}" />
+                                            <Style.Triggers>
+                                                <Trigger Property="IsSelected" Value="True">
+                                                    <Setter Property="Background" Value="{DynamicResource HoverBackgroundBrush}" />
+                                                </Trigger>
+                                                <Trigger Property="IsMouseOver" Value="True">
+                                                    <Setter Property="Background" Value="{DynamicResource SecondaryBackgroundBrush}" />
+                                                </Trigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </DataGrid.Resources>
+                                    <DataGrid.Columns>
+                                        <DataGridTextColumn
+                                            Width="*"
+                                            Binding="{Binding DisplayText}"
+                                            Header="스케줄 정보" />
+                                    </DataGrid.Columns>
+                                </DataGrid>
 
                                 <!--  버튼  -->
                                 <StackPanel

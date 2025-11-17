@@ -1116,7 +1116,9 @@ namespace ytDownloader
 
                 if (tasks.Count == 0)
                 {
-                    lstAutoScheduledTasks.Items.Add("등록된 스케줄이 없습니다.");
+                    // DataGrid는 문자열을 직접 추가할 수 없으므로, 빈 메시지를 표시하는 대신
+                    // 단순히 비어있는 상태로 둡니다
+                    // 사용자는 빈 그리드를 보고 스케줄이 없다는 것을 알 수 있습니다
                 }
                 else
                 {
@@ -1142,36 +1144,18 @@ namespace ytDownloader
         /// </summary>
         private void btnDeleteSelectedAutoSchedule_Click(object sender, RoutedEventArgs e)
         {
-            if (lstAutoScheduledTasks.SelectedItems == null || lstAutoScheduledTasks.SelectedItems.Count == 0)
-            {
-                string message = _currentSettings.Language == "ko"
-                    ? "삭제할 스케줄을 선택해주세요."
-                    : "Please select schedules to delete.";
-                string title = _currentSettings.Language == "ko"
-                    ? "알림"
-                    : "Notice";
-                MessageBox.Show(message, title, MessageBoxButton.OK, MessageBoxImage.Information);
-                return;
-            }
-
-            // "등록된 스케줄이 없습니다." 문자열 체크
-            if (lstAutoScheduledTasks.SelectedItems.Count > 0 && lstAutoScheduledTasks.SelectedItems[0] is string)
-            {
-                string message = _currentSettings.Language == "ko"
-                    ? "삭제할 스케줄을 선택해주세요."
-                    : "Please select schedules to delete.";
-                string title = _currentSettings.Language == "ko"
-                    ? "알림"
-                    : "Notice";
-                MessageBox.Show(message, title, MessageBoxButton.OK, MessageBoxImage.Information);
-                return;
-            }
-
             // 선택된 항목들을 리스트로 복사
             var selectedTasks = lstAutoScheduledTasks.SelectedItems.OfType<ScheduleTaskInfo>().ToList();
 
             if (selectedTasks.Count == 0)
             {
+                string message = _currentSettings.Language == "ko"
+                    ? "삭제할 스케줄을 선택해주세요."
+                    : "Please select schedules to delete.";
+                string title = _currentSettings.Language == "ko"
+                    ? "알림"
+                    : "Notice";
+                MessageBox.Show(message, title, MessageBoxButton.OK, MessageBoxImage.Information);
                 return;
             }
 
@@ -1331,15 +1315,6 @@ namespace ytDownloader
             }
         }
 
-        /// <summary>
-        /// ListBox 내 CheckBox 클릭 이벤트 핸들러
-        /// CheckBox를 클릭하면 부모 ListBoxItem의 선택 상태를 토글합니다
-        /// </summary>
-        private void CheckBox_Click(object sender, RoutedEventArgs e)
-        {
-            // 이벤트가 ListBoxItem으로 전파되지 않도록 처리됨
-            // IsChecked 바인딩이 자동으로 ListBoxItem의 IsSelected를 업데이트함
-        }
     }
 
     /// <summary>
