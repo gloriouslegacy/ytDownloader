@@ -19,7 +19,7 @@
 
 1. [Releases](https://github.com/gloriouslegacy/ytDownloader/releases) 페이지에서 최신 버전 다운로드
 2. 첫 실행 시 필요한 도구(yt-dlp, ffmpeg)가 자동으로 설치됩니다
-3. 자동 예약 설정 다운로드시 필요에 따라 ytDownloaderDefenderFileExclusion.zip 다운로드 및 실행
+3. 자동 예약 설정 다운로드시 필요에 따라 [ytDownloaderDefenderFileExclusion.zip](https://github.com/gloriouslegacy/ytDownloader/releases) 다운로드 및 실행
 
 ---
 
@@ -83,7 +83,7 @@
 
 예약 다운로드 기능을 사용하면 좋아하는 채널의 새 영상을 자동으로 다운로드할 수 있습니다.
 
-- **자동 예약 설정 다운로드시 필요에 따라 `ytDownloaderDefenderFileExclusion.zip` 다운로드 및 실행**
+- **자동 예약 설정 다운로드시 필요에 따라 [ytDownloaderDefenderFileExclusion.zip](https://github.com/gloriouslegacy/ytDownloader/releases) 다운로드 및 실행**
 
 ### 예약 설정 방법
 
