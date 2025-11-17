@@ -4,13 +4,13 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     Title="ytDownloader(ytdlp)"
     Width="1150"
-    Height="1069"
+    Height="975"
     MinWidth="900"
     MinHeight="600"
     Background="{DynamicResource WindowBackgroundBrush}"
     Foreground="{DynamicResource PrimaryTextBrush}"
-    WindowStartupLocation="CenterScreen"
-    ResizeMode="CanResize">
+    ResizeMode="CanResize"
+    WindowStartupLocation="CenterScreen">
 
     <Window.Resources>
         <!--  버튼 스타일  -->
@@ -29,7 +29,10 @@
                             Padding="{TemplateBinding Padding}"
                             Background="{TemplateBinding Background}"
                             CornerRadius="6">
-                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" TextElement.Foreground="{TemplateBinding Foreground}" />
+                            <ContentPresenter
+                                HorizontalAlignment="Center"
+                                VerticalAlignment="Center"
+                                TextElement.Foreground="{TemplateBinding Foreground}" />
                         </Border>
                         <ControlTemplate.Triggers>
                             <Trigger Property="IsMouseOver" Value="True">
@@ -70,67 +73,74 @@
                             </Grid.ColumnDefinitions>
 
                             <!--  Editable TextBox (IsEditable=True일 때만 표시)  -->
-                            <TextBox Name="PART_EditableTextBox"
-                                     Grid.Column="0"
-                                     Grid.ColumnSpan="2"
-                                     Padding="5,3"
-                                     Background="{TemplateBinding Background}"
-                                     Foreground="{TemplateBinding Foreground}"
-                                     BorderBrush="{DynamicResource BorderBrush}"
-                                     BorderThickness="1"
-                                     Focusable="True"
-                                     IsReadOnly="{TemplateBinding IsReadOnly}"
-                                     Visibility="Hidden"
-                                     VerticalAlignment="Center" />
+                            <TextBox
+                                Name="PART_EditableTextBox"
+                                Grid.Column="0"
+                                Grid.ColumnSpan="2"
+                                Padding="5,3"
+                                VerticalAlignment="Center"
+                                Background="{TemplateBinding Background}"
+                                BorderBrush="{DynamicResource BorderBrush}"
+                                BorderThickness="1"
+                                Focusable="True"
+                                Foreground="{TemplateBinding Foreground}"
+                                IsReadOnly="{TemplateBinding IsReadOnly}"
+                                Visibility="Hidden" />
 
                             <!--  Non-Editable ToggleButton  -->
-                            <ToggleButton Name="ToggleButton"
-                                          Grid.Column="0"
-                                          Grid.ColumnSpan="2"
-                                          Focusable="false"
-                                          IsChecked="{Binding Path=IsDropDownOpen, Mode=TwoWay, RelativeSource={RelativeSource TemplatedParent}}"
-                                          ClickMode="Press"
-                                          Background="{TemplateBinding Background}"
-                                          BorderBrush="{DynamicResource BorderBrush}"
-                                          BorderThickness="1">
+                            <ToggleButton
+                                Name="ToggleButton"
+                                Grid.Column="0"
+                                Grid.ColumnSpan="2"
+                                Background="{TemplateBinding Background}"
+                                BorderBrush="{DynamicResource BorderBrush}"
+                                BorderThickness="1"
+                                ClickMode="Press"
+                                Focusable="false"
+                                IsChecked="{Binding Path=IsDropDownOpen, Mode=TwoWay, RelativeSource={RelativeSource TemplatedParent}}">
                                 <Grid>
                                     <Grid.ColumnDefinitions>
                                         <ColumnDefinition />
                                         <ColumnDefinition Width="20" />
                                     </Grid.ColumnDefinitions>
-                                    <ContentPresenter Name="ContentSite"
-                                                      IsHitTestVisible="False"
-                                                      Content="{TemplateBinding SelectionBoxItem}"
-                                                      ContentTemplate="{TemplateBinding SelectionBoxItemTemplate}"
-                                                      ContentTemplateSelector="{TemplateBinding ItemTemplateSelector}"
-                                                      Margin="5,3,5,3"
-                                                      VerticalAlignment="Center"
-                                                      HorizontalAlignment="Left"
-                                                      TextElement.Foreground="{TemplateBinding Foreground}" />
-                                    <Path Name="Arrow"
-                                          Grid.Column="1"
-                                          Fill="{TemplateBinding Foreground}"
-                                          HorizontalAlignment="Center"
-                                          VerticalAlignment="Center"
-                                          Data="M 0 0 L 4 4 L 8 0 Z"/>
+                                    <ContentPresenter
+                                        Name="ContentSite"
+                                        Margin="5,3,5,3"
+                                        HorizontalAlignment="Left"
+                                        VerticalAlignment="Center"
+                                        Content="{TemplateBinding SelectionBoxItem}"
+                                        ContentTemplate="{TemplateBinding SelectionBoxItemTemplate}"
+                                        ContentTemplateSelector="{TemplateBinding ItemTemplateSelector}"
+                                        IsHitTestVisible="False"
+                                        TextElement.Foreground="{TemplateBinding Foreground}" />
+                                    <Path
+                                        Name="Arrow"
+                                        Grid.Column="1"
+                                        HorizontalAlignment="Center"
+                                        VerticalAlignment="Center"
+                                        Data="M 0 0 L 4 4 L 8 0 Z"
+                                        Fill="{TemplateBinding Foreground}" />
                                 </Grid>
                             </ToggleButton>
 
                             <!--  Dropdown Popup  -->
-                            <Popup Name="Popup"
-                                   Placement="Bottom"
-                                   IsOpen="{TemplateBinding IsDropDownOpen}"
-                                   AllowsTransparency="True"
-                                   Focusable="False"
-                                   PopupAnimation="Slide">
-                                <Grid Name="DropDown"
-                                      SnapsToDevicePixels="True"
-                                      MinWidth="{TemplateBinding ActualWidth}"
-                                      MaxHeight="{TemplateBinding MaxDropDownHeight}">
-                                    <Border x:Name="DropDownBorder"
-                                            Background="{DynamicResource PrimaryBackgroundBrush}"
-                                            BorderThickness="1"
-                                            BorderBrush="{DynamicResource BorderBrush}">
+                            <Popup
+                                Name="Popup"
+                                AllowsTransparency="True"
+                                Focusable="False"
+                                IsOpen="{TemplateBinding IsDropDownOpen}"
+                                Placement="Bottom"
+                                PopupAnimation="Slide">
+                                <Grid
+                                    Name="DropDown"
+                                    MinWidth="{TemplateBinding ActualWidth}"
+                                    MaxHeight="{TemplateBinding MaxDropDownHeight}"
+                                    SnapsToDevicePixels="True">
+                                    <Border
+                                        x:Name="DropDownBorder"
+                                        Background="{DynamicResource PrimaryBackgroundBrush}"
+                                        BorderBrush="{DynamicResource BorderBrush}"
+                                        BorderThickness="1">
                                         <ScrollViewer Margin="4,6,4,6" SnapsToDevicePixels="True">
                                             <StackPanel IsItemsHost="True" KeyboardNavigation.DirectionalNavigation="Contained" />
                                         </ScrollViewer>
@@ -146,8 +156,8 @@
                             </Trigger>
                             <!--  Hover 효과  -->
                             <Trigger Property="IsMouseOver" Value="True">
-                                <Setter TargetName="ToggleButton" Property="Background" Value="{DynamicResource HoverBackgroundBrush}"/>
-                                <Setter TargetName="PART_EditableTextBox" Property="Background" Value="{DynamicResource HoverBackgroundBrush}"/>
+                                <Setter TargetName="ToggleButton" Property="Background" Value="{DynamicResource HoverBackgroundBrush}" />
+                                <Setter TargetName="PART_EditableTextBox" Property="Background" Value="{DynamicResource HoverBackgroundBrush}" />
                             </Trigger>
                         </ControlTemplate.Triggers>
                     </ControlTemplate>
@@ -163,18 +173,19 @@
             <Setter Property="Template">
                 <Setter.Value>
                     <ControlTemplate TargetType="ComboBoxItem">
-                        <Border Name="Border"
-                                Padding="{TemplateBinding Padding}"
-                                Background="{TemplateBinding Background}"
-                                BorderThickness="0">
+                        <Border
+                            Name="Border"
+                            Padding="{TemplateBinding Padding}"
+                            Background="{TemplateBinding Background}"
+                            BorderThickness="0">
                             <ContentPresenter TextElement.Foreground="{TemplateBinding Foreground}" />
                         </Border>
                         <ControlTemplate.Triggers>
                             <Trigger Property="IsHighlighted" Value="True">
-                                <Setter TargetName="Border" Property="Background" Value="{DynamicResource HoverBackgroundBrush}"/>
+                                <Setter TargetName="Border" Property="Background" Value="{DynamicResource HoverBackgroundBrush}" />
                             </Trigger>
                             <Trigger Property="IsEnabled" Value="False">
-                                <Setter Property="Foreground" Value="{DynamicResource SecondaryTextBrush}"/>
+                                <Setter Property="Foreground" Value="{DynamicResource SecondaryTextBrush}" />
                             </Trigger>
                         </ControlTemplate.Triggers>
                     </ControlTemplate>
@@ -195,42 +206,80 @@
             <Setter Property="Template">
                 <Setter.Value>
                     <ControlTemplate TargetType="MenuItem">
-                        <Border Name="Border" Background="{TemplateBinding Background}" BorderThickness="0">
+                        <Border
+                            Name="Border"
+                            Background="{TemplateBinding Background}"
+                            BorderThickness="0">
                             <Grid>
                                 <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="Auto" SharedSizeGroup="Icon"/>
-                                    <ColumnDefinition Width="*"/>
-                                    <ColumnDefinition Width="Auto" SharedSizeGroup="Shortcut"/>
-                                    <ColumnDefinition Width="13"/>
+                                    <ColumnDefinition Width="Auto" SharedSizeGroup="Icon" />
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="Auto" SharedSizeGroup="Shortcut" />
+                                    <ColumnDefinition Width="13" />
                                 </Grid.ColumnDefinitions>
-                                <ContentPresenter Name="Icon" Grid.Column="0" Margin="6,0,6,0" VerticalAlignment="Center" ContentSource="Icon"/>
-                                <ContentPresenter Name="HeaderHost" Grid.Column="1" ContentSource="Header" RecognizesAccessKey="True" VerticalAlignment="Center" TextElement.Foreground="{TemplateBinding Foreground}"/>
-                                <TextBlock Name="InputGestureText" Grid.Column="2" Text="{TemplateBinding InputGestureText}" Margin="5,2,0,2" DockPanel.Dock="Right" Foreground="{TemplateBinding Foreground}"/>
-                                <Path Name="ArrowPath" Grid.Column="3" HorizontalAlignment="Center" VerticalAlignment="Center" Data="M 0 0 L 0 7 L 4 3.5 Z" Fill="{TemplateBinding Foreground}" Visibility="Collapsed"/>
-                                <Popup Name="Popup" Placement="Right" IsOpen="{TemplateBinding IsSubmenuOpen}" AllowsTransparency="True" Focusable="False" PopupAnimation="Fade">
-                                    <Border Name="SubmenuBorder" SnapsToDevicePixels="True" Background="{DynamicResource PrimaryBackgroundBrush}" BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1">
-                                        <StackPanel IsItemsHost="True" KeyboardNavigation.DirectionalNavigation="Cycle"/>
+                                <ContentPresenter
+                                    Name="Icon"
+                                    Grid.Column="0"
+                                    Margin="6,0,6,0"
+                                    VerticalAlignment="Center"
+                                    ContentSource="Icon" />
+                                <ContentPresenter
+                                    Name="HeaderHost"
+                                    Grid.Column="1"
+                                    VerticalAlignment="Center"
+                                    ContentSource="Header"
+                                    RecognizesAccessKey="True"
+                                    TextElement.Foreground="{TemplateBinding Foreground}" />
+                                <TextBlock
+                                    Name="InputGestureText"
+                                    Grid.Column="2"
+                                    Margin="5,2,0,2"
+                                    DockPanel.Dock="Right"
+                                    Foreground="{TemplateBinding Foreground}"
+                                    Text="{TemplateBinding InputGestureText}" />
+                                <Path
+                                    Name="ArrowPath"
+                                    Grid.Column="3"
+                                    HorizontalAlignment="Center"
+                                    VerticalAlignment="Center"
+                                    Data="M 0 0 L 0 7 L 4 3.5 Z"
+                                    Fill="{TemplateBinding Foreground}"
+                                    Visibility="Collapsed" />
+                                <Popup
+                                    Name="Popup"
+                                    AllowsTransparency="True"
+                                    Focusable="False"
+                                    IsOpen="{TemplateBinding IsSubmenuOpen}"
+                                    Placement="Right"
+                                    PopupAnimation="Fade">
+                                    <Border
+                                        Name="SubmenuBorder"
+                                        Background="{DynamicResource PrimaryBackgroundBrush}"
+                                        BorderBrush="{DynamicResource BorderBrush}"
+                                        BorderThickness="1"
+                                        SnapsToDevicePixels="True">
+                                        <StackPanel IsItemsHost="True" KeyboardNavigation.DirectionalNavigation="Cycle" />
                                     </Border>
                                 </Popup>
                             </Grid>
                         </Border>
                         <ControlTemplate.Triggers>
                             <Trigger Property="Role" Value="TopLevelHeader">
-                                <Setter TargetName="Popup" Property="Placement" Value="Bottom"/>
-                                <Setter TargetName="ArrowPath" Property="Visibility" Value="Collapsed"/>
+                                <Setter TargetName="Popup" Property="Placement" Value="Bottom" />
+                                <Setter TargetName="ArrowPath" Property="Visibility" Value="Collapsed" />
                             </Trigger>
                             <Trigger Property="Role" Value="TopLevelItem">
-                                <Setter TargetName="Popup" Property="Visibility" Value="Collapsed"/>
-                                <Setter TargetName="ArrowPath" Property="Visibility" Value="Collapsed"/>
+                                <Setter TargetName="Popup" Property="Visibility" Value="Collapsed" />
+                                <Setter TargetName="ArrowPath" Property="Visibility" Value="Collapsed" />
                             </Trigger>
                             <Trigger Property="Role" Value="SubmenuHeader">
-                                <Setter TargetName="ArrowPath" Property="Visibility" Value="Visible"/>
+                                <Setter TargetName="ArrowPath" Property="Visibility" Value="Visible" />
                             </Trigger>
                             <Trigger Property="IsHighlighted" Value="True">
-                                <Setter TargetName="Border" Property="Background" Value="{DynamicResource HoverBackgroundBrush}"/>
+                                <Setter TargetName="Border" Property="Background" Value="{DynamicResource HoverBackgroundBrush}" />
                             </Trigger>
                             <Trigger Property="IsEnabled" Value="False">
-                                <Setter Property="Foreground" Value="{DynamicResource SecondaryTextBrush}"/>
+                                <Setter Property="Foreground" Value="{DynamicResource SecondaryTextBrush}" />
                             </Trigger>
                         </ControlTemplate.Triggers>
                     </ControlTemplate>
@@ -246,20 +295,39 @@
                 <Setter.Value>
                     <ControlTemplate TargetType="CheckBox">
                         <StackPanel Orientation="Horizontal">
-                            <Border Name="Border" Width="16" Height="16" BorderThickness="1" BorderBrush="{DynamicResource BorderBrush}" Background="{DynamicResource PrimaryBackgroundBrush}" CornerRadius="3">
-                                <Path Name="CheckMark" Width="10" Height="10" Stretch="Uniform" Stroke="{DynamicResource PrimaryTextBrush}" StrokeThickness="2" Data="M 0 5 L 3 8 L 8 0" Visibility="Collapsed"/>
+                            <Border
+                                Name="Border"
+                                Width="16"
+                                Height="16"
+                                Background="{DynamicResource PrimaryBackgroundBrush}"
+                                BorderBrush="{DynamicResource BorderBrush}"
+                                BorderThickness="1"
+                                CornerRadius="3">
+                                <Path
+                                    Name="CheckMark"
+                                    Width="10"
+                                    Height="10"
+                                    Data="M 0 5 L 3 8 L 8 0"
+                                    Stretch="Uniform"
+                                    Stroke="{DynamicResource PrimaryTextBrush}"
+                                    StrokeThickness="2"
+                                    Visibility="Collapsed" />
                             </Border>
-                            <ContentPresenter Margin="5,0,0,0" VerticalAlignment="Center" RecognizesAccessKey="True" TextElement.Foreground="{TemplateBinding Foreground}"/>
+                            <ContentPresenter
+                                Margin="5,0,0,0"
+                                VerticalAlignment="Center"
+                                RecognizesAccessKey="True"
+                                TextElement.Foreground="{TemplateBinding Foreground}" />
                         </StackPanel>
                         <ControlTemplate.Triggers>
                             <Trigger Property="IsChecked" Value="True">
-                                <Setter TargetName="CheckMark" Property="Visibility" Value="Visible"/>
+                                <Setter TargetName="CheckMark" Property="Visibility" Value="Visible" />
                             </Trigger>
                             <Trigger Property="IsMouseOver" Value="True">
-                                <Setter TargetName="Border" Property="Background" Value="{DynamicResource HoverBackgroundBrush}"/>
+                                <Setter TargetName="Border" Property="Background" Value="{DynamicResource HoverBackgroundBrush}" />
                             </Trigger>
                             <Trigger Property="IsEnabled" Value="False">
-                                <Setter Property="Foreground" Value="{DynamicResource SecondaryTextBrush}"/>
+                                <Setter Property="Foreground" Value="{DynamicResource SecondaryTextBrush}" />
                             </Trigger>
                         </ControlTemplate.Triggers>
                     </ControlTemplate>
@@ -284,11 +352,11 @@
                     <ControlTemplate TargetType="TabItem">
                         <Border
                             Name="Border"
+                            Margin="2,0"
                             Background="{DynamicResource PrimaryBackgroundBrush}"
                             BorderBrush="{DynamicResource BorderBrush}"
                             BorderThickness="1,1,1,0"
-                            CornerRadius="6,6,0,0"
-                            Margin="2,0">
+                            CornerRadius="6,6,0,0">
                             <ContentPresenter
                                 x:Name="ContentSite"
                                 Margin="{TemplateBinding Padding}"
@@ -351,19 +419,20 @@
             <Setter Property="Template">
                 <Setter.Value>
                     <ControlTemplate TargetType="ListBoxItem">
-                        <Border Name="Border"
-                                Padding="{TemplateBinding Padding}"
-                                Background="{TemplateBinding Background}"
-                                BorderThickness="0">
+                        <Border
+                            Name="Border"
+                            Padding="{TemplateBinding Padding}"
+                            Background="{TemplateBinding Background}"
+                            BorderThickness="0">
                             <ContentPresenter TextElement.Foreground="{TemplateBinding Foreground}" />
                         </Border>
                         <ControlTemplate.Triggers>
                             <Trigger Property="IsSelected" Value="True">
-                                <Setter TargetName="Border" Property="Background" Value="{DynamicResource HoverBackgroundBrush}"/>
-                                <Setter Property="Foreground" Value="{DynamicResource PrimaryTextBrush}"/>
+                                <Setter TargetName="Border" Property="Background" Value="{DynamicResource HoverBackgroundBrush}" />
+                                <Setter Property="Foreground" Value="{DynamicResource PrimaryTextBrush}" />
                             </Trigger>
                             <Trigger Property="IsMouseOver" Value="True">
-                                <Setter TargetName="Border" Property="Background" Value="{DynamicResource SecondaryBackgroundBrush}"/>
+                                <Setter TargetName="Border" Property="Background" Value="{DynamicResource SecondaryBackgroundBrush}" />
                             </Trigger>
                         </ControlTemplate.Triggers>
                     </ControlTemplate>
@@ -418,19 +487,11 @@
                     InputGestureText="Ctrl+S" />
             </MenuItem>
             <MenuItem Header="{DynamicResource Menu_Help}">
-                <MenuItem
-                    Click="MenuGitHub_Click"
-                    Header="{DynamicResource Menu_GitHubRelease}" />
-                <MenuItem
-                    Click="MenuYtDlp_Click"
-                    Header="{DynamicResource Menu_YtDlpRelease}" />
-                <MenuItem
-                    Click="MenuBtbN_Click"
-                    Header="{DynamicResource Menu_BtbNRelease}" />
+                <MenuItem Click="MenuGitHub_Click" Header="{DynamicResource Menu_GitHubRelease}" />
+                <MenuItem Click="MenuYtDlp_Click" Header="{DynamicResource Menu_YtDlpRelease}" />
+                <MenuItem Click="MenuBtbN_Click" Header="{DynamicResource Menu_BtbNRelease}" />
                 <Separator />
-                <MenuItem
-                    Click="MenuAbout_Click"
-                    Header="{DynamicResource Menu_About}" />
+                <MenuItem Click="MenuAbout_Click" Header="{DynamicResource Menu_About}" />
             </MenuItem>
         </Menu>
 
@@ -464,209 +525,210 @@
                                 FontWeight="Bold"
                                 Foreground="{DynamicResource PrimaryTextBrush}"
                                 Text="URL 입력" />
-                        <DockPanel>
-                            <Button
-                                Width="80"
-                                Click="btnPaste_Click"
-                                Content="붙여넣기"
-                                ToolTip="클립보드의 URL을 입력란에 붙여넣기 (Ctrl+V)" />
-                            <Button
-                                Width="80"
-                                Click="btnUrlsClear_Click"
-                                Content="지우기"
-                                ToolTip="입력한 모든 URL 제거" />
-                            <Button
-                                Width="160"
-                                Click="btnDownload_Click"
-                                Content="URL 다운로드"
-                                ToolTip="입력한 URL 목록을 개별적으로 다운로드" />
-                        </DockPanel>
-                        <TextBox
-                            Name="txtUrls"
-                            Height="60"
-                            AcceptsReturn="True"
-                            AllowDrop="True"
-                            Drop="txtUrls_Drop"
-                            PreviewDragOver="TextBox_PreviewDragOver"
-                            VerticalScrollBarVisibility="Auto" />
-
-                        <TextBlock
-                            Margin="5,15,5,5"
-                            FontWeight="Bold"
-                            Foreground="{DynamicResource PrimaryTextBrush}"
-                            Text="채널 / 재생목록 URL 입력" />
-                        <DockPanel>
-                            <Button
-                                Width="80"
-                                Click="btnChannelPaste_Click"
-                                Content="붙여넣기"
-                                ToolTip="클립보드의 채널/재생목록 URL 붙여넣기" />
-                            <Button
-                                Width="80"
-                                Click="btnChannelClear_Click"
-                                Content="지우기"
-                                ToolTip="입력한 모든 채널/재생목록 URL 제거" />
-                            <Button
-                                Width="160"
-                                Click="btnChannelDownload_Click"
-                                Content="채널 / 재생목록 다운로드"
-                                ToolTip="채널 또는 재생목록의 모든 영상 다운로드 (최대 개수 참조)" />
-                        </DockPanel>
-                        <TextBox
-                            Name="txtChannelUrl"
-                            Height="60"
-                            AcceptsReturn="True"
-                            AllowDrop="True"
-                            Drop="txtChannelUrl_Drop"
-                            PreviewDragOver="TextBox_PreviewDragOver"
-                            VerticalScrollBarVisibility="Auto" />
-                    </StackPanel>
-
-                    <!--  우측: 설정  -->
-                    <ScrollViewer Grid.Column="1" Margin="10,0,0,0" VerticalScrollBarVisibility="Auto">
-                        <StackPanel>
-                            <!--  기본 설정  -->
-                            <TextBlock
-                                Margin="5"
-                                FontWeight="Bold"
-                                Foreground="{DynamicResource PrimaryTextBrush}"
-                                Text="저장 경로" />
                             <DockPanel>
-                                <TextBox
-                                    Name="txtSavePath"
-                                    Width="254"
-                                    IsReadOnly="True"
-                                    ToolTip="다운로드한 파일이 저장될 경로" />
                                 <Button
-                                    Width="70"
-                                    Click="btnBrowse_Click"
-                                    Content="찾기"
-                                    ToolTip="저장 경로 변경" />
+                                    Width="80"
+                                    Click="btnPaste_Click"
+                                    Content="붙여넣기"
+                                    ToolTip="클립보드의 URL을 입력란에 붙여넣기 (Ctrl+V)" />
                                 <Button
-                                    Width="70"
-                                    Click="btnOpenFolder_Click"
-                                    Content="열기"
-                                    ToolTip="탐색기에서 저장 폴더 열기" />
+                                    Width="80"
+                                    Click="btnUrlsClear_Click"
+                                    Content="지우기"
+                                    ToolTip="입력한 모든 URL 제거" />
+                                <Button
+                                    Width="160"
+                                    Click="btnDownload_Click"
+                                    Content="URL 다운로드"
+                                    ToolTip="입력한 URL 목록을 개별적으로 다운로드" />
                             </DockPanel>
+                            <TextBox
+                                Name="txtUrls"
+                                Height="60"
+                                AcceptsReturn="True"
+                                AllowDrop="True"
+                                Drop="txtUrls_Drop"
+                                PreviewDragOver="TextBox_PreviewDragOver"
+                                VerticalScrollBarVisibility="Auto" />
 
                             <TextBlock
-                                Margin="5,10,5,5"
+                                Margin="5,15,5,5"
                                 FontWeight="Bold"
                                 Foreground="{DynamicResource PrimaryTextBrush}"
-                                Text="포맷 선택" />
-                            <ComboBox
-                                Name="comboFormat"
-                                ToolTip="다운로드할 영상/음악 품질 선택">
-                                <ComboBoxItem Content="영상 (최고화질)" />
-                                <ComboBoxItem Content="영상 (1080p)" />
-                                <ComboBoxItem Content="영상 (720p)" />
-                                <ComboBoxItem Content="영상 (480p)" />
-                                <ComboBoxItem Content="음악 (MP3 V0 VBR)" />
-                                <ComboBoxItem Content="음악 (Best 원본유지)" />
-                                <ComboBoxItem Content="음악 (FLAC 무손실 변환)" />
-                            </ComboBox>
+                                Text="채널 / 재생목록 URL 입력" />
+                            <DockPanel>
+                                <Button
+                                    Width="80"
+                                    Click="btnChannelPaste_Click"
+                                    Content="붙여넣기"
+                                    ToolTip="클립보드의 채널/재생목록 URL 붙여넣기" />
+                                <Button
+                                    Width="80"
+                                    Click="btnChannelClear_Click"
+                                    Content="지우기"
+                                    ToolTip="입력한 모든 채널/재생목록 URL 제거" />
+                                <Button
+                                    Width="160"
+                                    Click="btnChannelDownload_Click"
+                                    Content="채널 / 재생목록 다운로드"
+                                    ToolTip="채널 또는 재생목록의 모든 영상 다운로드 (최대 개수 참조)" />
+                            </DockPanel>
+                            <TextBox
+                                Name="txtChannelUrl"
+                                Height="60"
+                                AcceptsReturn="True"
+                                AllowDrop="True"
+                                Drop="txtChannelUrl_Drop"
+                                PreviewDragOver="TextBox_PreviewDragOver"
+                                VerticalScrollBarVisibility="Auto" />
+                        </StackPanel>
 
-                            <CheckBox
-                                Name="ChkSingleVideo"
-                                Content="단일 다운로드(재생목록 무시)"
-                                ToolTip="재생목록 URL을 입력해도 첫 번째 영상만 다운로드" />
-
-                            <!--  고급 설정  -->
-                            <Separator Margin="5,15,5,10" />
-                            <TextBlock
-                                Margin="5,0,5,5"
-                                FontSize="14"
-                                FontWeight="Bold"
-                                Foreground="{DynamicResource PrimaryTextBrush}"
-                                Text="고급 설정" />
-
-                            <CheckBox
-                                Name="ChkStructuredFolders"
-                                Content="채널/재생목록 폴더 구조"
-                                ToolTip="채널명 또는 재생목록명으로 폴더를 생성하여 정리" />
-                            <CheckBox
-                                Name="ChkWriteThumbnail"
-                                Content="썸네일 저장"
-                                ToolTip="영상 썸네일 이미지를 함께 저장" />
-
-                            <TextBlock
-                                Margin="5,10,5,5"
-                                FontWeight="Bold"
-                                Foreground="{DynamicResource PrimaryTextBrush}"
-                                Text="자막 설정" />
-                            <CheckBox
-                                Name="SubtitleCheckBox"
-                                Content="자막 다운로드"
-                                ToolTip="영상과 함께 자막 파일 다운로드" />
-                            <StackPanel Orientation="Horizontal">
-                                <ComboBox
-                                    Name="SubtitleFormatComboBox"
-                                    Width="120"
-                                    ToolTip="자막 파일 형식 (srt: 범용, vtt: 웹용, ass: 고급 스타일)">
-                                    <ComboBoxItem Content="srt" />
-                                    <ComboBoxItem Content="vtt" />
-                                    <ComboBoxItem Content="ass" />
-                                </ComboBox>
-                                <ComboBox
-                                    Name="SubtitleLangComboBox"
-                                    Width="120"
-                                    ToolTip="자막 언어 선택">
-                                    <ComboBoxItem Content="ko" />
-                                    <ComboBoxItem Content="en" />
-                                    <ComboBoxItem Content="ja" />
-                                    <ComboBoxItem Content="zh-Hans" />
-                                    <ComboBoxItem Content="zh-Hant" />
-                                    <ComboBoxItem Content="fr" />
-                                    <ComboBoxItem Content="de" />
-                                    <ComboBoxItem Content="es" />
-                                    <ComboBoxItem Content="ru" />
-                                    <ComboBoxItem Content="pt" />
-                                    <ComboBoxItem Content="it" />
-                                    <ComboBoxItem Content="ar" />
-                                    <ComboBoxItem Content="hi" />
-                                    <ComboBoxItem Content="th" />
-                                    <ComboBoxItem Content="vi" />
-                                </ComboBox>
-                            </StackPanel>
-
-                            <Grid Margin="5,10,5,5">
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="Auto" />
-                                    <ColumnDefinition Width="100" />
-                                </Grid.ColumnDefinitions>
-
+                        <!--  우측: 설정  -->
+                        <ScrollViewer
+                            Grid.Column="1"
+                            Margin="10,0,0,0"
+                            VerticalScrollBarVisibility="Auto">
+                            <StackPanel>
+                                <!--  기본 설정  -->
                                 <TextBlock
-                                    Grid.Column="0"
-                                    Margin="0,0,10,0"
-                                    VerticalAlignment="Center"
+                                    Margin="5"
                                     FontWeight="Bold"
                                     Foreground="{DynamicResource PrimaryTextBrush}"
-                                    Text="{DynamicResource Label_MaxDownloads}" />
-                                <TextBox
-                                    Name="txtMaxDownloads"
-                                    Grid.Column="1"
-                                    Width="80"
-                                    ToolTip="{DynamicResource ToolTip_MaxDownloads}" />
-                            </Grid>
+                                    Text="저장 경로" />
+                                <DockPanel>
+                                    <TextBox
+                                        Name="txtSavePath"
+                                        Width="254"
+                                        IsReadOnly="True"
+                                        ToolTip="다운로드한 파일이 저장될 경로" />
+                                    <Button
+                                        Width="70"
+                                        Click="btnBrowse_Click"
+                                        Content="찾기"
+                                        ToolTip="저장 경로 변경" />
+                                    <Button
+                                        Width="70"
+                                        Click="btnOpenFolder_Click"
+                                        Content="열기"
+                                        ToolTip="탐색기에서 저장 폴더 열기" />
+                                </DockPanel>
 
-                            <CheckBox
-                                Name="ChkEnableNotification"
-                                Content="{DynamicResource CheckBox_EnableNotification}"
-                                ToolTip="{DynamicResource ToolTip_EnableNotification}" />
+                                <TextBlock
+                                    Margin="5,10,5,5"
+                                    FontWeight="Bold"
+                                    Foreground="{DynamicResource PrimaryTextBrush}"
+                                    Text="포맷 선택" />
+                                <ComboBox Name="comboFormat" ToolTip="다운로드할 영상/음악 품질 선택">
+                                    <ComboBoxItem Content="영상 (최고화질)" />
+                                    <ComboBoxItem Content="영상 (1080p)" />
+                                    <ComboBoxItem Content="영상 (720p)" />
+                                    <ComboBoxItem Content="영상 (480p)" />
+                                    <ComboBoxItem Content="음악 (MP3 V0 VBR)" />
+                                    <ComboBoxItem Content="음악 (Best 원본유지)" />
+                                    <ComboBoxItem Content="음악 (FLAC 무손실 변환)" />
+                                </ComboBox>
 
-                            <!--  프로그램 재시작 버튼  -->
-                            <StackPanel
-                                Margin="0,20,0,0"
-                                HorizontalAlignment="Right"
-                                Orientation="Horizontal">
-                                <Button
-                                    Width="140"
-                                    Click="pgRestart_Click"
-                                    Content="프로그램 재시작"
-                                    ToolTip="프로그램을 종료하고 다시 시작" />
+                                <CheckBox
+                                    Name="ChkSingleVideo"
+                                    Content="단일 다운로드(재생목록 무시)"
+                                    ToolTip="재생목록 URL을 입력해도 첫 번째 영상만 다운로드" />
+
+                                <!--  고급 설정  -->
+                                <Separator Margin="5,15,5,10" />
+                                <TextBlock
+                                    Margin="5,0,5,5"
+                                    FontSize="14"
+                                    FontWeight="Bold"
+                                    Foreground="{DynamicResource PrimaryTextBrush}"
+                                    Text="고급 설정" />
+
+                                <CheckBox
+                                    Name="ChkStructuredFolders"
+                                    Content="채널/재생목록 폴더 구조"
+                                    ToolTip="채널명 또는 재생목록명으로 폴더를 생성하여 정리" />
+                                <CheckBox
+                                    Name="ChkWriteThumbnail"
+                                    Content="썸네일 저장"
+                                    ToolTip="영상 썸네일 이미지를 함께 저장" />
+
+                                <TextBlock
+                                    Margin="5,10,5,5"
+                                    FontWeight="Bold"
+                                    Foreground="{DynamicResource PrimaryTextBrush}"
+                                    Text="자막 설정" />
+                                <CheckBox
+                                    Name="SubtitleCheckBox"
+                                    Content="자막 다운로드"
+                                    ToolTip="영상과 함께 자막 파일 다운로드" />
+                                <StackPanel Orientation="Horizontal">
+                                    <ComboBox
+                                        Name="SubtitleFormatComboBox"
+                                        Width="120"
+                                        ToolTip="자막 파일 형식 (srt: 범용, vtt: 웹용, ass: 고급 스타일)">
+                                        <ComboBoxItem Content="srt" />
+                                        <ComboBoxItem Content="vtt" />
+                                        <ComboBoxItem Content="ass" />
+                                    </ComboBox>
+                                    <ComboBox
+                                        Name="SubtitleLangComboBox"
+                                        Width="120"
+                                        ToolTip="자막 언어 선택">
+                                        <ComboBoxItem Content="ko" />
+                                        <ComboBoxItem Content="en" />
+                                        <ComboBoxItem Content="ja" />
+                                        <ComboBoxItem Content="zh-Hans" />
+                                        <ComboBoxItem Content="zh-Hant" />
+                                        <ComboBoxItem Content="fr" />
+                                        <ComboBoxItem Content="de" />
+                                        <ComboBoxItem Content="es" />
+                                        <ComboBoxItem Content="ru" />
+                                        <ComboBoxItem Content="pt" />
+                                        <ComboBoxItem Content="it" />
+                                        <ComboBoxItem Content="ar" />
+                                        <ComboBoxItem Content="hi" />
+                                        <ComboBoxItem Content="th" />
+                                        <ComboBoxItem Content="vi" />
+                                    </ComboBox>
+                                </StackPanel>
+
+                                <Grid Margin="5,10,5,5">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto" />
+                                        <ColumnDefinition Width="100" />
+                                    </Grid.ColumnDefinitions>
+
+                                    <TextBlock
+                                        Grid.Column="0"
+                                        Margin="0,0,10,0"
+                                        VerticalAlignment="Center"
+                                        FontWeight="Bold"
+                                        Foreground="{DynamicResource PrimaryTextBrush}"
+                                        Text="{DynamicResource Label_MaxDownloads}" />
+                                    <TextBox
+                                        Name="txtMaxDownloads"
+                                        Grid.Column="1"
+                                        Width="80"
+                                        ToolTip="{DynamicResource ToolTip_MaxDownloads}" />
+                                </Grid>
+
+                                <CheckBox
+                                    Name="ChkEnableNotification"
+                                    Content="{DynamicResource CheckBox_EnableNotification}"
+                                    ToolTip="{DynamicResource ToolTip_EnableNotification}" />
+
+                                <!--  프로그램 재시작 버튼  -->
+                                <StackPanel
+                                    Margin="0,20,0,0"
+                                    HorizontalAlignment="Right"
+                                    Orientation="Horizontal">
+                                    <Button
+                                        Width="140"
+                                        Click="pgRestart_Click"
+                                        Content="프로그램 재시작"
+                                        ToolTip="프로그램을 종료하고 다시 시작" />
+                                </StackPanel>
                             </StackPanel>
-                        </StackPanel>
-                    </ScrollViewer>
+                        </ScrollViewer>
                     </Grid>
                 </Border>
             </TabItem>
@@ -840,9 +902,19 @@
                                             Unchecked="chkSelectAllAuto_Changed" />
                                     </DockPanel>
                                     <TextBlock
+
                                         TextWrapping="Wrap"
+
+                                        FontSize="16"
+                                        FontWeight="Bold"
+                                        Foreground="{DynamicResource PrimaryTextBrush}"
+                                        Text="{DynamicResource Label_AutoSchedule}" />
+                                    <TextBlock
+                                        Margin="0,10,0,0"
+
                                         Foreground="{DynamicResource SecondaryTextBrush}"
-                                        Text="{DynamicResource Description_AutoSchedule}" />
+                                        Text="{DynamicResource Description_AutoSchedule}"
+                                        TextWrapping="Wrap" />
                                 </StackPanel>
 
                                 <!--  등록된 스케줄 목록 제목  -->
@@ -934,7 +1006,10 @@
                     VerticalAlignment="Center"
                     Orientation="Horizontal">
                     <!--  ProgressBar with percentage overlay  -->
-                    <Grid Width="700" Height="20" Margin="5">
+                    <Grid
+                        Width="700"
+                        Height="20"
+                        Margin="5">
                         <ProgressBar
                             Name="progressBar"
                             Width="700"
