@@ -1002,6 +1002,19 @@ namespace ytDownloader
         /// </summary>
         private void btnAutoScheduleSettings_Click(object sender, RoutedEventArgs e)
         {
+            // 수동 예약이 없으면 자동예약 설정 불가
+            if (_currentSettings.ScheduledChannels.Count == 0)
+            {
+                string message = _currentSettings.Language == "ko"
+                    ? "수동예약을 등록해야 자동예약 설정 가능합니다"
+                    : "Manual schedule must be registered to set up auto schedule";
+                string title = _currentSettings.Language == "ko"
+                    ? "알림"
+                    : "Notice";
+                MessageBox.Show(message, title, MessageBoxButton.OK, MessageBoxImage.Information);
+                return;
+            }
+
             var scheduleWindow = new ScheduleSettingsWindow();
             scheduleWindow.Owner = this;
             scheduleWindow.ShowDialog();
@@ -1259,45 +1272,21 @@ namespace ytDownloader
         }
 
         /// <summary>
-        /// 수동 예약 DataGrid 선택 변경 - 행 선택과 체크박스 동기화
+        /// 수동 예약 DataGrid 선택 변경 - 행 클릭과 체크박스를 분리
         /// </summary>
         private void lstScheduledChannels_SelectionChanged(object sender, System.Windows.Controls.SelectionChangedEventArgs e)
         {
-            if (_scheduledChannelsCollection == null)
-                return;
-
-            // 선택된 항목들의 체크박스를 체크
-            foreach (ScheduledChannel channel in e.AddedItems)
-            {
-                channel.IsSelected = true;
-            }
-
-            // 선택 해제된 항목들의 체크박스를 해제
-            foreach (ScheduledChannel channel in e.RemovedItems)
-            {
-                channel.IsSelected = false;
-            }
+            // 행 클릭과 체크박스 체크를 분리 - 아무 작업도 하지 않음
+            // 체크박스는 사용자가 직접 클릭해야만 체크됨
         }
 
         /// <summary>
-        /// 자동 예약 DataGrid 선택 변경 - 행 선택과 체크박스 동기화
+        /// 자동 예약 DataGrid 선택 변경 - 행 클릭과 체크박스를 분리
         /// </summary>
         private void lstAutoScheduledTasks_SelectionChanged(object sender, System.Windows.Controls.SelectionChangedEventArgs e)
         {
-            if (_autoScheduledTasksCollection == null)
-                return;
-
-            // 선택된 항목들의 체크박스를 체크
-            foreach (ScheduleTaskInfo task in e.AddedItems)
-            {
-                task.IsSelected = true;
-            }
-
-            // 선택 해제된 항목들의 체크박스를 해제
-            foreach (ScheduleTaskInfo task in e.RemovedItems)
-            {
-                task.IsSelected = false;
-            }
+            // 행 클릭과 체크박스 체크를 분리 - 아무 작업도 하지 않음
+            // 체크박스는 사용자가 직접 클릭해야만 체크됨
         }
 
         /// <summary>
