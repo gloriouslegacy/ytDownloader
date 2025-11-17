@@ -1,3 +1,4 @@
+using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
@@ -37,9 +38,17 @@ namespace ytDownloader
         private bool _isScheduledMode = false;
         private string? _scheduledTaskName = null;
 
+        // DataGrid용 ObservableCollection
+        private ObservableCollection<ScheduledChannel> _scheduledChannelsCollection = new ObservableCollection<ScheduledChannel>();
+        private ObservableCollection<ScheduleTaskInfo> _autoScheduledTasksCollection = new ObservableCollection<ScheduleTaskInfo>();
+
         public MainWindow(string[] args = null)
         {
             InitializeComponent();
+
+            // DataGrid ItemsSource 설정
+            lstScheduledChannels.ItemsSource = _scheduledChannelsCollection;
+            lstAutoScheduledTasks.ItemsSource = _autoScheduledTasksCollection;
 
             // 명령줄 인수 처리 (스케줄러에서 실행 시)
             if (args != null && args.Length > 0 && args[0] == "--scheduled")
@@ -773,11 +782,10 @@ namespace ytDownloader
         /// </summary>
         private void RefreshScheduledChannelsList()
         {
-            lstScheduledChannels.Items.Clear();
+            _scheduledChannelsCollection.Clear();
             foreach (var channel in _currentSettings.ScheduledChannels)
             {
-                // 객체를 직접 추가 (ToString()은 자동으로 표시됨)
-                lstScheduledChannels.Items.Add(channel);
+                _scheduledChannelsCollection.Add(channel);
             }
         }
 
@@ -1112,21 +1120,11 @@ namespace ytDownloader
 
             await Dispatcher.InvokeAsync(() =>
             {
-                lstAutoScheduledTasks.Items.Clear();
+                _autoScheduledTasksCollection.Clear();
 
-                if (tasks.Count == 0)
+                foreach (var task in tasks)
                 {
-                    // DataGrid는 문자열을 직접 추가할 수 없으므로, 빈 메시지를 표시하는 대신
-                    // 단순히 비어있는 상태로 둡니다
-                    // 사용자는 빈 그리드를 보고 스케줄이 없다는 것을 알 수 있습니다
-                }
-                else
-                {
-                    foreach (var task in tasks)
-                    {
-                        // 객체를 직접 추가 (DisplayText는 자동으로 표시됨)
-                        lstAutoScheduledTasks.Items.Add(task);
-                    }
+                    _autoScheduledTasksCollection.Add(task);
                 }
             });
         }
