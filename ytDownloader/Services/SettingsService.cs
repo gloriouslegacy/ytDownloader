@@ -50,7 +50,9 @@ namespace ytDownloader.Services
                         SaveThumbnail = settings["SaveThumbnail"]?.ToObject<bool>() ?? false,
                         UseStructuredFolder = settings["UseStructuredFolder"]?.ToObject<bool>() ?? false,
                         Format = (VideoFormat)(settings["Format"]?.ToObject<int>() ?? 0),
-                        MaxDownloads = settings["MaxDownloads"]?.ToObject<int>() ?? 5
+                        MaxDownloads = settings["MaxDownloads"]?.ToObject<int>() ?? 5,
+                        Theme = settings["Theme"]?.ToString() ?? "Dark",
+                        Language = settings["Language"]?.ToString() ?? "ko"
                     };
                 }
                 else
@@ -97,7 +99,9 @@ namespace ytDownloader.Services
                     ["SaveThumbnail"] = settings.SaveThumbnail,
                     ["UseStructuredFolder"] = settings.UseStructuredFolder,
                     ["Format"] = (int)settings.Format,
-                    ["MaxDownloads"] = settings.MaxDownloads
+                    ["MaxDownloads"] = settings.MaxDownloads,
+                    ["Theme"] = settings.Theme,
+                    ["Language"] = settings.Language
                 };
 
                 File.WriteAllText(_settingsFile, json.ToString());
