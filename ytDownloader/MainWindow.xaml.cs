@@ -42,7 +42,6 @@ namespace ytDownloader
         private string? _scheduledTaskName = null;
 
         // DataGrid용 ObservableCollection
-        private ObservableCollection<ScheduledChannel> _scheduledChannelsCollection = new ObservableCollection<ScheduledChannel>();
         private ObservableCollection<ScheduleTaskInfo> _autoScheduledTasksCollection = new ObservableCollection<ScheduleTaskInfo>();
 
         public MainWindow(string[]? args = null)
@@ -50,7 +49,6 @@ namespace ytDownloader
             InitializeComponent();
 
             // DataGrid ItemsSource 설정
-            lstScheduledChannels.ItemsSource = _scheduledChannelsCollection;
             lstAutoScheduledTasks.ItemsSource = _autoScheduledTasksCollection;
 
             // 명령줄 인수 처리 (스케줄러에서 실행 시)
@@ -786,30 +784,8 @@ namespace ytDownloader
         /// </summary>
         private void RefreshScheduledChannelsList()
         {
-            _scheduledChannelsCollection.Clear();
-            foreach (var channel in _currentSettings.ScheduledChannels)
-            {
-                _scheduledChannelsCollection.Add(channel);
-            }
-        }
-
-        /// <summary>
-        /// 수동 예약 URL 붙여넣기 버튼 클릭
-        /// </summary>
-        private void btnScheduleUrlPaste_Click(object sender, RoutedEventArgs e)
-        {
-            if (Clipboard.ContainsText())
-            {
-                txtScheduleChannelUrl.Text = Clipboard.GetText();
-            }
-        }
-
-        /// <summary>
-        /// 수동 예약 URL 지우기 버튼 클릭
-        /// </summary>
-        private void btnScheduleUrlClear_Click(object sender, RoutedEventArgs e)
-        {
-            txtScheduleChannelUrl.Clear();
+            // 수동 예약 UI가 제거되었으므로 이 메서드는 더 이상 필요하지 않습니다
+            // 기존 호출 호환성을 위해 빈 메서드로 유지
         }
 
         /// <summary>
@@ -823,45 +799,6 @@ namespace ytDownloader
                 RefreshScheduledChannelsList();
                 await UpdateSchedulerStatusAsync();
             }
-        }
-
-        /// <summary>
-        /// 예약 추가 버튼 클릭
-        /// </summary>
-        private void btnAddSchedule_Click(object sender, RoutedEventArgs e)
-        {
-            string url = txtScheduleChannelUrl.Text.Trim();
-            string name = txtScheduleChannelName.Text.Trim();
-
-            if (string.IsNullOrWhiteSpace(url))
-            {
-                string message = _currentSettings.Language == "ko"
-                    ? "채널 URL을 입력하세요."
-                    : "Please enter a channel URL.";
-                string title = _currentSettings.Language == "ko"
-                    ? "입력 오류"
-                    : "Input Error";
-                MessageBox.Show(message, title, MessageBoxButton.OK, MessageBoxImage.Warning);
-                return;
-            }
-
-            var scheduledChannel = new ScheduledChannel
-            {
-                Url = url,
-                Name = name,
-                AddedDate = DateTime.Now
-            };
-
-            _currentSettings.ScheduledChannels.Add(scheduledChannel);
-            _settingsService.SaveSettings(_currentSettings);
-
-            RefreshScheduledChannelsList();
-
-            // 입력 필드 초기화
-            txtScheduleChannelUrl.Clear();
-            txtScheduleChannelName.Clear();
-
-            AppendOutput($"✅ 예약 추가: {scheduledChannel}");
         }
 
         /// <summary>
@@ -1167,44 +1104,6 @@ namespace ytDownloader
         private void btnRefreshScheduleStatus_Click(object sender, RoutedEventArgs e)
         {
             UpdateSchedulerStatus();
-        }
-
-        /// <summary>
-        /// 수동 예약 DataGrid 행 클릭 시 체크박스 토글
-        /// </summary>
-        private void lstScheduledChannels_PreviewMouseLeftButtonDown(object sender, MouseButtonEventArgs e)
-        {
-            var grid = sender as System.Windows.Controls.DataGrid;
-            if (grid == null) return;
-
-            // 클릭된 요소 추적
-            var hit = e.OriginalSource as System.Windows.DependencyObject;
-            System.Windows.Controls.DataGridRow? row = null;
-            System.Windows.Controls.DataGridCell? cell = null;
-
-            // 비주얼 트리를 따라 올라가며 행과 셀 찾기
-            while (hit != null)
-            {
-                if (hit is System.Windows.Controls.DataGridCell)
-                    cell = hit as System.Windows.Controls.DataGridCell;
-                if (hit is System.Windows.Controls.DataGridRow)
-                {
-                    row = hit as System.Windows.Controls.DataGridRow;
-                    break;
-                }
-                hit = System.Windows.Media.VisualTreeHelper.GetParent(hit);
-            }
-
-            // 체크박스 컬럼을 클릭한 경우는 기본 동작 허용 (자동 처리됨)
-            if (cell != null && cell.Column is DataGridCheckBoxColumn)
-                return;
-
-            // 다른 셀을 클릭한 경우 체크박스 토글
-            if (row != null && row.Item is ScheduledChannel channel)
-            {
-                channel.IsSelected = !channel.IsSelected;
-                e.Handled = true; // 이벤트 전파 중지하여 DataGrid 기본 선택 동작 방지
-            }
         }
 
         /// <summary>
