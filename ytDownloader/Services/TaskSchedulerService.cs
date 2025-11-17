@@ -122,6 +122,7 @@ namespace ytDownloader.Services
                     $"/TR \"\\\"{exePath}\\\" --scheduled \\\"{taskName}\\\"\" " +
                     $"/SC DAILY /MO {frequency} " +
                     $"/ST {hour:D2}:{minute:D2} " +
+                    $"/RL HIGHEST " + // 관리자 권한으로 실행
                     $"/F"; // /F: 강제 생성
 
                 var processInfo = new ProcessStartInfo
