@@ -1107,7 +1107,19 @@ namespace ytDownloader
             {
                 string timestamp = DateTime.Now.ToString("yyyyMMdd_HHmmss");
                 string logFileName = $"ytDownloader_scheduled_log_{timestamp}.txt";
-                string logPath = Path.Combine(_currentSettings.SavePath, logFileName);
+
+                // 스케줄러 설정에서 지정한 저장 경로 사용
+                string savePath = _currentSettings.SavePath; // 기본값
+                if (!string.IsNullOrWhiteSpace(_scheduledTaskName))
+                {
+                    var schedulerSettings = _settingsService.LoadSchedulerSettings(_scheduledTaskName);
+                    if (schedulerSettings != null && !string.IsNullOrWhiteSpace(schedulerSettings.SavePath))
+                    {
+                        savePath = schedulerSettings.SavePath;
+                    }
+                }
+
+                string logPath = Path.Combine(savePath, logFileName);
 
                 await Dispatcher.InvokeAsync(async () =>
                 {

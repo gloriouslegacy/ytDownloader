@@ -903,7 +903,7 @@
                                         MinHeight="80"
                                         Background="Transparent"
                                         PreviewMouseLeftButtonDown="lstScheduledChannels_PreviewMouseLeftButtonDown"
-                                        SelectionMode="None"
+                                        SelectionMode="Single"
                                         SelectionUnit="FullRow">
                                         <DataGrid.Columns>
                                             <DataGridCheckBoxColumn
