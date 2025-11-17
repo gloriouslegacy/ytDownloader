@@ -1037,17 +1037,6 @@ namespace ytDownloader
                 return;
             }
 
-            if (_currentSettings.ScheduledChannels.Count == 0)
-            {
-                AppendOutput("⚠️ 예약된 채널이 없습니다. 프로그램을 종료합니다.");
-                await SaveScheduledLog();
-                await Task.Delay(3000);
-                Application.Current.Shutdown();
-                return;
-            }
-
-            AppendOutput($"🤖 자동 실행 모드: {_currentSettings.ScheduledChannels.Count}개 채널 다운로드 시작...");
-
             try
             {
                 // schedulerSettings.ChannelUrl이 비어있으면 모든 예약 채널 다운로드
@@ -1063,6 +1052,17 @@ namespace ytDownloader
                 else
                 {
                     // 모든 예약 채널 다운로드
+                    if (_currentSettings.ScheduledChannels.Count == 0)
+                    {
+                        AppendOutput("⚠️ 예약된 채널이 없습니다. 프로그램을 종료합니다.");
+                        await SaveScheduledLog();
+                        await Task.Delay(3000);
+                        Application.Current.Shutdown();
+                        return;
+                    }
+
+                    AppendOutput($"🤖 자동 실행 모드: {_currentSettings.ScheduledChannels.Count}개 채널 다운로드 시작...");
+
                     foreach (var channel in _currentSettings.ScheduledChannels)
                     {
                         AppendOutput($"📥 채널 다운로드 시작: {channel.Name ?? channel.Url}");
@@ -1143,6 +1143,22 @@ namespace ytDownloader
         private void btnRefreshScheduleStatus_Click(object sender, RoutedEventArgs e)
         {
             UpdateSchedulerStatus();
+        }
+
+        /// <summary>
+        /// 수동 예약 DataGrid SelectionChanged 이벤트
+        /// </summary>
+        private void lstScheduledChannels_SelectionChanged(object sender, System.Windows.Controls.SelectionChangedEventArgs e)
+        {
+            // 선택 상태 유지 - 아무 작업도 하지 않음 (선택 해제 방지)
+        }
+
+        /// <summary>
+        /// 자동 예약 DataGrid SelectionChanged 이벤트
+        /// </summary>
+        private void lstAutoScheduledTasks_SelectionChanged(object sender, System.Windows.Controls.SelectionChangedEventArgs e)
+        {
+            // 선택 상태 유지 - 아무 작업도 하지 않음 (선택 해제 방지)
         }
 
         /// <summary>

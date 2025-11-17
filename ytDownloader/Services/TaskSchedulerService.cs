@@ -32,6 +32,31 @@ namespace ytDownloader.Services
             }
         }
 
+        /// <summary>실행 주기 (DataGrid용)</summary>
+        public string FrequencyDays => FrequencyText;
+
+        /// <summary>실행 시간 (DataGrid용)</summary>
+        public string ExecutionTime => $"{Hour:D2}:{Minute:D2}";
+
+        /// <summary>다음 실행 시간 (DataGrid용)</summary>
+        public DateTime NextRunTime
+        {
+            get
+            {
+                var now = DateTime.Now;
+                var today = new DateTime(now.Year, now.Month, now.Day, Hour, Minute, 0);
+
+                if (today > now)
+                {
+                    return today;
+                }
+                else
+                {
+                    return today.AddDays(Frequency);
+                }
+            }
+        }
+
         private string FrequencyText
         {
             get
