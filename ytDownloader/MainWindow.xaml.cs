@@ -3,16 +3,19 @@ using System.Diagnostics;
 using System.IO;
 using System.Reflection;
 using System.Windows;
+using System.Windows.Input;
 using System.Windows.Navigation;
 using ytDownloader.Models;
 using ytDownloader.Services;
 
 // 2025-09-21 .NET 8.0, C# 12.0
 // ✅ 자동 업데이트
+// ✅ 라이트 / 다크 모드 전환
+// ✅ 키보드 단축키 (Ctrl+T, Ctrl+S, F5)
+// ✅ 드래그 앤 드롭 (URL 입력란)
+// ✅ 로그 저장 기능
 // ❌ 웹뷰 내장
 // ❌ 채널 예약 다운로드
-// ❌ 라이트 / 다크 모드 전환
-// ❌ 드래그 앤 드롭
 // ❌ 다운로드 정지/일시정지/재개
 // ❌ 다운로드 후 알림
 // ❌ 다국어 지원
@@ -50,6 +53,12 @@ namespace ytDownloader
             _currentSettings = _settingsService.LoadSettings();
             LoadSettingsToUI();
             AttachSettingsEventHandlers();
+
+            // 테마 적용
+            ApplyTheme(_currentSettings.Theme);
+
+            // 키보드 단축키 설정
+            SetupKeyboardShortcuts();
 
             // 도구 및 앱 업데이트 시작
             _ = UpdateToolsAndAppSequentiallyAsync();
@@ -437,5 +446,190 @@ namespace ytDownloader
                 MessageBoxImage.Information
             );
         }
+
+        /// <summary>
+        /// 메뉴: 테마 전환
+        /// </summary>
+        private void MenuTheme_Click(object sender, RoutedEventArgs e)
+        {
+            // 현재 테마 토글
+            string newTheme = _currentSettings.Theme == "Dark" ? "Light" : "Dark";
+            _currentSettings.Theme = newTheme;
+            _settingsService.SaveSettings(_currentSettings);
+
+            // 테마 적용
+            ApplyTheme(newTheme);
+
+            AppendOutput($"✅ 테마 변경: {newTheme}");
+        }
+
+        /// <summary>
+        /// 메뉴: 로그 저장
+        /// </summary>
+        private void MenuSaveLog_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                string timestamp = DateTime.Now.ToString("yyyyMMdd_HHmmss");
+                string logFileName = $"ytDownloader_log_{timestamp}.txt";
+                string logPath = Path.Combine(_currentSettings.SavePath, logFileName);
+
+                File.WriteAllText(logPath, txtOutput.Text);
+
+                MessageBox.Show(
+                    $"로그가 저장되었습니다:\n{logPath}",
+                    "로그 저장",
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Information
+                );
+
+                AppendOutput($"✅ 로그 저장: {logPath}");
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(
+                    $"로그 저장 실패:\n{ex.Message}",
+                    "오류",
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Error
+                );
+            }
+        }
+
+        /// <summary>
+        /// 테마 적용
+        /// </summary>
+        private void ApplyTheme(string theme)
+        {
+            try
+            {
+                var dictionaries = Application.Current.Resources.MergedDictionaries;
+                dictionaries.Clear();
+
+                string themeFile = theme == "Light" ? "Themes/LightTheme.xaml" : "Themes/DarkTheme.xaml";
+                var themeDict = new ResourceDictionary
+                {
+                    Source = new Uri(themeFile, UriKind.Relative)
+                };
+
+                dictionaries.Add(themeDict);
+
+                // Window 배경색 적용
+                if (Application.Current.Resources["WindowBackgroundBrush"] is System.Windows.Media.SolidColorBrush windowBrush)
+                {
+                    this.Background = windowBrush;
+                }
+
+                // Foreground 색상 적용
+                if (Application.Current.Resources["PrimaryTextBrush"] is System.Windows.Media.SolidColorBrush textBrush)
+                {
+                    this.Foreground = textBrush;
+                }
+            }
+            catch (Exception ex)
+            {
+                AppendOutput($"❌ 테마 적용 오류: {ex.Message}");
+            }
+        }
+
+        /// <summary>
+        /// 키보드 단축키 설정
+        /// </summary>
+        private void SetupKeyboardShortcuts()
+        {
+            // Ctrl+T: 테마 전환
+            var themeGesture = new KeyGesture(Key.T, ModifierKeys.Control);
+            var themeBinding = new KeyBinding(new RelayCommand(() => MenuTheme_Click(this, new RoutedEventArgs())), themeGesture);
+            this.InputBindings.Add(themeBinding);
+
+            // Ctrl+S: 로그 저장
+            var saveLogGesture = new KeyGesture(Key.S, ModifierKeys.Control);
+            var saveLogBinding = new KeyBinding(new RelayCommand(() => MenuSaveLog_Click(this, new RoutedEventArgs())), saveLogGesture);
+            this.InputBindings.Add(saveLogBinding);
+
+            // F5: URL 다운로드
+            var downloadGesture = new KeyGesture(Key.F5);
+            var downloadBinding = new KeyBinding(new RelayCommand(() => btnDownload_Click(this, new RoutedEventArgs())), downloadGesture);
+            this.InputBindings.Add(downloadBinding);
+        }
+
+        // ===== 드래그 앤 드롭 이벤트 핸들러 =====
+
+        /// <summary>
+        /// 드래그 오버 이벤트 (텍스트 데이터만 허용)
+        /// </summary>
+        private void TextBox_PreviewDragOver(object sender, System.Windows.DragEventArgs e)
+        {
+            e.Handled = true;
+            if (e.Data.GetDataPresent(System.Windows.DataFormats.Text) || e.Data.GetDataPresent(System.Windows.DataFormats.UnicodeText))
+            {
+                e.Effects = System.Windows.DragDropEffects.Copy;
+            }
+            else
+            {
+                e.Effects = System.Windows.DragDropEffects.None;
+            }
+        }
+
+        /// <summary>
+        /// txtUrls 드롭 이벤트
+        /// </summary>
+        private void txtUrls_Drop(object sender, System.Windows.DragEventArgs e)
+        {
+            if (e.Data.GetDataPresent(System.Windows.DataFormats.Text) || e.Data.GetDataPresent(System.Windows.DataFormats.UnicodeText))
+            {
+                string text = (string)e.Data.GetData(System.Windows.DataFormats.Text) ??
+                              (string)e.Data.GetData(System.Windows.DataFormats.UnicodeText);
+
+                if (!string.IsNullOrWhiteSpace(text))
+                {
+                    txtUrls.AppendText(text.Trim() + Environment.NewLine);
+                    AppendOutput("✅ URL 드래그 앤 드롭 완료");
+                }
+            }
+        }
+
+        /// <summary>
+        /// txtChannelUrl 드롭 이벤트
+        /// </summary>
+        private void txtChannelUrl_Drop(object sender, System.Windows.DragEventArgs e)
+        {
+            if (e.Data.GetDataPresent(System.Windows.DataFormats.Text) || e.Data.GetDataPresent(System.Windows.DataFormats.UnicodeText))
+            {
+                string text = (string)e.Data.GetData(System.Windows.DataFormats.Text) ??
+                              (string)e.Data.GetData(System.Windows.DataFormats.UnicodeText);
+
+                if (!string.IsNullOrWhiteSpace(text))
+                {
+                    txtChannelUrl.AppendText(text.Trim() + Environment.NewLine);
+                    AppendOutput("✅ 채널/재생목록 URL 드래그 앤 드롭 완료");
+                }
+            }
+        }
+    }
+
+    /// <summary>
+    /// RelayCommand - 키보드 단축키용 간단한 커맨드 클래스
+    /// </summary>
+    public class RelayCommand : ICommand
+    {
+        private readonly Action _execute;
+        private readonly Func<bool>? _canExecute;
+
+        public RelayCommand(Action execute, Func<bool>? canExecute = null)
+        {
+            _execute = execute ?? throw new ArgumentNullException(nameof(execute));
+            _canExecute = canExecute;
+        }
+
+        public event EventHandler? CanExecuteChanged
+        {
+            add { CommandManager.RequerySuggested += value; }
+            remove { CommandManager.RequerySuggested -= value; }
+        }
+
+        public bool CanExecute(object? parameter) => _canExecute == null || _canExecute();
+
+        public void Execute(object? parameter) => _execute();
     }
 }
