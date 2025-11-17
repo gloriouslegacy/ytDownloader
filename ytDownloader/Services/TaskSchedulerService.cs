@@ -156,6 +156,7 @@ namespace ytDownloader.Services
                     var lines = output.Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries);
                     string? currentTaskName = null;
                     string? nextRunTime = null;
+                    int currentFrequency = 1;
 
                     foreach (var line in lines)
                     {
@@ -165,6 +166,7 @@ namespace ytDownloader.Services
                             if (taskName.Contains(TaskNamePrefix))
                             {
                                 currentTaskName = taskName;
+                                currentFrequency = 1; // 초기화
                             }
                             else
                             {
@@ -183,9 +185,14 @@ namespace ytDownloader.Services
                                     TaskName = currentTaskName,
                                     Hour = hour,
                                     Minute = minute,
-                                    Frequency = 1 // 기본값 (실제 값은 더 복잡한 파싱 필요)
+                                    Frequency = currentFrequency
                                 });
                             }
+                        }
+                        else if (currentTaskName != null && (line.Contains("간격:") || line.Contains("Repeat:")))
+                        {
+                            // 주기 정보 추출 (예: "간격: 3일 마다" 또는 "Repeat: Every 3 Day(s)")
+                            currentFrequency = ExtractFrequency(line);
                         }
                     }
                 }
@@ -234,6 +241,29 @@ namespace ytDownloader.Services
             }
 
             return false;
+        }
+
+        /// <summary>
+        /// 주기 정보 문자열에서 숫자 추출
+        /// </summary>
+        private int ExtractFrequency(string line)
+        {
+            try
+            {
+                // 한글: "간격: 3일 마다" 또는 "간격:                  3일 마다"
+                // 영어: "Repeat:                       Every 3 Day(s)"
+                var match = Regex.Match(line, @"(\d+)\s*[일Day]");
+                if (match.Success)
+                {
+                    return int.Parse(match.Groups[1].Value);
+                }
+            }
+            catch
+            {
+                // 파싱 실패
+            }
+
+            return 1; // 기본값
         }
 
         /// <summary>

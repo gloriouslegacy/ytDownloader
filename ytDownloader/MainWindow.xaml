@@ -721,7 +721,7 @@
                                         VerticalAlignment="Center"
                                         ToolTip="{DynamicResource ToolTip_ScheduleChannelUrl}" />
                                     <Button
-                                        Width="60"
+                                        Width="80"
                                         Click="btnScheduleUrlPaste_Click"
                                         Content="붙여넣기"
                                         ToolTip="클립보드의 URL을 입력란에 붙여넣기" />
@@ -783,6 +783,11 @@
                                         ToolTip="{DynamicResource ToolTip_RemoveAllSchedules}" />
                                     <Button
                                         Width="140"
+                                        Click="btnRunSelectedSchedule_Click"
+                                        Content="선택 예약 실행"
+                                        ToolTip="선택한 예약 채널만 즉시 실행합니다" />
+                                    <Button
+                                        Width="140"
                                         Click="btnRunScheduledDownloads_Click"
                                         Content="{DynamicResource Button_RunScheduledDownloads}"
                                         ToolTip="{DynamicResource ToolTip_RunScheduledDownloads}" />
@@ -802,7 +807,7 @@
                                 <Grid.RowDefinitions>
                                     <RowDefinition Height="Auto" />
                                     <RowDefinition Height="Auto" />
-                                    <RowDefinition Height="80" />
+                                    <RowDefinition Height="100" />
                                     <RowDefinition Height="Auto" />
                                 </Grid.RowDefinitions>
 
