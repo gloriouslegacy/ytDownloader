@@ -678,15 +678,27 @@
                             Foreground="{DynamicResource PrimaryTextBrush}"
                             Text="{DynamicResource Label_ManualSchedule}" />
                         <DockPanel>
+                            <TextBlock
+                                Margin="5,0,5,0"
+                                VerticalAlignment="Center"
+                                FontWeight="SemiBold"
+                                Foreground="{DynamicResource PrimaryTextBrush}"
+                                Text="URL 입력:" />
                             <TextBox
                                 Name="txtScheduleChannelUrl"
-                                Width="600"
+                                Width="530"
                                 Margin="5"
                                 VerticalAlignment="Center"
                                 ToolTip="{DynamicResource ToolTip_ScheduleChannelUrl}" />
+                            <TextBlock
+                                Margin="10,0,5,0"
+                                VerticalAlignment="Center"
+                                FontWeight="SemiBold"
+                                Foreground="{DynamicResource PrimaryTextBrush}"
+                                Text="채널 이름:" />
                             <TextBox
                                 Name="txtScheduleChannelName"
-                                Width="200"
+                                Width="140"
                                 Margin="5"
                                 VerticalAlignment="Center"
                                 ToolTip="{DynamicResource ToolTip_ScheduleChannelName}" />
