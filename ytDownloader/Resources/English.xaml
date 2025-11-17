@@ -1,8 +1,9 @@
-<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-                    xmlns:system="clr-namespace:System;assembly=mscorlib">
+<ResourceDictionary
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:system="clr-namespace:System;assembly=mscorlib">
 
-    <!-- Menu -->
+    <!--  Menu  -->
     <system:String x:Key="Menu_File">File(_F)</system:String>
     <system:String x:Key="Menu_Exit">Exit(_X)</system:String>
     <system:String x:Key="Menu_Settings">Settings(_S)</system:String>
@@ -15,14 +16,14 @@
     <system:String x:Key="Menu_BtbNRelease">BtbN Releases</system:String>
     <system:String x:Key="Menu_About">About(_A)</system:String>
 
-    <!-- Tabs -->
+    <!--  Tabs  -->
     <system:String x:Key="Tab_BasicSettings">Basic Settings</system:String>
     <system:String x:Key="Tab_AdvancedSettings">Advanced Settings</system:String>
     <system:String x:Key="Tab_Schedule">Schedule</system:String>
     <system:String x:Key="Tab_ManualSchedule">Manual Schedule</system:String>
     <system:String x:Key="Tab_AutoSchedule">Auto Schedule</system:String>
 
-    <!-- URL Input -->
+    <!--  URL Input  -->
     <system:String x:Key="Label_UrlInput">URL Input</system:String>
     <system:String x:Key="Button_Paste">Paste</system:String>
     <system:String x:Key="Button_Clear">Clear</system:String>
@@ -31,14 +32,14 @@
     <system:String x:Key="ToolTip_Clear">Remove all entered URLs</system:String>
     <system:String x:Key="ToolTip_Download">Download entered URL list individually</system:String>
 
-    <!-- Channel/Playlist -->
+    <!--  Channel/Playlist  -->
     <system:String x:Key="Label_ChannelPlaylist">Channel / Playlist URL Input</system:String>
     <system:String x:Key="Button_ChannelDownload">Download Channel / Playlist</system:String>
     <system:String x:Key="ToolTip_ChannelPaste">Paste channel/playlist URL from clipboard</system:String>
     <system:String x:Key="ToolTip_ChannelClear">Remove all entered channel/playlist URLs</system:String>
     <system:String x:Key="ToolTip_ChannelDownload">Download all videos from channel or playlist (Max count: see advanced settings)</system:String>
 
-    <!-- Save Path -->
+    <!--  Save Path  -->
     <system:String x:Key="Label_SavePath">Save Path</system:String>
     <system:String x:Key="Button_Browse">Browse</system:String>
     <system:String x:Key="Button_Open">Open</system:String>
@@ -46,7 +47,7 @@
     <system:String x:Key="ToolTip_Browse">Change save path</system:String>
     <system:String x:Key="ToolTip_Open">Open save folder in Explorer</system:String>
 
-    <!-- Format -->
+    <!--  Format  -->
     <system:String x:Key="Label_Format">Format Selection</system:String>
     <system:String x:Key="Format_BestVideo">Video (Best Quality)</system:String>
     <system:String x:Key="Format_Video1080p">Video (1080p)</system:String>
@@ -57,15 +58,15 @@
     <system:String x:Key="Format_AudioFLAC">Audio (FLAC Lossless)</system:String>
     <system:String x:Key="ToolTip_Format">Select video/audio quality to download</system:String>
 
-    <!-- Checkboxes -->
+    <!--  Checkboxes  -->
     <system:String x:Key="CheckBox_SingleVideo">Single Download (Ignore Playlist)</system:String>
     <system:String x:Key="ToolTip_SingleVideo">Download only first video even with playlist URL</system:String>
 
-    <!-- Program Restart -->
+    <!--  Program Restart  -->
     <system:String x:Key="Button_Restart">Restart Program</system:String>
     <system:String x:Key="ToolTip_Restart">Close and restart the program</system:String>
 
-    <!-- Advanced Settings -->
+    <!--  Advanced Settings  -->
     <system:String x:Key="CheckBox_StructuredFolders">Channel/Playlist Folder Structure</system:String>
     <system:String x:Key="ToolTip_StructuredFolders">Organize by creating folders with channel or playlist names</system:String>
     <system:String x:Key="CheckBox_Thumbnail">Save Thumbnail</system:String>
@@ -78,7 +79,7 @@
     <system:String x:Key="Label_MaxDownloads">Max Download Count (0 = unlimited)</system:String>
     <system:String x:Key="ToolTip_MaxDownloads">Maximum download count for channel/playlist (0 = unlimited)</system:String>
 
-    <!-- Download Control -->
+    <!--  Download Control  -->
     <system:String x:Key="Button_Pause">Pause</system:String>
     <system:String x:Key="Button_Resume">Resume</system:String>
     <system:String x:Key="Button_Stop">Stop</system:String>
@@ -86,7 +87,7 @@
     <system:String x:Key="ToolTip_Resume">Resume paused download</system:String>
     <system:String x:Key="ToolTip_Stop">Stop current download</system:String>
 
-    <!-- Scheduled Download -->
+    <!--  Scheduled Download  -->
     <system:String x:Key="Label_ManualSchedule">Manual Scheduled Download</system:String>
     <system:String x:Key="Label_AutoSchedule">Automatic Schedule Settings</system:String>
     <system:String x:Key="Description_AutoSchedule">Automatically download scheduled channels at specified times using Windows Task Scheduler.</system:String>
@@ -108,7 +109,7 @@
     <system:String x:Key="CheckBox_EnableNotification">Download Complete Notification</system:String>
     <system:String x:Key="ToolTip_EnableNotification">Show notification when download completes</system:String>
 
-    <!-- Progress -->
+    <!--  Progress  -->
     <system:String x:Key="Label_Speed">Speed:</system:String>
     <system:String x:Key="Label_ETA">ETA:</system:String>
 </ResourceDictionary>
