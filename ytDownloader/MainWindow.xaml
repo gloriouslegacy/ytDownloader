@@ -453,10 +453,10 @@
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
             <!--  메뉴바  -->
-            <RowDefinition Height="7*" />
-            <!--  TabControl (70%)  -->
-            <RowDefinition Height="3*" />
-            <!--  로그창 (30%)  -->
+            <RowDefinition Height="5*" />
+            <!--  TabControl (50%)  -->
+            <RowDefinition Height="5*" />
+            <!--  로그창 (50%)  -->
         </Grid.RowDefinitions>
 
         <!--  메뉴바  -->
@@ -759,14 +759,23 @@
                                     <RowDefinition Height="Auto" />
                                 </Grid.RowDefinitions>
 
-                                <!--  제목  -->
-                                <TextBlock
-                                    Grid.Row="0"
-                                    Margin="0,0,0,10"
-                                    FontSize="16"
-                                    FontWeight="Bold"
-                                    Foreground="{DynamicResource PrimaryTextBrush}"
-                                    Text="{DynamicResource Label_ManualSchedule}" />
+                                <!--  제목 및 전체 선택  -->
+                                <DockPanel Grid.Row="0" Margin="0,0,0,10">
+                                    <TextBlock
+                                        DockPanel.Dock="Left"
+                                        FontSize="16"
+                                        FontWeight="Bold"
+                                        Foreground="{DynamicResource PrimaryTextBrush}"
+                                        Text="{DynamicResource Label_ManualSchedule}" />
+                                    <CheckBox
+                                        Name="chkSelectAllManual"
+                                        DockPanel.Dock="Right"
+                                        Margin="10,0,0,0"
+                                        Content="전체 선택"
+                                        VerticalAlignment="Center"
+                                        Checked="chkSelectAllManual_Changed"
+                                        Unchecked="chkSelectAllManual_Changed" />
+                                </DockPanel>
 
                                 <!--  채널 URL 입력  -->
                                 <DockPanel Grid.Row="1" Margin="0,0,0,10">
@@ -820,7 +829,13 @@
                                     BorderBrush="{DynamicResource BorderBrush}"
                                     BorderThickness="1"
                                     Foreground="{DynamicResource PrimaryTextBrush}"
-                                    SelectionMode="Single" />
+                                    SelectionMode="Multiple">
+                                    <ListBox.ItemTemplate>
+                                        <DataTemplate>
+                                            <CheckBox Content="{Binding}" IsChecked="{Binding RelativeSource={RelativeSource AncestorType=ListBoxItem}, Path=IsSelected}" />
+                                        </DataTemplate>
+                                    </ListBox.ItemTemplate>
+                                </ListBox>
 
                                 <!--  버튼  -->
                                 <StackPanel
@@ -831,8 +846,8 @@
                                     <Button
                                         Width="140"
                                         Click="btnRemoveSchedule_Click"
-                                        Content="{DynamicResource Button_RemoveSchedule}"
-                                        ToolTip="{DynamicResource ToolTip_RemoveSchedule}" />
+                                        Content="수동 예약 선택 삭제"
+                                        ToolTip="선택한 수동 예약 항목들을 삭제합니다" />
                                     <Button
                                         Width="140"
                                         Click="btnRemoveAllSchedules_Click"
@@ -870,13 +885,33 @@
 
                                 <!--  제목 및 설명  -->
                                 <StackPanel Grid.Row="0" Margin="0,0,0,15">
+                                    <DockPanel Margin="0,0,0,10">
+                                        <TextBlock
+                                            DockPanel.Dock="Left"
+                                            FontSize="16"
+                                            FontWeight="Bold"
+                                            Foreground="{DynamicResource PrimaryTextBrush}"
+                                            Text="{DynamicResource Label_AutoSchedule}" />
+                                        <CheckBox
+                                            Name="chkSelectAllAuto"
+                                            DockPanel.Dock="Right"
+                                            Margin="10,0,0,0"
+                                            Content="전체 선택"
+                                            VerticalAlignment="Center"
+                                            Checked="chkSelectAllAuto_Changed"
+                                            Unchecked="chkSelectAllAuto_Changed" />
+                                    </DockPanel>
                                     <TextBlock
+
+                                        TextWrapping="Wrap"
+
                                         FontSize="16"
                                         FontWeight="Bold"
                                         Foreground="{DynamicResource PrimaryTextBrush}"
                                         Text="{DynamicResource Label_AutoSchedule}" />
                                     <TextBlock
                                         Margin="0,10,0,0"
+
                                         Foreground="{DynamicResource SecondaryTextBrush}"
                                         Text="{DynamicResource Description_AutoSchedule}"
                                         TextWrapping="Wrap" />
@@ -899,7 +934,13 @@
                                     BorderBrush="{DynamicResource BorderBrush}"
                                     BorderThickness="1"
                                     Foreground="{DynamicResource PrimaryTextBrush}"
-                                    SelectionMode="Single" />
+                                    SelectionMode="Multiple">
+                                    <ListBox.ItemTemplate>
+                                        <DataTemplate>
+                                            <CheckBox Content="{Binding}" IsChecked="{Binding RelativeSource={RelativeSource AncestorType=ListBoxItem}, Path=IsSelected}" />
+                                        </DataTemplate>
+                                    </ListBox.ItemTemplate>
+                                </ListBox>
 
                                 <!--  버튼  -->
                                 <StackPanel
@@ -907,10 +948,10 @@
                                     HorizontalAlignment="Right"
                                     Orientation="Horizontal">
                                     <Button
-                                        Width="100"
+                                        Width="140"
                                         Click="btnDeleteSelectedAutoSchedule_Click"
-                                        Content="선택 삭제"
-                                        ToolTip="선택한 자동 예약 스케줄을 삭제합니다" />
+                                        Content="자동 예약 선택 삭제"
+                                        ToolTip="선택한 자동 예약 스케줄들을 삭제합니다" />
                                     <Button
                                         Width="100"
                                         Click="btnDeleteAllAutoSchedules_Click"

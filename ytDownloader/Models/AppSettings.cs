@@ -46,6 +46,9 @@ namespace ytDownloader.Models
         /// <summary>예약된 채널 목록</summary>
         public List<ScheduledChannel> ScheduledChannels { get; set; } = new List<ScheduledChannel>();
 
+        /// <summary>스케줄러별 개별 설정 (Key: TaskName)</summary>
+        public Dictionary<string, SchedulerSettings> SchedulerSettingsMap { get; set; } = new Dictionary<string, SchedulerSettings>();
+
         /// <summary>
         /// 기본 다운로드 경로 반환
         /// </summary>
