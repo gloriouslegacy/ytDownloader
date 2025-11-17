@@ -578,7 +578,7 @@
             BorderBrush="{DynamicResource BorderBrush}"
             SelectionChanged="mainTabControl_SelectionChanged">
             <!--  기본  -->
-            <TabItem Header="기본">
+            <TabItem Header="{DynamicResource Tab_BasicSettings}">
                 <Border
                     Margin="10"
                     Padding="15"
@@ -598,23 +598,23 @@
                                 Margin="5"
                                 FontWeight="Bold"
                                 Foreground="{DynamicResource PrimaryTextBrush}"
-                                Text="URL 입력" />
+                                Text="{DynamicResource Label_UrlInput}" />
                             <DockPanel>
                                 <Button
                                     Width="80"
                                     Click="btnPaste_Click"
-                                    Content="붙여넣기"
-                                    ToolTip="클립보드의 URL을 입력란에 붙여넣기 (Ctrl+V)" />
+                                    Content="{DynamicResource Button_Paste}"
+                                    ToolTip="{DynamicResource ToolTip_Paste}" />
                                 <Button
                                     Width="80"
                                     Click="btnUrlsClear_Click"
-                                    Content="지우기"
-                                    ToolTip="입력한 모든 URL 제거" />
+                                    Content="{DynamicResource Button_Clear}"
+                                    ToolTip="{DynamicResource ToolTip_Clear}" />
                                 <Button
                                     Width="160"
                                     Click="btnDownload_Click"
-                                    Content="URL 다운로드"
-                                    ToolTip="입력한 URL 목록을 개별적으로 다운로드" />
+                                    Content="{DynamicResource Button_Download}"
+                                    ToolTip="{DynamicResource ToolTip_Download}" />
                             </DockPanel>
                             <TextBox
                                 Name="txtUrls"
@@ -629,23 +629,23 @@
                                 Margin="5,15,5,5"
                                 FontWeight="Bold"
                                 Foreground="{DynamicResource PrimaryTextBrush}"
-                                Text="채널 / 재생목록 URL 입력" />
+                                Text="{DynamicResource Label_ChannelPlaylist}" />
                             <DockPanel>
                                 <Button
                                     Width="80"
                                     Click="btnChannelPaste_Click"
-                                    Content="붙여넣기"
-                                    ToolTip="클립보드의 채널/재생목록 URL 붙여넣기" />
+                                    Content="{DynamicResource Button_Paste}"
+                                    ToolTip="{DynamicResource ToolTip_ChannelPaste}" />
                                 <Button
                                     Width="80"
                                     Click="btnChannelClear_Click"
-                                    Content="지우기"
-                                    ToolTip="입력한 모든 채널/재생목록 URL 제거" />
+                                    Content="{DynamicResource Button_Clear}"
+                                    ToolTip="{DynamicResource ToolTip_ChannelClear}" />
                                 <Button
                                     Width="160"
                                     Click="btnChannelDownload_Click"
-                                    Content="채널 / 재생목록 다운로드"
-                                    ToolTip="채널 또는 재생목록의 모든 영상 다운로드 (최대 개수 참조)" />
+                                    Content="{DynamicResource Button_ChannelDownload}"
+                                    ToolTip="{DynamicResource ToolTip_ChannelDownload}" />
                             </DockPanel>
                             <TextBox
                                 Name="txtChannelUrl"
@@ -668,44 +668,44 @@
                                     Margin="5"
                                     FontWeight="Bold"
                                     Foreground="{DynamicResource PrimaryTextBrush}"
-                                    Text="저장 경로" />
+                                    Text="{DynamicResource Label_SavePath}" />
                                 <DockPanel>
                                     <TextBox
                                         Name="txtSavePath"
                                         Width="254"
                                         IsReadOnly="True"
-                                        ToolTip="다운로드한 파일이 저장될 경로" />
+                                        ToolTip="{DynamicResource ToolTip_SavePath}" />
                                     <Button
                                         Width="70"
                                         Click="btnBrowse_Click"
-                                        Content="찾기"
-                                        ToolTip="저장 경로 변경" />
+                                        Content="{DynamicResource Button_Browse}"
+                                        ToolTip="{DynamicResource ToolTip_Browse}" />
                                     <Button
                                         Width="70"
                                         Click="btnOpenFolder_Click"
-                                        Content="열기"
-                                        ToolTip="탐색기에서 저장 폴더 열기" />
+                                        Content="{DynamicResource Button_Open}"
+                                        ToolTip="{DynamicResource ToolTip_Open}" />
                                 </DockPanel>
 
                                 <TextBlock
                                     Margin="5,10,5,5"
                                     FontWeight="Bold"
                                     Foreground="{DynamicResource PrimaryTextBrush}"
-                                    Text="포맷 선택" />
-                                <ComboBox Name="comboFormat" ToolTip="다운로드할 영상/음악 품질 선택">
-                                    <ComboBoxItem Content="영상 (최고화질)" />
-                                    <ComboBoxItem Content="영상 (1080p)" />
-                                    <ComboBoxItem Content="영상 (720p)" />
-                                    <ComboBoxItem Content="영상 (480p)" />
-                                    <ComboBoxItem Content="음악 (MP3 V0 VBR)" />
-                                    <ComboBoxItem Content="음악 (Best 원본유지)" />
-                                    <ComboBoxItem Content="음악 (FLAC 무손실 변환)" />
+                                    Text="{DynamicResource Label_Format}" />
+                                <ComboBox Name="comboFormat" ToolTip="{DynamicResource ToolTip_Format}">
+                                    <ComboBoxItem Content="{DynamicResource Format_BestVideo}" />
+                                    <ComboBoxItem Content="{DynamicResource Format_Video1080p}" />
+                                    <ComboBoxItem Content="{DynamicResource Format_Video720p}" />
+                                    <ComboBoxItem Content="{DynamicResource Format_Video480p}" />
+                                    <ComboBoxItem Content="{DynamicResource Format_AudioMP3}" />
+                                    <ComboBoxItem Content="{DynamicResource Format_AudioBest}" />
+                                    <ComboBoxItem Content="{DynamicResource Format_AudioFLAC}" />
                                 </ComboBox>
 
                                 <CheckBox
                                     Name="ChkSingleVideo"
-                                    Content="단일 다운로드(재생목록 무시)"
-                                    ToolTip="재생목록 URL을 입력해도 첫 번째 영상만 다운로드" />
+                                    Content="{DynamicResource CheckBox_SingleVideo}"
+                                    ToolTip="{DynamicResource ToolTip_SingleVideo}" />
 
                                 <!--  고급 설정  -->
                                 <Separator Margin="5,15,5,10" />
@@ -714,31 +714,31 @@
                                     FontSize="14"
                                     FontWeight="Bold"
                                     Foreground="{DynamicResource PrimaryTextBrush}"
-                                    Text="고급 설정" />
+                                    Text="{DynamicResource Label_AdvancedSettings}" />
 
                                 <CheckBox
                                     Name="ChkStructuredFolders"
-                                    Content="채널/재생목록 폴더 구조"
-                                    ToolTip="채널명 또는 재생목록명으로 폴더를 생성하여 정리" />
+                                    Content="{DynamicResource CheckBox_StructuredFolders}"
+                                    ToolTip="{DynamicResource ToolTip_StructuredFolders}" />
                                 <CheckBox
                                     Name="ChkWriteThumbnail"
-                                    Content="썸네일 저장"
-                                    ToolTip="영상 썸네일 이미지를 함께 저장" />
+                                    Content="{DynamicResource CheckBox_Thumbnail}"
+                                    ToolTip="{DynamicResource ToolTip_Thumbnail}" />
 
                                 <TextBlock
                                     Margin="5,10,5,5"
                                     FontWeight="Bold"
                                     Foreground="{DynamicResource PrimaryTextBrush}"
-                                    Text="자막 설정" />
+                                    Text="{DynamicResource Label_SubtitleSettings}" />
                                 <CheckBox
                                     Name="SubtitleCheckBox"
-                                    Content="자막 다운로드"
-                                    ToolTip="영상과 함께 자막 파일 다운로드" />
+                                    Content="{DynamicResource CheckBox_Subtitle}"
+                                    ToolTip="{DynamicResource ToolTip_Subtitle}" />
                                 <StackPanel Orientation="Horizontal">
                                     <ComboBox
                                         Name="SubtitleFormatComboBox"
                                         Width="120"
-                                        ToolTip="자막 파일 형식 (srt: 범용, vtt: 웹용, ass: 고급 스타일)">
+                                        ToolTip="{DynamicResource ToolTip_SubtitleFormat}">
                                         <ComboBoxItem Content="srt" />
                                         <ComboBoxItem Content="vtt" />
                                         <ComboBoxItem Content="ass" />
@@ -746,7 +746,7 @@
                                     <ComboBox
                                         Name="SubtitleLangComboBox"
                                         Width="120"
-                                        ToolTip="자막 언어 선택">
+                                        ToolTip="{DynamicResource ToolTip_SubtitleLang}">
                                         <ComboBoxItem Content="ko" />
                                         <ComboBoxItem Content="en" />
                                         <ComboBoxItem Content="ja" />
@@ -798,13 +798,13 @@
                                     <Button
                                         Width="140"
                                         Click="btnStopDownload_Click"
-                                        Content="다운로드 중지"
-                                        ToolTip="진행 중인 다운로드를 중지합니다" />
+                                        Content="{DynamicResource Button_Stop}"
+                                        ToolTip="{DynamicResource ToolTip_Stop}" />
                                     <Button
                                         Width="140"
                                         Click="pgRestart_Click"
-                                        Content="프로그램 재시작"
-                                        ToolTip="프로그램을 종료하고 다시 시작" />
+                                        Content="{DynamicResource Button_Restart}"
+                                        ToolTip="{DynamicResource ToolTip_Restart}" />
                                 </StackPanel>
                             </StackPanel>
                         </ScrollViewer>
@@ -902,8 +902,8 @@
                                         Name="lstScheduledChannels"
                                         MinHeight="80"
                                         Background="Transparent"
-                                        MouseLeftButtonUp="lstScheduledChannels_MouseLeftButtonUp"
-                                        SelectionMode="Extended"
+                                        PreviewMouseLeftButtonDown="lstScheduledChannels_PreviewMouseLeftButtonDown"
+                                        SelectionMode="None"
                                         SelectionUnit="FullRow">
                                         <DataGrid.Columns>
                                             <DataGridCheckBoxColumn
@@ -1010,8 +1010,8 @@
                                         Name="lstAutoScheduledTasks"
                                         MinHeight="80"
                                         Background="Transparent"
-                                        MouseLeftButtonUp="lstAutoScheduledTasks_MouseLeftButtonUp"
-                                        SelectionMode="Extended"
+                                        PreviewMouseLeftButtonDown="lstAutoScheduledTasks_PreviewMouseLeftButtonDown"
+                                        SelectionMode="None"
                                         SelectionUnit="FullRow">
                                         <DataGrid.Columns>
                                             <DataGridCheckBoxColumn
