@@ -24,8 +24,20 @@ namespace ytDownloader
             // 저장된 언어 적용
             ApplyLanguage(settings.Language);
 
+            // 스케줄러 모드 확인 (헤드리스 모드)
+            bool isScheduledMode = e.Args != null && e.Args.Length > 0 && e.Args[0] == "--scheduled";
+
             // MainWindow 생성 및 표시 (명령줄 인수 전달)
             var mainWindow = new MainWindow(e.Args);
+
+            if (isScheduledMode)
+            {
+                // 헤드리스 모드: 창을 숨김 상태로 시작
+                mainWindow.WindowState = WindowState.Minimized;
+                mainWindow.ShowInTaskbar = false;
+                mainWindow.Visibility = Visibility.Hidden;
+            }
+
             mainWindow.Show();
         }
 
