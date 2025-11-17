@@ -129,6 +129,8 @@
     <system:String x:Key="Header_Frequency">실행 주기</system:String>
     <system:String x:Key="Header_ExecutionTime">실행 시간</system:String>
     <system:String x:Key="Header_NextRun">다음 실행</system:String>
+    <system:String x:Key="Button_EditSchedule">스케줄 편집</system:String>
+    <system:String x:Key="ToolTip_EditSchedule">선택한 자동 예약 스케줄을 편집합니다</system:String>
     <system:String x:Key="Button_RemoveSelectedAutoSchedule">자동 예약 선택 삭제</system:String>
     <system:String x:Key="ToolTip_RemoveSelectedAutoSchedule">선택한 자동 예약 스케줄들을 삭제합니다</system:String>
     <system:String x:Key="Button_RemoveAllAutoSchedules">자동 예약 전체 삭제</system:String>

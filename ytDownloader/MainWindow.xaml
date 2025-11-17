@@ -900,11 +900,25 @@
                                     CornerRadius="6">
                                     <DataGrid
                                         Name="lstScheduledChannels"
-                                        MinHeight="80"
+                                        MinHeight="130"
                                         Background="Transparent"
                                         PreviewMouseLeftButtonDown="lstScheduledChannels_PreviewMouseLeftButtonDown"
-                                        SelectionMode="Single"
+                                        SelectionMode="Extended"
                                         SelectionUnit="FullRow">
+                                        <DataGrid.ContextMenu>
+                                            <ContextMenu>
+                                                <MenuItem
+                                                    Click="btnRemoveSchedule_Click"
+                                                    Header="{DynamicResource Button_RemoveSelectedSchedule}" />
+                                                <MenuItem
+                                                    Click="btnRunSelectedSchedule_Click"
+                                                    Header="{DynamicResource Button_RunSelectedSchedule}" />
+                                                <Separator />
+                                                <MenuItem
+                                                    Click="btnRemoveAllSchedules_Click"
+                                                    Header="{DynamicResource Button_RemoveAllSchedules}" />
+                                            </ContextMenu>
+                                        </DataGrid.ContextMenu>
                                         <DataGrid.Columns>
                                             <DataGridCheckBoxColumn
                                                 Width="50"
@@ -1008,11 +1022,26 @@
                                     CornerRadius="6">
                                     <DataGrid
                                         Name="lstAutoScheduledTasks"
-                                        MinHeight="80"
+                                        MinHeight="130"
                                         Background="Transparent"
                                         PreviewMouseLeftButtonDown="lstAutoScheduledTasks_PreviewMouseLeftButtonDown"
-                                        SelectionMode="Single"
+                                        MouseDoubleClick="lstAutoScheduledTasks_MouseDoubleClick"
+                                        SelectionMode="Extended"
                                         SelectionUnit="FullRow">
+                                        <DataGrid.ContextMenu>
+                                            <ContextMenu>
+                                                <MenuItem
+                                                    Click="btnEditAutoSchedule_Click"
+                                                    Header="{DynamicResource Button_EditSchedule}" />
+                                                <Separator />
+                                                <MenuItem
+                                                    Click="btnDeleteSelectedAutoSchedule_Click"
+                                                    Header="{DynamicResource Button_RemoveSelectedAutoSchedule}" />
+                                                <MenuItem
+                                                    Click="btnDeleteAllAutoSchedules_Click"
+                                                    Header="{DynamicResource Button_RemoveAllAutoSchedules}" />
+                                            </ContextMenu>
+                                        </DataGrid.ContextMenu>
                                         <DataGrid.Columns>
                                             <DataGridCheckBoxColumn
                                                 Width="50"
