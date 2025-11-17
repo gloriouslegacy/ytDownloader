@@ -1374,6 +1374,77 @@ namespace ytDownloader
             }
         }
 
+        /// <summary>
+        /// 자동 예약 DataGrid 더블클릭 이벤트 - 편집 기능
+        /// </summary>
+        private void lstAutoScheduledTasks_MouseDoubleClick(object sender, MouseButtonEventArgs e)
+        {
+            // 더블클릭 시 선택된 항목 편집
+            var grid = sender as DataGrid;
+            if (grid == null || grid.SelectedItem == null) return;
+
+            if (grid.SelectedItem is ScheduleTaskInfo task)
+            {
+                EditAutoSchedule(task);
+            }
+        }
+
+        /// <summary>
+        /// 자동 예약 편집 버튼 클릭 (컨텍스트 메뉴)
+        /// </summary>
+        private void btnEditAutoSchedule_Click(object sender, RoutedEventArgs e)
+        {
+            // 선택된 첫 번째 항목 편집
+            var selectedTask = lstAutoScheduledTasks.SelectedItem as ScheduleTaskInfo;
+
+            if (selectedTask == null)
+            {
+                // 체크박스로 선택된 항목 찾기
+                selectedTask = _autoScheduledTasksCollection.FirstOrDefault(t => t.IsSelected);
+            }
+
+            if (selectedTask == null)
+            {
+                string message = _currentSettings.Language == "ko"
+                    ? "편집할 스케줄을 선택하세요."
+                    : "Please select a schedule to edit.";
+                string title = _currentSettings.Language == "ko"
+                    ? "알림"
+                    : "Notice";
+                MessageBox.Show(message, title, MessageBoxButton.OK, MessageBoxImage.Information);
+                return;
+            }
+
+            EditAutoSchedule(selectedTask);
+        }
+
+        /// <summary>
+        /// 자동 예약 편집 실행
+        /// </summary>
+        private void EditAutoSchedule(ScheduleTaskInfo task)
+        {
+            // TODO: ScheduleSettingsWindow에 편집 모드 추가 필요
+            // 현재는 새로운 스케줄 설정 창을 열어서 편집
+            var scheduleWindow = new ScheduleSettingsWindow();
+            scheduleWindow.Owner = this;
+
+            // 편집할 스케줄의 이름을 전달하여 설정 로드
+            // (ScheduleSettingsWindow에서 생성자 또는 초기화 메서드를 통해 로드해야 함)
+            // 임시: 알림 후 일반 설정 창 열기
+            string message = _currentSettings.Language == "ko"
+                ? $"'{task.TaskName}' 스케줄 편집 기능은 현재 구현 중입니다.\n자동 예약 설정 창이 열립니다."
+                : $"Edit feature for '{task.TaskName}' is under development.\nAuto schedule settings window will open.";
+            string title = _currentSettings.Language == "ko"
+                ? "알림"
+                : "Notice";
+            MessageBox.Show(message, title, MessageBoxButton.OK, MessageBoxImage.Information);
+
+            scheduleWindow.ShowDialog();
+
+            // 다이얼로그가 닫히면 자동으로 스케줄러 상태 업데이트
+            UpdateSchedulerStatus();
+        }
+
     }
 
     /// <summary>
