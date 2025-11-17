@@ -34,6 +34,12 @@ namespace ytDownloader.Models
         /// <summary>채널 다운로드 시 최대 개수</summary>
         public int MaxDownloads { get; set; } = 5;
 
+        /// <summary>테마 설정 (Dark, Light)</summary>
+        public string Theme { get; set; } = "Dark";
+
+        /// <summary>언어 설정 (ko, en)</summary>
+        public string Language { get; set; } = "ko";
+
         /// <summary>
         /// 기본 다운로드 경로 반환
         /// </summary>

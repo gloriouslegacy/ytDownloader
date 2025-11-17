@@ -5,9 +5,12 @@
     Title="ytDownloader(ytdlp)"
     Width="1150"
     Height="750"
+    MinWidth="900"
+    MinHeight="600"
     Background="#1E1E2E"
     Foreground="White"
-    WindowStartupLocation="CenterScreen">
+    WindowStartupLocation="CenterScreen"
+    ResizeMode="CanResize">
 
     <Window.Resources>
         <!--  버튼 스타일  -->
@@ -64,6 +67,57 @@
             <Setter Property="Margin" Value="5" />
             <Setter Property="Foreground" Value="White" />
         </Style>
+
+        <!--  TabControl  -->
+        <Style TargetType="TabControl">
+            <Setter Property="Background" Value="#1E1E2E" />
+            <Setter Property="BorderBrush" Value="#2A2F45" />
+        </Style>
+
+        <!--  TabItem 스타일  -->
+        <Style TargetType="TabItem">
+            <Setter Property="Foreground" Value="White" />
+            <Setter Property="FontWeight" Value="SemiBold" />
+            <Setter Property="Padding" Value="15,8" />
+            <Setter Property="Margin" Value="2,0" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="TabItem">
+                        <Border
+                            Name="Border"
+                            Background="#2A2F45"
+                            BorderBrush="#3A3F58"
+                            BorderThickness="1,1,1,0"
+                            CornerRadius="6,6,0,0"
+                            Margin="2,0">
+                            <ContentPresenter
+                                x:Name="ContentSite"
+                                Margin="{TemplateBinding Padding}"
+                                HorizontalAlignment="Center"
+                                VerticalAlignment="Center"
+                                ContentSource="Header" />
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsSelected" Value="True">
+                                <Setter TargetName="Border" Property="Background" Value="#3A3F58" />
+                                <Setter TargetName="Border" Property="BorderBrush" Value="#5A607A" />
+                                <Setter TargetName="Border" Property="BorderThickness" Value="1,2,1,0" />
+                            </Trigger>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="Border" Property="Background" Value="#343A52" />
+                            </Trigger>
+                            <MultiTrigger>
+                                <MultiTrigger.Conditions>
+                                    <Condition Property="IsSelected" Value="True" />
+                                    <Condition Property="IsMouseOver" Value="True" />
+                                </MultiTrigger.Conditions>
+                                <Setter TargetName="Border" Property="Background" Value="#4B526E" />
+                            </MultiTrigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
     </Window.Resources>
 
     <Grid Margin="15">
@@ -85,7 +139,21 @@
                 <MenuItem
                     Click="MenuExit_Click"
                     Foreground="Black"
-                    Header="종료(_X)" />
+                    Header="종료(_X)"
+                    InputGestureText="Alt+F4" />
+            </MenuItem>
+            <MenuItem Foreground="White" Header="설정(_S)">
+                <MenuItem
+                    Name="MenuTheme"
+                    Click="MenuTheme_Click"
+                    Foreground="Black"
+                    Header="테마 전환"
+                    InputGestureText="Ctrl+T" />
+                <MenuItem
+                    Click="MenuSaveLog_Click"
+                    Foreground="Black"
+                    Header="로그 저장"
+                    InputGestureText="Ctrl+S" />
             </MenuItem>
             <MenuItem Foreground="White" Header="도움말(_H)">
                 <MenuItem
@@ -146,6 +214,9 @@
                             Name="txtUrls"
                             Height="120"
                             AcceptsReturn="True"
+                            AllowDrop="True"
+                            Drop="txtUrls_Drop"
+                            PreviewDragOver="TextBox_PreviewDragOver"
                             VerticalScrollBarVisibility="Auto" />
 
                         <TextBlock
@@ -174,6 +245,9 @@
                             Name="txtChannelUrl"
                             Height="120"
                             AcceptsReturn="True"
+                            AllowDrop="True"
+                            Drop="txtChannelUrl_Drop"
+                            PreviewDragOver="TextBox_PreviewDragOver"
                             VerticalScrollBarVisibility="Auto" />
                     </StackPanel>
 
