@@ -1011,7 +1011,7 @@
                                         MinHeight="80"
                                         Background="Transparent"
                                         PreviewMouseLeftButtonDown="lstAutoScheduledTasks_PreviewMouseLeftButtonDown"
-                                        SelectionMode="None"
+                                        SelectionMode="Single"
                                         SelectionUnit="FullRow">
                                         <DataGrid.Columns>
                                             <DataGridCheckBoxColumn
