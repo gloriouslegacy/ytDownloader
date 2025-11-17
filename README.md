@@ -34,7 +34,7 @@
 
 ### 2. 단일 동영상 다운로드
 
-1. Tube 동영상 URL을 복사합니다
+1. URL을 복사합니다
    ```
    예: https://www.tube.com/watch?v=abcd1234
    ```
