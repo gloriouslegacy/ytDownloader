@@ -44,8 +44,6 @@ namespace ytDownloader
             if (args != null && args.Length > 0 && args[0] == "--scheduled")
             {
                 _isScheduledMode = true;
-                // 자동 실행 모드
-                AutoExecuteScheduledDownloads();
             }
 
             // 서비스 초기화
@@ -77,6 +75,11 @@ namespace ytDownloader
             if (!_isScheduledMode)
             {
                 _ = UpdateToolsAndAppSequentiallyAsync();
+            }
+            else
+            {
+                // 자동 실행 모드 (모든 초기화가 완료된 후 실행)
+                AutoExecuteScheduledDownloads();
             }
         }
 
@@ -885,6 +888,31 @@ namespace ytDownloader
 
                 AppendOutput($"✅ 예약 전체삭제: {count}개 항목 삭제됨");
             }
+        }
+
+        /// <summary>
+        /// 선택 예약 실행 버튼 클릭
+        /// </summary>
+        private void btnRunSelectedSchedule_Click(object sender, RoutedEventArgs e)
+        {
+            int selectedIndex = lstScheduledChannels.SelectedIndex;
+            if (selectedIndex < 0)
+            {
+                string message = _currentSettings.Language == "ko"
+                    ? "실행할 예약 항목을 선택하세요."
+                    : "Please select a schedule item to run.";
+                string title = _currentSettings.Language == "ko"
+                    ? "선택 오류"
+                    : "Selection Error";
+                MessageBox.Show(message, title, MessageBoxButton.OK, MessageBoxImage.Warning);
+                return;
+            }
+
+            var selectedChannel = _currentSettings.ScheduledChannels[selectedIndex];
+            AppendOutput($"🚀 선택한 예약 채널 다운로드 시작: {selectedChannel.Name ?? selectedChannel.Url}");
+
+            var options = DownloadOptions.FromAppSettings(_currentSettings, selectedChannel.Url, isChannelMode: true);
+            _ = _downloadService.StartDownloadAsync(options);
         }
 
         /// <summary>
