@@ -11,9 +11,9 @@
     <system:String x:Key="Menu_LanguageSwitch">Toggle Language (한국어/English)</system:String>
     <system:String x:Key="Menu_SaveLog">Save Log</system:String>
     <system:String x:Key="Menu_Help">Help(_H)</system:String>
-    <system:String x:Key="Menu_GitHubRelease">GitHub Releases</system:String>
-    <system:String x:Key="Menu_YtDlpRelease">yt-dlp Releases</system:String>
-    <system:String x:Key="Menu_BtbNRelease">BtbN Releases</system:String>
+    <system:String x:Key="Menu_GitHubRelease">gloriouslegacy</system:String>
+    <system:String x:Key="Menu_YtDlpRelease">yt-dlp</system:String>
+    <system:String x:Key="Menu_BtbNRelease">Btbn</system:String>
     <system:String x:Key="Menu_About">About(_A)</system:String>
 
     <!--  Tabs  -->

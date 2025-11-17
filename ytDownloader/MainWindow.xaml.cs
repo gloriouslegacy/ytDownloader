@@ -543,7 +543,6 @@ namespace ytDownloader
 
             MessageBox.Show(
                 $"ytDownloader v{version}\n\n" +
-                $"YouTube 다운로더 (yt-dlp 기반)\n\n" +
                 $"© gloriouslegacy\n" +
                 $"https://github.com/gloriouslegacy/ytDownloader",
                 "정보",
