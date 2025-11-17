@@ -75,8 +75,8 @@
     <system:String x:Key="ToolTip_Subtitle">영상과 함께 자막 파일 다운로드</system:String>
     <system:String x:Key="ToolTip_SubtitleLang">자막 언어 선택 (직접 입력 가능: ko, en, ja, zh 등)</system:String>
     <system:String x:Key="ToolTip_SubtitleFormat">자막 파일 형식 (srt: 범용, vtt: 웹용, ass: 고급 스타일)</system:String>
-    <system:String x:Key="Label_MaxDownloads">최대 다운로드 개수</system:String>
-    <system:String x:Key="ToolTip_MaxDownloads">채널/재생목록 다운로드 시 최대 다운로드 개수 (예: 5)</system:String>
+    <system:String x:Key="Label_MaxDownloads">최대 다운로드 개수 (0은 무한)</system:String>
+    <system:String x:Key="ToolTip_MaxDownloads">채널/재생목록 다운로드 시 최대 다운로드 개수 (0은 무한)</system:String>
 
     <!-- 다운로드 제어 -->
     <system:String x:Key="Button_Pause">일시정지</system:String>
