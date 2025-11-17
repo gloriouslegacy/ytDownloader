@@ -11,14 +11,14 @@ using ytDownloader.Services;
 // 2025-09-21 .NET 8.0, C# 12.0
 // ✅ 자동 업데이트
 // ✅ 라이트 / 다크 모드 전환
-// ✅ 키보드 단축키 (Ctrl+T, Ctrl+S, F5)
+// ✅ 키보드 단축키 (Ctrl+T, Ctrl+L, Ctrl+S, F5)
 // ✅ 드래그 앤 드롭 (URL 입력란)
 // ✅ 로그 저장 기능
+// ✅ 언어 전환 (한국어/English)
 // ❌ 웹뷰 내장
 // ❌ 채널 예약 다운로드
 // ❌ 다운로드 정지/일시정지/재개
 // ❌ 다운로드 후 알림
-// ❌ 다국어 지원
 
 namespace ytDownloader
 {
@@ -464,6 +464,26 @@ namespace ytDownloader
         }
 
         /// <summary>
+        /// 메뉴: 언어 전환
+        /// </summary>
+        private void MenuLanguage_Click(object sender, RoutedEventArgs e)
+        {
+            // 현재 언어 토글
+            string newLanguage = _currentSettings.Language == "ko" ? "en" : "ko";
+            _currentSettings.Language = newLanguage;
+            _settingsService.SaveSettings(_currentSettings);
+
+            string languageName = newLanguage == "ko" ? "한국어" : "English";
+            AppendOutput($"✅ 언어 변경: {languageName}");
+            MessageBox.Show(
+                $"언어가 '{languageName}'(으)로 변경되었습니다.\n프로그램을 재시작하면 새 언어가 적용됩니다.",
+                "언어 변경",
+                MessageBoxButton.OK,
+                MessageBoxImage.Information
+            );
+        }
+
+        /// <summary>
         /// 메뉴: 로그 저장
         /// </summary>
         private void MenuSaveLog_Click(object sender, RoutedEventArgs e)
@@ -541,6 +561,11 @@ namespace ytDownloader
             var themeGesture = new KeyGesture(Key.T, ModifierKeys.Control);
             var themeBinding = new KeyBinding(new RelayCommand(() => MenuTheme_Click(this, new RoutedEventArgs())), themeGesture);
             this.InputBindings.Add(themeBinding);
+
+            // Ctrl+L: 언어 전환
+            var languageGesture = new KeyGesture(Key.L, ModifierKeys.Control);
+            var languageBinding = new KeyBinding(new RelayCommand(() => MenuLanguage_Click(this, new RoutedEventArgs())), languageGesture);
+            this.InputBindings.Add(languageBinding);
 
             // Ctrl+S: 로그 저장
             var saveLogGesture = new KeyGesture(Key.S, ModifierKeys.Control);

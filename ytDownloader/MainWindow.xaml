@@ -7,8 +7,8 @@
     Height="750"
     MinWidth="900"
     MinHeight="600"
-    Background="#1E1E2E"
-    Foreground="White"
+    Background="{DynamicResource WindowBackgroundBrush}"
+    Foreground="{DynamicResource PrimaryTextBrush}"
     WindowStartupLocation="CenterScreen"
     ResizeMode="CanResize">
 
@@ -17,8 +17,8 @@
         <Style TargetType="Button">
             <Setter Property="Margin" Value="5" />
             <Setter Property="Padding" Value="10,5" />
-            <Setter Property="Background" Value="#3A3F58" />
-            <Setter Property="Foreground" Value="White" />
+            <Setter Property="Background" Value="{DynamicResource SecondaryBackgroundBrush}" />
+            <Setter Property="Foreground" Value="{DynamicResource PrimaryTextBrush}" />
             <Setter Property="FontWeight" Value="Bold" />
             <Setter Property="BorderThickness" Value="0" />
             <Setter Property="Cursor" Value="Hand" />
@@ -33,10 +33,10 @@
                         </Border>
                         <ControlTemplate.Triggers>
                             <Trigger Property="IsMouseOver" Value="True">
-                                <Setter Property="Background" Value="#4B526E" />
+                                <Setter Property="Background" Value="{DynamicResource HoverBackgroundBrush}" />
                             </Trigger>
                             <Trigger Property="IsPressed" Value="True">
-                                <Setter Property="Background" Value="#5A607A" />
+                                <Setter Property="Background" Value="{DynamicResource PressedBackgroundBrush}" />
                             </Trigger>
                         </ControlTemplate.Triggers>
                     </ControlTemplate>
@@ -48,35 +48,35 @@
         <Style TargetType="TextBox">
             <Setter Property="Margin" Value="5" />
             <Setter Property="Padding" Value="8,4" />
-            <Setter Property="Background" Value="#2A2F45" />
-            <Setter Property="BorderBrush" Value="#3A3F58" />
+            <Setter Property="Background" Value="{DynamicResource PrimaryBackgroundBrush}" />
+            <Setter Property="BorderBrush" Value="{DynamicResource BorderBrush}" />
             <Setter Property="BorderThickness" Value="1" />
-            <Setter Property="Foreground" Value="White" />
+            <Setter Property="Foreground" Value="{DynamicResource PrimaryTextBrush}" />
         </Style>
 
         <!--  ComboBox  -->
         <Style TargetType="ComboBox">
             <Setter Property="Margin" Value="5" />
             <Setter Property="Padding" Value="5" />
-            <Setter Property="Background" Value="#2A2F45" />
-            <Setter Property="Foreground" Value="White" />
+            <Setter Property="Background" Value="{DynamicResource PrimaryBackgroundBrush}" />
+            <Setter Property="Foreground" Value="{DynamicResource PrimaryTextBrush}" />
         </Style>
 
         <!--  CheckBox  -->
         <Style TargetType="CheckBox">
             <Setter Property="Margin" Value="5" />
-            <Setter Property="Foreground" Value="White" />
+            <Setter Property="Foreground" Value="{DynamicResource PrimaryTextBrush}" />
         </Style>
 
         <!--  TabControl  -->
         <Style TargetType="TabControl">
-            <Setter Property="Background" Value="#1E1E2E" />
-            <Setter Property="BorderBrush" Value="#2A2F45" />
+            <Setter Property="Background" Value="{DynamicResource WindowBackgroundBrush}" />
+            <Setter Property="BorderBrush" Value="{DynamicResource BorderBrush}" />
         </Style>
 
         <!--  TabItem 스타일  -->
         <Style TargetType="TabItem">
-            <Setter Property="Foreground" Value="White" />
+            <Setter Property="Foreground" Value="{DynamicResource PrimaryTextBrush}" />
             <Setter Property="FontWeight" Value="SemiBold" />
             <Setter Property="Padding" Value="15,8" />
             <Setter Property="Margin" Value="2,0" />
@@ -85,8 +85,8 @@
                     <ControlTemplate TargetType="TabItem">
                         <Border
                             Name="Border"
-                            Background="#2A2F45"
-                            BorderBrush="#3A3F58"
+                            Background="{DynamicResource PrimaryBackgroundBrush}"
+                            BorderBrush="{DynamicResource BorderBrush}"
                             BorderThickness="1,1,1,0"
                             CornerRadius="6,6,0,0"
                             Margin="2,0">
@@ -99,19 +99,19 @@
                         </Border>
                         <ControlTemplate.Triggers>
                             <Trigger Property="IsSelected" Value="True">
-                                <Setter TargetName="Border" Property="Background" Value="#3A3F58" />
-                                <Setter TargetName="Border" Property="BorderBrush" Value="#5A607A" />
+                                <Setter TargetName="Border" Property="Background" Value="{DynamicResource SecondaryBackgroundBrush}" />
+                                <Setter TargetName="Border" Property="BorderBrush" Value="{DynamicResource PressedBackgroundBrush}" />
                                 <Setter TargetName="Border" Property="BorderThickness" Value="1,2,1,0" />
                             </Trigger>
                             <Trigger Property="IsMouseOver" Value="True">
-                                <Setter TargetName="Border" Property="Background" Value="#343A52" />
+                                <Setter TargetName="Border" Property="Background" Value="{DynamicResource HoverBackgroundBrush}" />
                             </Trigger>
                             <MultiTrigger>
                                 <MultiTrigger.Conditions>
                                     <Condition Property="IsSelected" Value="True" />
                                     <Condition Property="IsMouseOver" Value="True" />
                                 </MultiTrigger.Conditions>
-                                <Setter TargetName="Border" Property="Background" Value="#4B526E" />
+                                <Setter TargetName="Border" Property="Background" Value="{DynamicResource HoverBackgroundBrush}" />
                             </MultiTrigger>
                         </ControlTemplate.Triggers>
                     </ControlTemplate>
@@ -133,41 +133,40 @@
         <!--  메뉴바  -->
         <Menu
             Grid.Row="0"
-            Background="#1E1E2E"
-            Foreground="White">
-            <MenuItem Foreground="White" Header="파일(_F)">
+            Background="{DynamicResource WindowBackgroundBrush}"
+            Foreground="{DynamicResource PrimaryTextBrush}">
+            <MenuItem Foreground="{DynamicResource PrimaryTextBrush}" Header="파일(_F)">
                 <MenuItem
                     Click="MenuExit_Click"
-                    Foreground="Black"
                     Header="종료(_X)"
                     InputGestureText="Alt+F4" />
             </MenuItem>
-            <MenuItem Foreground="White" Header="설정(_S)">
+            <MenuItem Foreground="{DynamicResource PrimaryTextBrush}" Header="설정(_S)">
                 <MenuItem
                     Name="MenuTheme"
                     Click="MenuTheme_Click"
-                    Foreground="Black"
                     Header="테마 전환"
                     InputGestureText="Ctrl+T" />
                 <MenuItem
+                    Name="MenuLanguage"
+                    Click="MenuLanguage_Click"
+                    Header="언어 전환 (한국어/English)"
+                    InputGestureText="Ctrl+L" />
+                <MenuItem
                     Click="MenuSaveLog_Click"
-                    Foreground="Black"
                     Header="로그 저장"
                     InputGestureText="Ctrl+S" />
             </MenuItem>
-            <MenuItem Foreground="White" Header="도움말(_H)">
+            <MenuItem Foreground="{DynamicResource PrimaryTextBrush}" Header="도움말(_H)">
                 <MenuItem
                     Click="MenuGitHub_Click"
-                    Foreground="Black"
                     Header="GitHub 릴리스" />
                 <MenuItem
                     Click="MenuYtDlp_Click"
-                    Foreground="Black"
                     Header="yt-dlp 릴리스" />
                 <Separator />
                 <MenuItem
                     Click="MenuAbout_Click"
-                    Foreground="Black"
                     Header="정보(_A)" />
             </MenuItem>
         </Menu>
@@ -176,8 +175,8 @@
         <TabControl
             Grid.Row="1"
             Margin="0,10,0,0"
-            Background="#1E1E2E"
-            BorderBrush="#2A2F45">
+            Background="{DynamicResource WindowBackgroundBrush}"
+            BorderBrush="{DynamicResource BorderBrush}">
             <!--  기본 설정  -->
             <TabItem Header="기본 설정">
                 <Grid Margin="10">
@@ -191,7 +190,7 @@
                         <TextBlock
                             Margin="5"
                             FontWeight="Bold"
-                            Foreground="#FFF9F6F6"
+                            Foreground="{DynamicResource PrimaryTextBrush}"
                             Text="URL 입력" />
                         <DockPanel>
                             <Button
@@ -222,7 +221,7 @@
                         <TextBlock
                             Margin="5,15,5,5"
                             FontWeight="Bold"
-                            Foreground="#FFF7F3F3"
+                            Foreground="{DynamicResource PrimaryTextBrush}"
                             Text="채널 / 재생목록 URL 입력" />
                         <DockPanel>
                             <Button
@@ -256,7 +255,7 @@
                         <TextBlock
                             Margin="5"
                             FontWeight="Bold"
-                            Foreground="#FFF9F9F9"
+                            Foreground="{DynamicResource PrimaryTextBrush}"
                             Text="저장 경로" />
                         <DockPanel>
                             <TextBox
@@ -279,11 +278,10 @@
                         <TextBlock
                             Margin="5,10,5,5"
                             FontWeight="Bold"
-                            Foreground="#FFF9F9F9"
+                            Foreground="{DynamicResource PrimaryTextBrush}"
                             Text="포맷 선택" />
                         <ComboBox
                             Name="comboFormat"
-                            Foreground="#FF080707"
                             ToolTip="다운로드할 영상/음악 품질 선택">
                             <ComboBoxItem Content="영상 (최고화질)" />
                             <ComboBoxItem Content="영상 (1080p)" />
@@ -344,7 +342,7 @@
                     <TextBlock
                         Margin="5,10,5,5"
                         FontWeight="Bold"
-                        Foreground="#FFF9F9F9"
+                        Foreground="{DynamicResource PrimaryTextBrush}"
                         Text="자막 설정" />
                     <CheckBox
                         Name="SubtitleCheckBox"
@@ -355,7 +353,6 @@
                             Name="SubtitleLangComboBox"
                             Width="120"
                             IsEditable="True"
-                            Foreground="#FF0A0A0A"
                             ToolTip="자막 언어 선택 (직접 입력 가능: ko, en, ja, zh 등)">
                             <ComboBoxItem Content="ko" />
                             <ComboBoxItem Content="en" />
@@ -367,7 +364,6 @@
                         <ComboBox
                             Name="SubtitleFormatComboBox"
                             Width="120"
-                            Foreground="#FF0E0E0E"
                             ToolTip="자막 파일 형식 (srt: 범용, vtt: 웹용, ass: 고급 스타일)">
                             <ComboBoxItem Content="srt" />
                             <ComboBoxItem Content="vtt" />
@@ -386,7 +382,7 @@
                             Margin="0,0,10,0"
                             VerticalAlignment="Center"
                             FontWeight="Bold"
-                            Foreground="#FFFBF3F3"
+                            Foreground="{DynamicResource PrimaryTextBrush}"
                             Text="최대 다운로드 개수" />
                         <TextBox
                             Name="txtMaxDownloads"
@@ -405,7 +401,7 @@
             Grid.ColumnSpan="2"
             Margin="0,10,0,0"
             Padding="10"
-            Background="#2A2F45"
+            Background="{DynamicResource SecondaryBackgroundBrush}"
             CornerRadius="8">
             <Grid>
                 <Grid.RowDefinitions>
@@ -417,9 +413,9 @@
                     Name="txtOutput"
                     Grid.Row="0"
                     AcceptsReturn="True"
-                    Background="#12121C"
+                    Background="{DynamicResource LogBackgroundBrush}"
                     BorderThickness="0"
-                    Foreground="LightGray"
+                    Foreground="{DynamicResource SecondaryTextBrush}"
                     IsReadOnly="True"
                     VerticalScrollBarVisibility="Auto" />
 
@@ -439,26 +435,30 @@
                             HorizontalAlignment="Center"
                             VerticalAlignment="Center"
                             FontWeight="Bold"
-                            Foreground="White"
+                            Foreground="{DynamicResource PrimaryTextBrush}"
                             Text="0%" />
                     </Grid>
                     <TextBlock
                         Margin="15,0,5,0"
                         VerticalAlignment="Center"
+                        Foreground="{DynamicResource PrimaryTextBrush}"
                         Text="속도:" />
                     <TextBlock
                         Name="txtSpeed"
                         Width="100"
                         VerticalAlignment="Center"
+                        Foreground="{DynamicResource SecondaryTextBrush}"
                         Text="-" />
                     <TextBlock
                         Margin="15,0,5,0"
                         VerticalAlignment="Center"
+                        Foreground="{DynamicResource PrimaryTextBrush}"
                         Text="ETA:" />
                     <TextBlock
                         Name="txtEta"
                         Width="100"
                         VerticalAlignment="Center"
+                        Foreground="{DynamicResource SecondaryTextBrush}"
                         Text="-" />
                 </StackPanel>
             </Grid>
