@@ -274,6 +274,8 @@
                         ToolTip="클립보드의 URL 붙여넣기" />
                     <TextBox
                         Name="txtSchedulerChannelUrl"
+                        Height="26"
+                        VerticalContentAlignment="Center"
                         ToolTip="특정 채널 URL을 입력하면 해당 채널만 다운로드됩니다" />
                 </DockPanel>
 
@@ -292,6 +294,8 @@
                         ToolTip="저장 경로 변경" />
                     <TextBox
                         Name="txtSchedulerSavePath"
+                        Height="26"
+                        VerticalContentAlignment="Center"
                         IsReadOnly="True"
                         ToolTip="이 스케줄러에서 다운로드한 파일이 저장될 경로" />
                 </DockPanel>
