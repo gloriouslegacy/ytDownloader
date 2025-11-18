@@ -930,7 +930,7 @@
                                                     FontSize="16"
                                                     FontWeight="Bold"
                                                     Foreground="White"
-                                                    Text="로딩 중..."
+                                                    Text="{DynamicResource Label_Loading}"
                                                     HorizontalAlignment="Center" />
                                             </StackPanel>
                                         </Border>
