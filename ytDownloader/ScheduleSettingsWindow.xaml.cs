@@ -197,18 +197,18 @@ namespace ytDownloader
         private void InitializeFrequencyComboBox()
         {
             // 콤보박스 항목 추가 (Tag를 int로 설정)
-            cmbFrequency.Items.Add(new ComboBoxItem { Content = "매일 (1일)", Tag = 1 });
-            cmbFrequency.Items.Add(new ComboBoxItem { Content = "2일마다", Tag = 2 });
-            cmbFrequency.Items.Add(new ComboBoxItem { Content = "3일마다", Tag = 3 });
-            cmbFrequency.Items.Add(new ComboBoxItem { Content = "4일마다", Tag = 4 });
-            cmbFrequency.Items.Add(new ComboBoxItem { Content = "5일마다", Tag = 5 });
-            cmbFrequency.Items.Add(new ComboBoxItem { Content = "6일마다", Tag = 6 });
-            cmbFrequency.Items.Add(new ComboBoxItem { Content = "매주 (7일)", Tag = 7 });
-            cmbFrequency.Items.Add(new ComboBoxItem { Content = "10일마다", Tag = 10 });
-            cmbFrequency.Items.Add(new ComboBoxItem { Content = "2주마다 (14일)", Tag = 14 });
-            cmbFrequency.Items.Add(new ComboBoxItem { Content = "3주마다 (21일)", Tag = 21 });
-            cmbFrequency.Items.Add(new ComboBoxItem { Content = "매월 (30일)", Tag = 30 });
-            cmbFrequency.Items.Add(new ComboBoxItem { Content = "31일마다", Tag = 31 });
+            cmbFrequency.Items.Add(new ComboBoxItem { Content = Application.Current.FindResource("Frequency_Daily"), Tag = 1 });
+            cmbFrequency.Items.Add(new ComboBoxItem { Content = Application.Current.FindResource("Frequency_Every2Days"), Tag = 2 });
+            cmbFrequency.Items.Add(new ComboBoxItem { Content = Application.Current.FindResource("Frequency_Every3Days"), Tag = 3 });
+            cmbFrequency.Items.Add(new ComboBoxItem { Content = Application.Current.FindResource("Frequency_Every4Days"), Tag = 4 });
+            cmbFrequency.Items.Add(new ComboBoxItem { Content = Application.Current.FindResource("Frequency_Every5Days"), Tag = 5 });
+            cmbFrequency.Items.Add(new ComboBoxItem { Content = Application.Current.FindResource("Frequency_Every6Days"), Tag = 6 });
+            cmbFrequency.Items.Add(new ComboBoxItem { Content = Application.Current.FindResource("Frequency_Weekly"), Tag = 7 });
+            cmbFrequency.Items.Add(new ComboBoxItem { Content = Application.Current.FindResource("Frequency_Every10Days"), Tag = 10 });
+            cmbFrequency.Items.Add(new ComboBoxItem { Content = Application.Current.FindResource("Frequency_Every2Weeks"), Tag = 14 });
+            cmbFrequency.Items.Add(new ComboBoxItem { Content = Application.Current.FindResource("Frequency_Every3Weeks"), Tag = 21 });
+            cmbFrequency.Items.Add(new ComboBoxItem { Content = Application.Current.FindResource("Frequency_Monthly"), Tag = 30 });
+            cmbFrequency.Items.Add(new ComboBoxItem { Content = Application.Current.FindResource("Frequency_Every31Days"), Tag = 31 });
 
             cmbFrequency.SelectedIndex = 0;
         }
