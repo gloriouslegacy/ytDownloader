@@ -1140,7 +1140,7 @@ namespace ytDownloader
             if (row != null && row.Item is ScheduleTaskInfo task)
             {
                 task.IsSelected = !task.IsSelected;
-                 e.Handled = true; // DataGrid 기본 선택 동작을 허용하여 포커스를 잃어도 선택이 유지되도록 함
+                e.Handled = true;
             }
         }
 
@@ -1333,6 +1333,31 @@ namespace ytDownloader
 
             // 다이얼로그가 닫히면 자동으로 스케줄러 상태 업데이트
             UpdateSchedulerStatus();
+        }
+
+        /// <summary>
+        /// 작업 스케줄러 열기 버튼 클릭
+        /// </summary>
+        private void btnOpenTaskScheduler_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                Process.Start(new ProcessStartInfo
+                {
+                    FileName = "taskschd.msc",
+                    UseShellExecute = true
+                });
+            }
+            catch (Exception ex)
+            {
+                string message = _currentSettings.Language == "ko"
+                    ? $"작업 스케줄러를 열 수 없습니다: {ex.Message}"
+                    : $"Cannot open Task Scheduler: {ex.Message}";
+                string title = _currentSettings.Language == "ko"
+                    ? "오류"
+                    : "Error";
+                MessageBox.Show(message, title, MessageBoxButton.OK, MessageBoxImage.Error);
+            }
         }
 
     }

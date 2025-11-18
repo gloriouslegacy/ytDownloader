@@ -919,6 +919,11 @@
                                     HorizontalAlignment="Right"
                                     Orientation="Horizontal">
                                     <Button
+                                        Width="120"
+                                        Click="btnOpenTaskScheduler_Click"
+                                        Content="{DynamicResource Button_OpenTaskScheduler}"
+                                        ToolTip="{DynamicResource ToolTip_OpenTaskScheduler}" />
+                                    <Button
                                         Width="170"
                                         Click="btnDeleteSelectedAutoSchedule_Click"
                                         Content="{DynamicResource Button_RemoveSelectedAutoSchedule}"
