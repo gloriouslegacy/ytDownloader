@@ -1145,6 +1145,41 @@ namespace ytDownloader
         }
 
         /// <summary>
+        /// 자동 예약 DataGrid 우클릭 시 행 선택
+        /// </summary>
+        private void lstAutoScheduledTasks_PreviewMouseRightButtonDown(object sender, MouseButtonEventArgs e)
+        {
+            var grid = sender as System.Windows.Controls.DataGrid;
+            if (grid == null) return;
+
+            // 클릭된 요소 추적
+            var hit = e.OriginalSource as System.Windows.DependencyObject;
+            System.Windows.Controls.DataGridRow? row = null;
+
+            // 비주얼 트리를 따라 올라가며 행 찾기
+            while (hit != null)
+            {
+                if (hit is System.Windows.Controls.DataGridRow)
+                {
+                    row = hit as System.Windows.Controls.DataGridRow;
+                    break;
+                }
+                hit = System.Windows.Media.VisualTreeHelper.GetParent(hit);
+            }
+
+            // 우클릭한 행을 선택
+            if (row != null && row.Item is ScheduleTaskInfo task)
+            {
+                // DataGrid의 선택된 항목으로 설정
+                grid.SelectedItem = task;
+                // 포커스 설정하여 선택 상태 유지
+                row.Focus();
+                // 이벤트 처리됨을 표시 (기본 동작도 허용)
+                e.Handled = true;
+            }
+        }
+
+        /// <summary>
         /// 자동 예약 선택 삭제 버튼 클릭 (체크박스 선택된 항목들 삭제)
         /// </summary>
         private void btnDeleteSelectedAutoSchedule_Click(object sender, RoutedEventArgs e)
