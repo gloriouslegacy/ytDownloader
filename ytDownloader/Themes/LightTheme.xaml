@@ -5,8 +5,8 @@
     <Color x:Key="WindowBackgroundColor">#F5F5F5</Color>
     <Color x:Key="PrimaryBackgroundColor">#FFFFFF</Color>
     <Color x:Key="SecondaryBackgroundColor">#E8E8E8</Color>
-    <Color x:Key="HoverBackgroundColor">#D1D5DB</Color>
-    <Color x:Key="PressedBackgroundColor">#B0B0B0</Color>
+    <Color x:Key="HoverBackgroundColor">#3B82F6</Color>
+    <Color x:Key="PressedBackgroundColor">#2563EB</Color>
     <Color x:Key="LogBackgroundColor">#FAFAFA</Color>
     <Color x:Key="BorderColor">#CCCCCC</Color>
 
