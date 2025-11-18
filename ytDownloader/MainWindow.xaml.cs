@@ -1140,7 +1140,7 @@ namespace ytDownloader
             if (row != null && row.Item is ScheduleTaskInfo task)
             {
                 task.IsSelected = !task.IsSelected;
-                // e.Handled = true; // DataGrid 기본 선택 동작을 허용하여 포커스를 잃어도 선택이 유지되도록 함
+                 e.Handled = true; // DataGrid 기본 선택 동작을 허용하여 포커스를 잃어도 선택이 유지되도록 함
             }
         }
 
