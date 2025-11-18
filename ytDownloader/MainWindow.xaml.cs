@@ -793,11 +793,11 @@ namespace ytDownloader
         /// </summary>
         private async void mainTabControl_SelectionChanged(object sender, System.Windows.Controls.SelectionChangedEventArgs e)
         {
-            // 예약 탭이 선택되었을 때만 새로고침
+            // 예약 탭이 선택되었을 때만 새로고침 (로딩 오버레이 없이)
             if (mainTabControl.SelectedItem == scheduleTabItem)
             {
                 RefreshScheduledChannelsList();
-                await UpdateSchedulerStatusAsync();
+                await UpdateSchedulerStatusAsync(showLoading: false);
             }
         }
 
@@ -1072,18 +1072,21 @@ namespace ytDownloader
         /// <summary>
         /// 스케줄러 상태 업데이트
         /// </summary>
-        private void UpdateSchedulerStatus()
+        private void UpdateSchedulerStatus(bool showLoading = false)
         {
-            _ = UpdateSchedulerStatusAsync();
+            _ = UpdateSchedulerStatusAsync(showLoading);
         }
 
         /// <summary>
         /// 스케줄러 상태 비동기 업데이트
         /// </summary>
-        private async Task UpdateSchedulerStatusAsync()
+        private async Task UpdateSchedulerStatusAsync(bool showLoading = false)
         {
-            // 로딩 표시
-            scheduleLoadingOverlay.Visibility = Visibility.Visible;
+            // 로딩 표시 (명시적으로 요청한 경우에만)
+            if (showLoading)
+            {
+                scheduleLoadingOverlay.Visibility = Visibility.Visible;
+            }
 
             try
             {
@@ -1105,7 +1108,10 @@ namespace ytDownloader
             finally
             {
                 // 로딩 숨기기
-                scheduleLoadingOverlay.Visibility = Visibility.Collapsed;
+                if (showLoading)
+                {
+                    scheduleLoadingOverlay.Visibility = Visibility.Collapsed;
+                }
             }
         }
 
@@ -1114,7 +1120,7 @@ namespace ytDownloader
         /// </summary>
         private void btnRefreshScheduleStatus_Click(object sender, RoutedEventArgs e)
         {
-            UpdateSchedulerStatus();
+            UpdateSchedulerStatus(showLoading: true);
         }
 
         /// <summary>

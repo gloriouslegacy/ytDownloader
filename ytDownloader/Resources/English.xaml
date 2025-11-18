@@ -141,6 +141,7 @@
     <!--  Progress  -->
     <system:String x:Key="Label_Speed">Speed:</system:String>
     <system:String x:Key="Label_ETA">ETA:</system:String>
+    <system:String x:Key="Label_Loading">Loading...</system:String>
 
     <!--  Schedule Settings Dialog  -->
     <system:String x:Key="Dialog_AutoScheduleSettings">Auto Schedule Settings</system:String>

@@ -141,6 +141,7 @@
     <!--  진행 상태  -->
     <system:String x:Key="Label_Speed">속도:</system:String>
     <system:String x:Key="Label_ETA">ETA:</system:String>
+    <system:String x:Key="Label_Loading">로딩 중...</system:String>
 
     <!--  스케줄 설정 다이얼로그  -->
     <system:String x:Key="Dialog_AutoScheduleSettings">자동 예약 설정</system:String>
