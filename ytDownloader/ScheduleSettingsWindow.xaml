@@ -5,10 +5,10 @@
     Title="{DynamicResource Dialog_AutoScheduleSettings}"
     Width="600"
     Height="900"
+    WindowStartupLocation="CenterOwner"
     Background="{DynamicResource WindowBackgroundBrush}"
     Foreground="{DynamicResource PrimaryTextBrush}"
-    ResizeMode="NoResize"
-    WindowStartupLocation="CenterOwner">
+    ResizeMode="NoResize">
 
     <Window.Resources>
         <!--  Button 스타일  -->
@@ -27,10 +27,7 @@
                             Padding="{TemplateBinding Padding}"
                             Background="{TemplateBinding Background}"
                             CornerRadius="6">
-                            <ContentPresenter
-                                HorizontalAlignment="Center"
-                                VerticalAlignment="Center"
-                                TextBlock.Foreground="{TemplateBinding Foreground}" />
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" TextBlock.Foreground="{TemplateBinding Foreground}" />
                         </Border>
                         <ControlTemplate.Triggers>
                             <Trigger Property="IsMouseOver" Value="True">
@@ -50,35 +47,6 @@
             <Setter Property="Foreground" Value="{DynamicResource PrimaryTextBrush}" />
         </Style>
 
-        <!--  TextBox  -->
-        <Style TargetType="TextBox">
-            <Setter Property="Margin" Value="5" />
-            <Setter Property="Padding" Value="8,4" />
-            <Setter Property="Background" Value="{DynamicResource PrimaryBackgroundBrush}" />
-            <Setter Property="BorderBrush" Value="{DynamicResource BorderBrush}" />
-            <Setter Property="BorderThickness" Value="1" />
-            <Setter Property="Foreground" Value="{DynamicResource PrimaryTextBrush}" />
-            <Setter Property="Template">
-                <Setter.Value>
-                    <ControlTemplate TargetType="TextBox">
-                        <Border
-                            Name="Border"
-                            Padding="{TemplateBinding Padding}"
-                            Background="{TemplateBinding Background}"
-                            BorderBrush="{TemplateBinding BorderBrush}"
-                            BorderThickness="{TemplateBinding BorderThickness}">
-                            <ScrollViewer x:Name="PART_ContentHost" />
-                        </Border>
-                        <ControlTemplate.Triggers>
-                            <Trigger Property="IsMouseOver" Value="True">
-                                <Setter TargetName="Border" Property="Background" Value="{DynamicResource HoverBackgroundBrush}" />
-                            </Trigger>
-                        </ControlTemplate.Triggers>
-                    </ControlTemplate>
-                </Setter.Value>
-            </Setter>
-        </Style>
-
         <!--  ComboBox  -->
         <Style TargetType="ComboBox">
             <Setter Property="Margin" Value="5" />
@@ -89,56 +57,50 @@
                 <Setter.Value>
                     <ControlTemplate TargetType="ComboBox">
                         <Grid>
-                            <ToggleButton
-                                Name="ToggleButton"
-                                Grid.Column="2"
-                                Background="{TemplateBinding Background}"
-                                BorderBrush="{DynamicResource BorderBrush}"
-                                BorderThickness="1"
-                                ClickMode="Press"
-                                Focusable="false"
-                                IsChecked="{Binding Path=IsDropDownOpen, Mode=TwoWay, RelativeSource={RelativeSource TemplatedParent}}">
+                            <ToggleButton Name="ToggleButton"
+                                          Grid.Column="2"
+                                          Focusable="false"
+                                          IsChecked="{Binding Path=IsDropDownOpen, Mode=TwoWay, RelativeSource={RelativeSource TemplatedParent}}"
+                                          ClickMode="Press"
+                                          Background="{TemplateBinding Background}"
+                                          BorderBrush="{DynamicResource BorderBrush}"
+                                          BorderThickness="1">
                                 <Grid>
                                     <Grid.ColumnDefinitions>
                                         <ColumnDefinition />
                                         <ColumnDefinition Width="20" />
                                     </Grid.ColumnDefinitions>
-                                    <ContentPresenter
-                                        Name="ContentSite"
-                                        Margin="5,3,5,3"
-                                        HorizontalAlignment="Left"
-                                        VerticalAlignment="Center"
-                                        Content="{TemplateBinding SelectionBoxItem}"
-                                        ContentTemplate="{TemplateBinding SelectionBoxItemTemplate}"
-                                        ContentTemplateSelector="{TemplateBinding ItemTemplateSelector}"
-                                        IsHitTestVisible="False"
-                                        TextBlock.Foreground="{TemplateBinding Foreground}" />
-                                    <Path
-                                        Name="Arrow"
-                                        Grid.Column="1"
-                                        HorizontalAlignment="Center"
-                                        VerticalAlignment="Center"
-                                        Data="M 0 0 L 4 4 L 8 0 Z"
-                                        Fill="{TemplateBinding Foreground}" />
+                                    <ContentPresenter Name="ContentSite"
+                                                      IsHitTestVisible="False"
+                                                      Content="{TemplateBinding SelectionBoxItem}"
+                                                      ContentTemplate="{TemplateBinding SelectionBoxItemTemplate}"
+                                                      ContentTemplateSelector="{TemplateBinding ItemTemplateSelector}"
+                                                      Margin="5,3,5,3"
+                                                      VerticalAlignment="Center"
+                                                      HorizontalAlignment="Left"
+                                                      TextBlock.Foreground="{TemplateBinding Foreground}" />
+                                    <Path Name="Arrow"
+                                          Grid.Column="1"
+                                          Fill="{TemplateBinding Foreground}"
+                                          HorizontalAlignment="Center"
+                                          VerticalAlignment="Center"
+                                          Data="M 0 0 L 4 4 L 8 0 Z"/>
                                 </Grid>
                             </ToggleButton>
-                            <Popup
-                                Name="Popup"
-                                AllowsTransparency="True"
-                                Focusable="False"
-                                IsOpen="{TemplateBinding IsDropDownOpen}"
-                                Placement="Bottom"
-                                PopupAnimation="Slide">
-                                <Grid
-                                    Name="DropDown"
-                                    MinWidth="{TemplateBinding ActualWidth}"
-                                    MaxHeight="{TemplateBinding MaxDropDownHeight}"
-                                    SnapsToDevicePixels="True">
-                                    <Border
-                                        x:Name="DropDownBorder"
-                                        Background="{DynamicResource PrimaryBackgroundBrush}"
-                                        BorderBrush="{DynamicResource BorderBrush}"
-                                        BorderThickness="1">
+                            <Popup Name="Popup"
+                                   Placement="Bottom"
+                                   IsOpen="{TemplateBinding IsDropDownOpen}"
+                                   AllowsTransparency="True"
+                                   Focusable="False"
+                                   PopupAnimation="Slide">
+                                <Grid Name="DropDown"
+                                      SnapsToDevicePixels="True"
+                                      MinWidth="{TemplateBinding ActualWidth}"
+                                      MaxHeight="{TemplateBinding MaxDropDownHeight}">
+                                    <Border x:Name="DropDownBorder"
+                                            Background="{DynamicResource PrimaryBackgroundBrush}"
+                                            BorderThickness="1"
+                                            BorderBrush="{DynamicResource BorderBrush}">
                                         <ScrollViewer Margin="4,6,4,6" SnapsToDevicePixels="True">
                                             <StackPanel IsItemsHost="True" KeyboardNavigation.DirectionalNavigation="Contained" />
                                         </ScrollViewer>
@@ -148,7 +110,7 @@
                         </Grid>
                         <ControlTemplate.Triggers>
                             <Trigger Property="IsMouseOver" Value="True">
-                                <Setter TargetName="ToggleButton" Property="Background" Value="{DynamicResource HoverBackgroundBrush}" />
+                                <Setter TargetName="ToggleButton" Property="Background" Value="{DynamicResource HoverBackgroundBrush}"/>
                             </Trigger>
                         </ControlTemplate.Triggers>
                     </ControlTemplate>
@@ -164,19 +126,18 @@
             <Setter Property="Template">
                 <Setter.Value>
                     <ControlTemplate TargetType="ComboBoxItem">
-                        <Border
-                            Name="Border"
-                            Padding="{TemplateBinding Padding}"
-                            Background="{TemplateBinding Background}"
-                            BorderThickness="0">
+                        <Border Name="Border"
+                                Padding="{TemplateBinding Padding}"
+                                Background="{TemplateBinding Background}"
+                                BorderThickness="0">
                             <ContentPresenter TextBlock.Foreground="{TemplateBinding Foreground}" />
                         </Border>
                         <ControlTemplate.Triggers>
                             <Trigger Property="IsHighlighted" Value="True">
-                                <Setter TargetName="Border" Property="Background" Value="{DynamicResource HoverBackgroundBrush}" />
+                                <Setter TargetName="Border" Property="Background" Value="{DynamicResource HoverBackgroundBrush}"/>
                             </Trigger>
                             <Trigger Property="IsEnabled" Value="False">
-                                <Setter Property="Foreground" Value="{DynamicResource SecondaryTextBrush}" />
+                                <Setter Property="Foreground" Value="{DynamicResource SecondaryTextBrush}"/>
                             </Trigger>
                         </ControlTemplate.Triggers>
                     </ControlTemplate>
@@ -231,35 +192,6 @@
                 </Setter.Value>
             </Setter>
         </Style>
-
-        <!--  ListBoxItem  -->
-        <Style TargetType="ListBoxItem">
-            <Setter Property="Foreground" Value="{DynamicResource PrimaryTextBrush}" />
-            <Setter Property="Background" Value="Transparent" />
-            <Setter Property="Padding" Value="5,3" />
-            <Setter Property="Template">
-                <Setter.Value>
-                    <ControlTemplate TargetType="ListBoxItem">
-                        <Border
-                            Name="Border"
-                            Padding="{TemplateBinding Padding}"
-                            Background="{TemplateBinding Background}"
-                            BorderThickness="0">
-                            <ContentPresenter TextElement.Foreground="{TemplateBinding Foreground}" />
-                        </Border>
-                        <ControlTemplate.Triggers>
-                            <Trigger Property="IsSelected" Value="True">
-                                <Setter TargetName="Border" Property="Background" Value="{DynamicResource HoverBackgroundBrush}" />
-                                <Setter Property="Foreground" Value="White" />
-                            </Trigger>
-                            <Trigger Property="IsMouseOver" Value="True">
-                                <Setter TargetName="Border" Property="Background" Value="{DynamicResource HoverBackgroundBrush}" />
-                            </Trigger>
-                        </ControlTemplate.Triggers>
-                    </ControlTemplate>
-                </Setter.Value>
-            </Setter>
-        </Style>
     </Window.Resources>
 
     <Grid Margin="20">
@@ -277,8 +209,8 @@
         <TextBlock
             Grid.Row="0"
             Margin="0,0,0,15"
-            Foreground="{DynamicResource PrimaryTextBrush}"
-            TextWrapping="Wrap">
+            TextWrapping="Wrap"
+            Foreground="{DynamicResource PrimaryTextBrush}">
             <Run FontWeight="Bold" Text="{DynamicResource Dialog_AutoScheduleSettings}" />
             <LineBreak />
             <Run Text="{DynamicResource Label_AutoScheduleDescription}" />
@@ -302,19 +234,13 @@
                 Foreground="{DynamicResource PrimaryTextBrush}"
                 Text="{DynamicResource Label_ExecutionTimeSettings}" />
             <StackPanel Orientation="Horizontal">
-                <ComboBox
-                    Name="cmbHour"
-                    Width="100"
-                    SelectedIndex="2" />
+                <ComboBox Name="cmbHour" Width="100" SelectedIndex="2" />
                 <TextBlock
                     Margin="10,0"
                     VerticalAlignment="Center"
                     Foreground="{DynamicResource PrimaryTextBrush}"
                     Text="{DynamicResource Label_Hour}" />
-                <ComboBox
-                    Name="cmbMinute"
-                    Width="100"
-                    SelectedIndex="0" />
+                <ComboBox Name="cmbMinute" Width="100" SelectedIndex="0" />
                 <TextBlock
                     Margin="10,0"
                     VerticalAlignment="Center"
@@ -324,19 +250,12 @@
         </StackPanel>
 
         <!--  스케줄러 개별 설정  -->
-        <Border
-            Grid.Row="3"
-            Margin="0,0,0,10"
-            Padding="10"
-            Background="{DynamicResource PrimaryBackgroundBrush}"
-            BorderBrush="{DynamicResource BorderBrush}"
-            BorderThickness="1"
-            CornerRadius="6">
+        <Border Grid.Row="3" Margin="0,0,0,10" Padding="10" Background="{DynamicResource PrimaryBackgroundBrush}" BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1" CornerRadius="6">
             <StackPanel>
                 <TextBlock
                     Margin="0,0,0,10"
-                    FontSize="14"
                     FontWeight="Bold"
+                    FontSize="14"
                     Foreground="{DynamicResource PrimaryTextBrush}"
                     Text="{DynamicResource Label_SchedulerDownloadSettings}" />
 
@@ -348,14 +267,14 @@
                     Text="{DynamicResource Label_ChannelUrl}" />
                 <DockPanel Margin="0,0,0,10">
                     <Button
+                        DockPanel.Dock="Right"
                         Width="70"
                         Click="btnPasteChannelUrl_Click"
                         Content="{DynamicResource Button_Paste}"
-                        DockPanel.Dock="Right"
                         ToolTip="{DynamicResource ToolTip_PasteChannelUrl}" />
                     <TextBox
                         Name="txtSchedulerChannelUrl"
-                        Height="32"
+                        Height="26"
                         VerticalContentAlignment="Center"
                         ToolTip="{DynamicResource ToolTip_SchedulerChannelUrl}" />
                 </DockPanel>
@@ -368,14 +287,14 @@
                     Text="{DynamicResource Label_SavePath}" />
                 <DockPanel Margin="0,0,0,10">
                     <Button
+                        DockPanel.Dock="Right"
                         Width="70"
                         Click="btnBrowseSavePath_Click"
                         Content="{DynamicResource Button_Browse}"
-                        DockPanel.Dock="Right"
                         ToolTip="{DynamicResource ToolTip_Browse}" />
                     <TextBox
                         Name="txtSchedulerSavePath"
-                        Height="32"
+                        Height="26"
                         VerticalContentAlignment="Center"
                         IsReadOnly="True"
                         ToolTip="{DynamicResource ToolTip_SchedulerSavePath}" />
@@ -406,7 +325,7 @@
                     Margin="0,5,0,5"
                     Content="{DynamicResource CheckBox_Subtitle}"
                     ToolTip="{DynamicResource ToolTip_Subtitle}" />
-                <StackPanel Margin="0,0,0,10" Orientation="Horizontal">
+                <StackPanel Orientation="Horizontal" Margin="0,0,0,10">
                     <ComboBox
                         Name="cmbSchedulerSubtitleFormat"
                         Width="120"
@@ -447,9 +366,9 @@
 
                 <DockPanel Margin="0,0,0,10">
                     <TextBlock
+                        DockPanel.Dock="Left"
                         Margin="0,0,10,0"
                         VerticalAlignment="Center"
-                        DockPanel.Dock="Left"
                         FontWeight="SemiBold"
                         Foreground="{DynamicResource PrimaryTextBrush}"
                         Text="{DynamicResource Label_MaxDownloads}" />
@@ -463,8 +382,8 @@
                 <CheckBox
                     Name="chkSchedulerStructuredFolders"
                     Margin="0,5,0,5"
-                    Content="{DynamicResource CheckBox_StructuredFolders}"
                     IsChecked="True"
+                    Content="{DynamicResource CheckBox_StructuredFolders}"
                     ToolTip="{DynamicResource ToolTip_StructuredFolders}" />
 
                 <CheckBox
@@ -500,19 +419,18 @@
         <!--  스케줄 목록 ListBox  -->
         <Border
             Grid.Row="5"
-            Margin="0,0,0,10"
             Background="{DynamicResource PrimaryBackgroundBrush}"
             BorderBrush="{DynamicResource BorderBrush}"
             BorderThickness="1"
-            CornerRadius="6">
+            CornerRadius="6"
+            Margin="0,0,0,10">
             <ListBox
                 Name="lstScheduledTasks"
-                MinHeight="80"
                 Background="Transparent"
                 BorderThickness="0"
                 Foreground="{DynamicResource PrimaryTextBrush}"
-                IsSynchronizedWithCurrentItem="True"
-                SelectionMode="Single" />
+                SelectionMode="Single"
+                MinHeight="80" />
         </Border>
 
         <!--  버튼  -->

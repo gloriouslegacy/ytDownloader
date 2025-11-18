@@ -55,25 +55,6 @@
             <Setter Property="BorderBrush" Value="{DynamicResource BorderBrush}" />
             <Setter Property="BorderThickness" Value="1" />
             <Setter Property="Foreground" Value="{DynamicResource PrimaryTextBrush}" />
-            <Setter Property="Template">
-                <Setter.Value>
-                    <ControlTemplate TargetType="TextBox">
-                        <Border
-                            Name="Border"
-                            Padding="{TemplateBinding Padding}"
-                            Background="{TemplateBinding Background}"
-                            BorderBrush="{TemplateBinding BorderBrush}"
-                            BorderThickness="{TemplateBinding BorderThickness}">
-                            <ScrollViewer x:Name="PART_ContentHost" />
-                        </Border>
-                        <ControlTemplate.Triggers>
-                            <Trigger Property="IsMouseOver" Value="True">
-                                <Setter TargetName="Border" Property="Background" Value="{DynamicResource HoverBackgroundBrush}" />
-                            </Trigger>
-                        </ControlTemplate.Triggers>
-                    </ControlTemplate>
-                </Setter.Value>
-            </Setter>
         </Style>
 
         <!--  ComboBox  -->
@@ -448,10 +429,10 @@
                         <ControlTemplate.Triggers>
                             <Trigger Property="IsSelected" Value="True">
                                 <Setter TargetName="Border" Property="Background" Value="{DynamicResource HoverBackgroundBrush}" />
-                                <Setter Property="Foreground" Value="White" />
+                                <Setter Property="Foreground" Value="{DynamicResource PrimaryTextBrush}" />
                             </Trigger>
                             <Trigger Property="IsMouseOver" Value="True">
-                                <Setter TargetName="Border" Property="Background" Value="{DynamicResource HoverBackgroundBrush}" />
+                                <Setter TargetName="Border" Property="Background" Value="{DynamicResource SecondaryBackgroundBrush}" />
                             </Trigger>
                         </ControlTemplate.Triggers>
                     </ControlTemplate>
@@ -500,12 +481,16 @@
             <Setter Property="Foreground" Value="{DynamicResource PrimaryTextBrush}" />
             <Style.Triggers>
                 <Trigger Property="IsSelected" Value="True">
-                    <Setter Property="Background" Value="{DynamicResource HoverBackgroundBrush}" />
-                    <Setter Property="Foreground" Value="White" />
+                    <Setter Property="Background" Value="#87CEEB" />
+                    <Setter Property="Foreground" Value="#000000" />
                 </Trigger>
-                <Trigger Property="IsMouseOver" Value="True">
+                <MultiTrigger>
+                    <MultiTrigger.Conditions>
+                        <Condition Property="IsMouseOver" Value="True" />
+                        <Condition Property="IsSelected" Value="False" />
+                    </MultiTrigger.Conditions>
                     <Setter Property="Background" Value="{DynamicResource HoverBackgroundBrush}" />
-                </Trigger>
+                </MultiTrigger>
             </Style.Triggers>
         </Style>
 
@@ -531,8 +516,8 @@
             </Setter>
             <Style.Triggers>
                 <Trigger Property="IsSelected" Value="True">
-                    <Setter Property="Background" Value="{DynamicResource HoverBackgroundBrush}" />
-                    <Setter Property="Foreground" Value="White" />
+                    <Setter Property="Background" Value="#87CEEB" />
+                    <Setter Property="Foreground" Value="#000000" />
                 </Trigger>
             </Style.Triggers>
         </Style>
@@ -688,8 +673,6 @@
                                     <TextBox
                                         Name="txtSavePath"
                                         Width="254"
-                                        Height="32"
-                                        VerticalContentAlignment="Center"
                                         IsReadOnly="True"
                                         ToolTip="{DynamicResource ToolTip_SavePath}" />
                                     <Button
@@ -709,10 +692,7 @@
                                     FontWeight="Bold"
                                     Foreground="{DynamicResource PrimaryTextBrush}"
                                     Text="{DynamicResource Label_Format}" />
-                                <ComboBox
-                                    Name="comboFormat"
-                                    Height="28"
-                                    ToolTip="{DynamicResource ToolTip_Format}">
+                                <ComboBox Name="comboFormat" ToolTip="{DynamicResource ToolTip_Format}">
                                     <ComboBoxItem Content="{DynamicResource Format_BestVideo}" />
                                     <ComboBoxItem Content="{DynamicResource Format_Video1080p}" />
                                     <ComboBoxItem Content="{DynamicResource Format_Video720p}" />
@@ -758,7 +738,6 @@
                                     <ComboBox
                                         Name="SubtitleFormatComboBox"
                                         Width="120"
-                                        Height="28"
                                         ToolTip="{DynamicResource ToolTip_SubtitleFormat}">
                                         <ComboBoxItem Content="srt" />
                                         <ComboBoxItem Content="vtt" />
@@ -767,7 +746,6 @@
                                     <ComboBox
                                         Name="SubtitleLangComboBox"
                                         Width="120"
-                                        Height="28"
                                         ToolTip="{DynamicResource ToolTip_SubtitleLang}">
                                         <ComboBoxItem Content="ko" />
                                         <ComboBoxItem Content="en" />
@@ -804,8 +782,6 @@
                                         Name="txtMaxDownloads"
                                         Grid.Column="1"
                                         Width="80"
-                                        Height="32"
-                                        VerticalContentAlignment="Center"
                                         ToolTip="{DynamicResource ToolTip_MaxDownloads}" />
                                 </Grid>
 
@@ -886,80 +862,55 @@
                                     BorderBrush="{DynamicResource BorderBrush}"
                                     BorderThickness="1"
                                     CornerRadius="6">
-                                    <Grid>
-                                        <DataGrid
-                                            Name="lstAutoScheduledTasks"
-                                            MinHeight="300"
-                                            Background="Transparent"
-                                            IsSynchronizedWithCurrentItem="True"
-                                            MouseDoubleClick="lstAutoScheduledTasks_MouseDoubleClick"
-                                            PreviewMouseLeftButtonDown="lstAutoScheduledTasks_PreviewMouseLeftButtonDown"
-                                            SelectionMode="Single"
-                                            SelectionUnit="FullRow">
-                                            <DataGrid.ContextMenu>
-                                                <ContextMenu>
-                                                    <MenuItem Click="btnEditAutoSchedule_Click" Header="{DynamicResource Button_EditSchedule}" />
-                                                    <Separator />
-                                                    <MenuItem Click="btnOpenTaskScheduler_Click" Header="{DynamicResource Button_OpenTaskScheduler}" />
-                                                    <Separator />
-                                                    <MenuItem Click="btnDeleteSelectedAutoSchedule_Click" Header="{DynamicResource Button_RemoveSelectedAutoSchedule}" />
-                                                    <MenuItem Click="btnDeleteAllAutoSchedules_Click" Header="{DynamicResource Button_RemoveAllAutoSchedules}" />
-                                                </ContextMenu>
-                                            </DataGrid.ContextMenu>
-                                            <DataGrid.Columns>
-                                                <DataGridCheckBoxColumn
-                                                    Width="50"
-                                                    Binding="{Binding IsSelected, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                                                    Header="{DynamicResource Header_Select}"
-                                                    IsReadOnly="False">
-                                                    <DataGridCheckBoxColumn.ElementStyle>
-                                                        <Style TargetType="CheckBox">
-                                                            <Setter Property="HorizontalAlignment" Value="Center" />
-                                                            <Setter Property="VerticalAlignment" Value="Center" />
-                                                            <Setter Property="IsHitTestVisible" Value="True" />
-                                                            <Setter Property="Focusable" Value="False" />
-                                                            <Setter Property="ClickMode" Value="Press" />
-                                                        </Style>
-                                                    </DataGridCheckBoxColumn.ElementStyle>
-                                                </DataGridCheckBoxColumn>
-                                                <DataGridTextColumn
-                                                    Width="250"
-                                                    Binding="{Binding TaskName}"
-                                                    Header="{DynamicResource Header_TaskName}"
-                                                    IsReadOnly="True" />
-                                                <DataGridTextColumn
-                                                    Width="100"
-                                                    Binding="{Binding FrequencyDays}"
-                                                    Header="{DynamicResource Header_Frequency}"
-                                                    IsReadOnly="True" />
-                                                <DataGridTextColumn
-                                                    Width="100"
-                                                    Binding="{Binding ExecutionTime}"
-                                                    Header="{DynamicResource Header_ExecutionTime}"
-                                                    IsReadOnly="True" />
-                                                <DataGridTextColumn
-                                                    Width="*"
-                                                    Binding="{Binding NextRunTime, StringFormat='{}{0:yyyy-MM-dd HH:mm}'}"
-                                                    Header="{DynamicResource Header_NextRun}"
-                                                    IsReadOnly="True" />
-                                            </DataGrid.Columns>
-                                        </DataGrid>
-
-                                        <!--  로딩 인디케이터  -->
-                                        <Border
-                                            Name="scheduleLoadingOverlay"
-                                            Background="#80000000"
-                                            Visibility="Collapsed">
-                                            <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
-                                                <TextBlock
-                                                    HorizontalAlignment="Center"
-                                                    FontSize="16"
-                                                    FontWeight="Bold"
-                                                    Foreground="White"
-                                                    Text="{DynamicResource Label_Loading}" />
-                                            </StackPanel>
-                                        </Border>
-                                    </Grid>
+                                    <DataGrid
+                                        Name="lstAutoScheduledTasks"
+                                        MinHeight="300"
+                                        Background="Transparent"
+                                        PreviewMouseLeftButtonDown="lstAutoScheduledTasks_PreviewMouseLeftButtonDown"
+                                        MouseDoubleClick="lstAutoScheduledTasks_MouseDoubleClick"
+                                        SelectionMode="Extended"
+                                        SelectionUnit="FullRow">
+                                        <DataGrid.ContextMenu>
+                                            <ContextMenu>
+                                                <MenuItem
+                                                    Click="btnEditAutoSchedule_Click"
+                                                    Header="{DynamicResource Button_EditSchedule}" />
+                                                <Separator />
+                                                <MenuItem
+                                                    Click="btnDeleteSelectedAutoSchedule_Click"
+                                                    Header="{DynamicResource Button_RemoveSelectedAutoSchedule}" />
+                                                <MenuItem
+                                                    Click="btnDeleteAllAutoSchedules_Click"
+                                                    Header="{DynamicResource Button_RemoveAllAutoSchedules}" />
+                                            </ContextMenu>
+                                        </DataGrid.ContextMenu>
+                                        <DataGrid.Columns>
+                                            <DataGridCheckBoxColumn
+                                                Width="50"
+                                                Binding="{Binding IsSelected, UpdateSourceTrigger=PropertyChanged}"
+                                                Header="{DynamicResource Header_Select}" />
+                                            <DataGridTextColumn
+                                                Width="250"
+                                                Binding="{Binding TaskName}"
+                                                Header="{DynamicResource Header_TaskName}"
+                                                IsReadOnly="True" />
+                                            <DataGridTextColumn
+                                                Width="100"
+                                                Binding="{Binding FrequencyDays}"
+                                                Header="{DynamicResource Header_Frequency}"
+                                                IsReadOnly="True" />
+                                            <DataGridTextColumn
+                                                Width="100"
+                                                Binding="{Binding ExecutionTime}"
+                                                Header="{DynamicResource Header_ExecutionTime}"
+                                                IsReadOnly="True" />
+                                            <DataGridTextColumn
+                                                Width="*"
+                                                Binding="{Binding NextRunTime, StringFormat='{}{0:yyyy-MM-dd HH:mm}'}"
+                                                Header="{DynamicResource Header_NextRun}"
+                                                IsReadOnly="True" />
+                                        </DataGrid.Columns>
+                                    </DataGrid>
                                 </Border>
 
                                 <!--  버튼  -->
@@ -967,11 +918,6 @@
                                     Grid.Row="3"
                                     HorizontalAlignment="Right"
                                     Orientation="Horizontal">
-                                    <Button
-                                        Width="100"
-                                        Click="btnSelectAllAutoSchedule_Click"
-                                        Content="{DynamicResource Button_SelectAll}"
-                                        ToolTip="{DynamicResource ToolTip_SelectAll}" />
                                     <Button
                                         Width="170"
                                         Click="btnDeleteSelectedAutoSchedule_Click"
@@ -988,7 +934,7 @@
                                         Content="{DynamicResource Button_RefreshStatus}"
                                         ToolTip="{DynamicResource ToolTip_RefreshStatus}" />
                                     <Button
-                                        Width="180"
+                                        Width="140"
                                         Click="btnAutoScheduleSettings_Click"
                                         Content="{DynamicResource Button_AutoScheduleSettings}"
                                         ToolTip="{DynamicResource ToolTip_AutoScheduleSettings}" />

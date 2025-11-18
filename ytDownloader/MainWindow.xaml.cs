@@ -793,11 +793,11 @@ namespace ytDownloader
         /// </summary>
         private async void mainTabControl_SelectionChanged(object sender, System.Windows.Controls.SelectionChangedEventArgs e)
         {
-            // 예약 탭이 선택되었을 때만 새로고침 (로딩 오버레이 없이)
+            // 예약 탭이 선택되었을 때만 새로고침
             if (mainTabControl.SelectedItem == scheduleTabItem)
             {
                 RefreshScheduledChannelsList();
-                await UpdateSchedulerStatusAsync(showLoading: false);
+                await UpdateSchedulerStatusAsync();
             }
         }
 
@@ -1072,47 +1072,30 @@ namespace ytDownloader
         /// <summary>
         /// 스케줄러 상태 업데이트
         /// </summary>
-        private void UpdateSchedulerStatus(bool showLoading = false)
+        private void UpdateSchedulerStatus()
         {
-            _ = UpdateSchedulerStatusAsync(showLoading);
+            _ = UpdateSchedulerStatusAsync();
         }
 
         /// <summary>
         /// 스케줄러 상태 비동기 업데이트
         /// </summary>
-        private async Task UpdateSchedulerStatusAsync(bool showLoading = false)
+        private async Task UpdateSchedulerStatusAsync()
         {
-            // 로딩 표시 (명시적으로 요청한 경우에만)
-            if (showLoading)
+            var schedulerService = new TaskSchedulerService();
+
+            // UI 스레드를 차단하지 않도록 작업을 백그라운드에서 실행
+            var tasks = await Task.Run(() => schedulerService.GetAllScheduledTasks());
+
+            await Dispatcher.InvokeAsync(() =>
             {
-                scheduleLoadingOverlay.Visibility = Visibility.Visible;
-            }
+                _autoScheduledTasksCollection.Clear();
 
-            try
-            {
-                var schedulerService = new TaskSchedulerService();
-
-                // UI 스레드를 차단하지 않도록 작업을 백그라운드에서 실행
-                var tasks = await Task.Run(() => schedulerService.GetAllScheduledTasks());
-
-                await Dispatcher.InvokeAsync(() =>
+                foreach (var task in tasks)
                 {
-                    _autoScheduledTasksCollection.Clear();
-
-                    foreach (var task in tasks)
-                    {
-                        _autoScheduledTasksCollection.Add(task);
-                    }
-                });
-            }
-            finally
-            {
-                // 로딩 숨기기
-                if (showLoading)
-                {
-                    scheduleLoadingOverlay.Visibility = Visibility.Collapsed;
+                    _autoScheduledTasksCollection.Add(task);
                 }
-            }
+            });
         }
 
         /// <summary>
@@ -1120,51 +1103,44 @@ namespace ytDownloader
         /// </summary>
         private void btnRefreshScheduleStatus_Click(object sender, RoutedEventArgs e)
         {
-            UpdateSchedulerStatus(showLoading: true);
+            UpdateSchedulerStatus();
         }
 
         /// <summary>
-        /// 자동 예약 DataGrid 행 클릭 시 처리 (체크박스는 명시적 클릭에만 반응)
+        /// 자동 예약 DataGrid 행 클릭 시 체크박스 토글
         /// </summary>
         private void lstAutoScheduledTasks_PreviewMouseLeftButtonDown(object sender, MouseButtonEventArgs e)
         {
-            // 체크박스 클릭인지 확인
-            if (e.OriginalSource is System.Windows.FrameworkElement element)
+            var grid = sender as System.Windows.Controls.DataGrid;
+            if (grid == null) return;
+
+            // 클릭된 요소 추적
+            var hit = e.OriginalSource as System.Windows.DependencyObject;
+            System.Windows.Controls.DataGridRow? row = null;
+            System.Windows.Controls.DataGridCell? cell = null;
+
+            // 비주얼 트리를 따라 올라가며 행과 셀 찾기
+            while (hit != null)
             {
-                // CheckBox 또는 그 자식 요소를 클릭한 경우
-                var checkBox = FindParent<System.Windows.Controls.CheckBox>(element);
-                if (checkBox != null)
+                if (hit is System.Windows.Controls.DataGridCell)
+                    cell = hit as System.Windows.Controls.DataGridCell;
+                if (hit is System.Windows.Controls.DataGridRow)
                 {
-                    // 체크박스 클릭 시 기본 동작 허용 (바인딩이 정상 작동하도록)
-                    // DataGrid row 선택은 방지하지 않음
-                    return;
+                    row = hit as System.Windows.Controls.DataGridRow;
+                    break;
                 }
+                hit = System.Windows.Media.VisualTreeHelper.GetParent(hit);
             }
-        }
 
-        /// <summary>
-        /// 부모 요소 찾기 헬퍼 메서드
-        /// </summary>
-        private T? FindParent<T>(System.Windows.DependencyObject child) where T : System.Windows.DependencyObject
-        {
-            var parent = System.Windows.Media.VisualTreeHelper.GetParent(child);
-            if (parent == null) return null;
-            if (parent is T typedParent) return typedParent;
-            return FindParent<T>(parent);
-        }
+            // 체크박스 컬럼을 클릭한 경우는 기본 동작 허용 (자동 처리됨)
+            if (cell != null && cell.Column is DataGridCheckBoxColumn)
+                return;
 
-        /// <summary>
-        /// 전체 선택 버튼 클릭 (모든 체크박스 토글)
-        /// </summary>
-        private void btnSelectAllAutoSchedule_Click(object sender, RoutedEventArgs e)
-        {
-            // 현재 모든 항목이 선택되어 있는지 확인
-            bool allSelected = _autoScheduledTasksCollection.All(t => t.IsSelected);
-
-            // 모두 선택되어 있으면 전체 해제, 아니면 전체 선택
-            foreach (var task in _autoScheduledTasksCollection)
+            // 다른 셀을 클릭한 경우 체크박스 토글
+            if (row != null && row.Item is ScheduleTaskInfo task)
             {
-                task.IsSelected = !allSelected;
+                task.IsSelected = !task.IsSelected;
+                e.Handled = true; // 이벤트 전파 중지하여 DataGrid 기본 선택 동작 방지
             }
         }
 
@@ -1318,30 +1294,15 @@ namespace ytDownloader
         /// </summary>
         private void btnEditAutoSchedule_Click(object sender, RoutedEventArgs e)
         {
-            ScheduleTaskInfo? selectedTask = null;
+            // 선택된 첫 번째 항목 편집
+            var selectedTask = lstAutoScheduledTasks.SelectedItem as ScheduleTaskInfo;
 
-            // 컨텍스트 메뉴에서 호출된 경우, PlacementTarget을 통해 DataGrid 찾기
-            if (sender is MenuItem menuItem && menuItem.Parent is ContextMenu contextMenu)
-            {
-                if (contextMenu.PlacementTarget is DataGrid grid && grid.SelectedItem is ScheduleTaskInfo task)
-                {
-                    selectedTask = task;
-                }
-            }
-
-            // 컨텍스트 메뉴에서 찾지 못한 경우 일반 선택 항목 확인
             if (selectedTask == null)
             {
-                selectedTask = lstAutoScheduledTasks.SelectedItem as ScheduleTaskInfo;
-            }
-
-            // 그래도 없으면 체크박스로 선택된 항목 찾기
-            if (selectedTask == null)
-            {
+                // 체크박스로 선택된 항목 찾기
                 selectedTask = _autoScheduledTasksCollection.FirstOrDefault(t => t.IsSelected);
             }
 
-            // 여전히 없으면 안내 메시지 표시
             if (selectedTask == null)
             {
                 string message = _currentSettings.Language == "ko"
@@ -1355,32 +1316,6 @@ namespace ytDownloader
             }
 
             EditAutoSchedule(selectedTask);
-        }
-
-        /// <summary>
-        /// Windows 작업 스케줄러 열기 (컨텍스트 메뉴)
-        /// </summary>
-        [SupportedOSPlatform("windows")]
-        private void btnOpenTaskScheduler_Click(object sender, RoutedEventArgs e)
-        {
-            try
-            {
-                Process.Start(new ProcessStartInfo
-                {
-                    FileName = "taskschd.msc",
-                    UseShellExecute = true
-                });
-            }
-            catch (Exception ex)
-            {
-                string message = _currentSettings.Language == "ko"
-                    ? $"작업 스케줄러를 열 수 없습니다: {ex.Message}"
-                    : $"Failed to open Task Scheduler: {ex.Message}";
-                string title = _currentSettings.Language == "ko"
-                    ? "오류"
-                    : "Error";
-                MessageBox.Show(message, title, MessageBoxButton.OK, MessageBoxImage.Error);
-            }
         }
 
         /// <summary>
