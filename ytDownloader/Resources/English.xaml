@@ -135,6 +135,8 @@
     <system:String x:Key="ToolTip_RemoveSelectedAutoSchedule">Delete selected auto schedule items</system:String>
     <system:String x:Key="Button_RemoveAllAutoSchedules">Remove All Auto Schedules</system:String>
     <system:String x:Key="ToolTip_RemoveAllAutoSchedules">Delete all auto schedule items</system:String>
+    <system:String x:Key="Button_SelectAll">Select All</system:String>
+    <system:String x:Key="ToolTip_SelectAll">Select/deselect all schedule items</system:String>
 
     <!--  Progress  -->
     <system:String x:Key="Label_Speed">Speed:</system:String>

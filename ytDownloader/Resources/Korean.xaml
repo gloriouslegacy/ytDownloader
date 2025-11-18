@@ -135,6 +135,8 @@
     <system:String x:Key="ToolTip_RemoveSelectedAutoSchedule">선택한 자동 예약 스케줄들을 삭제합니다</system:String>
     <system:String x:Key="Button_RemoveAllAutoSchedules">자동 예약 전체 삭제</system:String>
     <system:String x:Key="ToolTip_RemoveAllAutoSchedules">모든 자동 예약 스케줄을 삭제합니다</system:String>
+    <system:String x:Key="Button_SelectAll">전체 선택</system:String>
+    <system:String x:Key="ToolTip_SelectAll">모든 스케줄 항목을 선택/해제합니다</system:String>
 
     <!--  진행 상태  -->
     <system:String x:Key="Label_Speed">속도:</system:String>
