@@ -1082,20 +1082,31 @@ namespace ytDownloader
         /// </summary>
         private async Task UpdateSchedulerStatusAsync()
         {
-            var schedulerService = new TaskSchedulerService();
+            // 로딩 표시
+            scheduleLoadingOverlay.Visibility = Visibility.Visible;
 
-            // UI 스레드를 차단하지 않도록 작업을 백그라운드에서 실행
-            var tasks = await Task.Run(() => schedulerService.GetAllScheduledTasks());
-
-            await Dispatcher.InvokeAsync(() =>
+            try
             {
-                _autoScheduledTasksCollection.Clear();
+                var schedulerService = new TaskSchedulerService();
 
-                foreach (var task in tasks)
+                // UI 스레드를 차단하지 않도록 작업을 백그라운드에서 실행
+                var tasks = await Task.Run(() => schedulerService.GetAllScheduledTasks());
+
+                await Dispatcher.InvokeAsync(() =>
                 {
-                    _autoScheduledTasksCollection.Add(task);
-                }
-            });
+                    _autoScheduledTasksCollection.Clear();
+
+                    foreach (var task in tasks)
+                    {
+                        _autoScheduledTasksCollection.Add(task);
+                    }
+                });
+            }
+            finally
+            {
+                // 로딩 숨기기
+                scheduleLoadingOverlay.Visibility = Visibility.Collapsed;
+            }
         }
 
         /// <summary>
@@ -1111,8 +1122,28 @@ namespace ytDownloader
         /// </summary>
         private void lstAutoScheduledTasks_PreviewMouseLeftButtonDown(object sender, MouseButtonEventArgs e)
         {
-            // 체크박스는 사용자가 직접 클릭할 때만 변경되도록 허용
-            // 행 클릭 시 체크박스 자동 토글 기능 제거됨
+            // 체크박스 클릭인지 확인
+            if (e.OriginalSource is System.Windows.FrameworkElement element)
+            {
+                // CheckBox 또는 그 자식 요소를 클릭한 경우 이벤트 전파 허용
+                var checkBox = FindParent<System.Windows.Controls.CheckBox>(element);
+                if (checkBox != null)
+                {
+                    // 체크박스 직접 클릭은 기본 동작 유지
+                    return;
+                }
+            }
+        }
+
+        /// <summary>
+        /// 부모 요소 찾기 헬퍼 메서드
+        /// </summary>
+        private T? FindParent<T>(System.Windows.DependencyObject child) where T : System.Windows.DependencyObject
+        {
+            var parent = System.Windows.Media.VisualTreeHelper.GetParent(child);
+            if (parent == null) return null;
+            if (parent is T typedParent) return typedParent;
+            return FindParent<T>(parent);
         }
 
         /// <summary>
@@ -1317,6 +1348,32 @@ namespace ytDownloader
             }
 
             EditAutoSchedule(selectedTask);
+        }
+
+        /// <summary>
+        /// Windows 작업 스케줄러 열기 (컨텍스트 메뉴)
+        /// </summary>
+        [SupportedOSPlatform("windows")]
+        private void btnOpenTaskScheduler_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                Process.Start(new ProcessStartInfo
+                {
+                    FileName = "taskschd.msc",
+                    UseShellExecute = true
+                });
+            }
+            catch (Exception ex)
+            {
+                string message = _currentSettings.Language == "ko"
+                    ? $"작업 스케줄러를 열 수 없습니다: {ex.Message}"
+                    : $"Failed to open Task Scheduler: {ex.Message}";
+                string title = _currentSettings.Language == "ko"
+                    ? "오류"
+                    : "Error";
+                MessageBox.Show(message, title, MessageBoxButton.OK, MessageBoxImage.Error);
+            }
         }
 
         /// <summary>

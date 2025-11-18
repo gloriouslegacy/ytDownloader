@@ -221,13 +221,13 @@ namespace ytDownloader
             // 시간 (0-23)
             for (int i = 0; i < 24; i++)
             {
-                cmbHour.Items.Add(new ComboBoxItem { Content = $"{i:D2}시", Tag = i });
+                cmbHour.Items.Add(new ComboBoxItem { Content = $"{i:D2}", Tag = i });
             }
 
             // 분 (0-59)
             for (int i = 0; i < 60; i++)
             {
-                cmbMinute.Items.Add(new ComboBoxItem { Content = $"{i:D2}분", Tag = i });
+                cmbMinute.Items.Add(new ComboBoxItem { Content = $"{i:D2}", Tag = i });
             }
         }
 
