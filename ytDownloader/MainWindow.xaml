@@ -481,7 +481,7 @@
             <Setter Property="Foreground" Value="{DynamicResource PrimaryTextBrush}" />
             <Style.Triggers>
                 <Trigger Property="IsSelected" Value="True">
-                    <Setter Property="Background" Value="#1E3A8A" />
+                    <Setter Property="Background" Value="#3B82F6" />
                     <Setter Property="Foreground" Value="White" />
                 </Trigger>
                 <MultiTrigger>
@@ -490,6 +490,7 @@
                         <Condition Property="IsSelected" Value="False" />
                     </MultiTrigger.Conditions>
                     <Setter Property="Background" Value="{DynamicResource HoverBackgroundBrush}" />
+                    <Setter Property="Foreground" Value="{DynamicResource PrimaryTextBrush}" />
                 </MultiTrigger>
             </Style.Triggers>
         </Style>
@@ -862,19 +863,24 @@
                                     BorderBrush="{DynamicResource BorderBrush}"
                                     BorderThickness="1"
                                     CornerRadius="6">
-                                    <DataGrid
-                                        Name="lstAutoScheduledTasks"
-                                        MinHeight="300"
-                                        Background="Transparent"
-                                        PreviewMouseLeftButtonDown="lstAutoScheduledTasks_PreviewMouseLeftButtonDown"
-                                        MouseDoubleClick="lstAutoScheduledTasks_MouseDoubleClick"
-                                        SelectionMode="Extended"
-                                        SelectionUnit="FullRow">
+                                    <Grid>
+                                        <DataGrid
+                                            Name="lstAutoScheduledTasks"
+                                            MinHeight="300"
+                                            Background="Transparent"
+                                            PreviewMouseLeftButtonDown="lstAutoScheduledTasks_PreviewMouseLeftButtonDown"
+                                            MouseDoubleClick="lstAutoScheduledTasks_MouseDoubleClick"
+                                            SelectionMode="Extended"
+                                            SelectionUnit="FullRow">
                                         <DataGrid.ContextMenu>
                                             <ContextMenu>
                                                 <MenuItem
                                                     Click="btnEditAutoSchedule_Click"
                                                     Header="{DynamicResource Button_EditSchedule}" />
+                                                <Separator />
+                                                <MenuItem
+                                                    Click="btnOpenTaskScheduler_Click"
+                                                    Header="Windows 작업 스케줄러 열기" />
                                                 <Separator />
                                                 <MenuItem
                                                     Click="btnDeleteSelectedAutoSchedule_Click"
@@ -910,7 +916,25 @@
                                                 Header="{DynamicResource Header_NextRun}"
                                                 IsReadOnly="True" />
                                         </DataGrid.Columns>
-                                    </DataGrid>
+                                        </DataGrid>
+
+                                        <!--  로딩 인디케이터  -->
+                                        <Border
+                                            Name="scheduleLoadingOverlay"
+                                            Background="#80000000"
+                                            Visibility="Collapsed">
+                                            <StackPanel
+                                                HorizontalAlignment="Center"
+                                                VerticalAlignment="Center">
+                                                <TextBlock
+                                                    FontSize="16"
+                                                    FontWeight="Bold"
+                                                    Foreground="White"
+                                                    Text="로딩 중..."
+                                                    HorizontalAlignment="Center" />
+                                            </StackPanel>
+                                        </Border>
+                                    </Grid>
                                 </Border>
 
                                 <!--  버튼  -->
