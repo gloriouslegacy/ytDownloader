@@ -164,4 +164,18 @@
     <system:String x:Key="Button_Refresh">새로고침</system:String>
     <system:String x:Key="Button_Close">닫기</system:String>
     <system:String x:Key="Label_AdvancedSettings">고급 설정</system:String>
+
+    <!--  실행 주기 (일)  -->
+    <system:String x:Key="Frequency_Daily">매일 (1일)</system:String>
+    <system:String x:Key="Frequency_Every2Days">2일마다</system:String>
+    <system:String x:Key="Frequency_Every3Days">3일마다</system:String>
+    <system:String x:Key="Frequency_Every4Days">4일마다</system:String>
+    <system:String x:Key="Frequency_Every5Days">5일마다</system:String>
+    <system:String x:Key="Frequency_Every6Days">6일마다</system:String>
+    <system:String x:Key="Frequency_Weekly">매주 (7일)</system:String>
+    <system:String x:Key="Frequency_Every10Days">10일마다</system:String>
+    <system:String x:Key="Frequency_Every2Weeks">2주마다 (14일)</system:String>
+    <system:String x:Key="Frequency_Every3Weeks">3주마다 (21일)</system:String>
+    <system:String x:Key="Frequency_Monthly">매월 (30일)</system:String>
+    <system:String x:Key="Frequency_Every31Days">31일마다</system:String>
 </ResourceDictionary>

@@ -164,4 +164,18 @@
     <system:String x:Key="Button_Refresh">Refresh</system:String>
     <system:String x:Key="Button_Close">Close</system:String>
     <system:String x:Key="Label_AdvancedSettings">Advanced Settings</system:String>
+
+    <!--  Frequency (Days)  -->
+    <system:String x:Key="Frequency_Daily">Daily (1 day)</system:String>
+    <system:String x:Key="Frequency_Every2Days">Every 2 days</system:String>
+    <system:String x:Key="Frequency_Every3Days">Every 3 days</system:String>
+    <system:String x:Key="Frequency_Every4Days">Every 4 days</system:String>
+    <system:String x:Key="Frequency_Every5Days">Every 5 days</system:String>
+    <system:String x:Key="Frequency_Every6Days">Every 6 days</system:String>
+    <system:String x:Key="Frequency_Weekly">Weekly (7 days)</system:String>
+    <system:String x:Key="Frequency_Every10Days">Every 10 days</system:String>
+    <system:String x:Key="Frequency_Every2Weeks">Every 2 weeks (14 days)</system:String>
+    <system:String x:Key="Frequency_Every3Weeks">Every 3 weeks (21 days)</system:String>
+    <system:String x:Key="Frequency_Monthly">Monthly (30 days)</system:String>
+    <system:String x:Key="Frequency_Every31Days">Every 31 days</system:String>
 </ResourceDictionary>
