@@ -481,8 +481,8 @@
             <Setter Property="Foreground" Value="{DynamicResource PrimaryTextBrush}" />
             <Style.Triggers>
                 <Trigger Property="IsSelected" Value="True">
-                    <Setter Property="Background" Value="#87CEEB" />
-                    <Setter Property="Foreground" Value="#000000" />
+                    <Setter Property="Background" Value="#1E3A8A" />
+                    <Setter Property="Foreground" Value="White" />
                 </Trigger>
                 <MultiTrigger>
                     <MultiTrigger.Conditions>
@@ -516,8 +516,8 @@
             </Setter>
             <Style.Triggers>
                 <Trigger Property="IsSelected" Value="True">
-                    <Setter Property="Background" Value="#87CEEB" />
-                    <Setter Property="Foreground" Value="#000000" />
+                    <Setter Property="Background" Value="#1E3A8A" />
+                    <Setter Property="Foreground" Value="White" />
                 </Trigger>
             </Style.Triggers>
         </Style>
@@ -919,6 +919,11 @@
                                     HorizontalAlignment="Right"
                                     Orientation="Horizontal">
                                     <Button
+                                        Width="100"
+                                        Click="btnSelectAllAutoSchedule_Click"
+                                        Content="{DynamicResource Button_SelectAll}"
+                                        ToolTip="{DynamicResource ToolTip_SelectAll}" />
+                                    <Button
                                         Width="170"
                                         Click="btnDeleteSelectedAutoSchedule_Click"
                                         Content="{DynamicResource Button_RemoveSelectedAutoSchedule}"
@@ -934,7 +939,7 @@
                                         Content="{DynamicResource Button_RefreshStatus}"
                                         ToolTip="{DynamicResource ToolTip_RefreshStatus}" />
                                     <Button
-                                        Width="140"
+                                        Width="180"
                                         Click="btnAutoScheduleSettings_Click"
                                         Content="{DynamicResource Button_AutoScheduleSettings}"
                                         ToolTip="{DynamicResource ToolTip_AutoScheduleSettings}" />

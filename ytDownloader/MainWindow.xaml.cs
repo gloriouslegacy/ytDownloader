@@ -1107,40 +1107,26 @@ namespace ytDownloader
         }
 
         /// <summary>
-        /// 자동 예약 DataGrid 행 클릭 시 체크박스 토글
+        /// 자동 예약 DataGrid 행 클릭 시 처리 (체크박스는 명시적 클릭에만 반응)
         /// </summary>
         private void lstAutoScheduledTasks_PreviewMouseLeftButtonDown(object sender, MouseButtonEventArgs e)
         {
-            var grid = sender as System.Windows.Controls.DataGrid;
-            if (grid == null) return;
+            // 체크박스는 사용자가 직접 클릭할 때만 변경되도록 허용
+            // 행 클릭 시 체크박스 자동 토글 기능 제거됨
+        }
 
-            // 클릭된 요소 추적
-            var hit = e.OriginalSource as System.Windows.DependencyObject;
-            System.Windows.Controls.DataGridRow? row = null;
-            System.Windows.Controls.DataGridCell? cell = null;
+        /// <summary>
+        /// 전체 선택 버튼 클릭 (모든 체크박스 토글)
+        /// </summary>
+        private void btnSelectAllAutoSchedule_Click(object sender, RoutedEventArgs e)
+        {
+            // 현재 모든 항목이 선택되어 있는지 확인
+            bool allSelected = _autoScheduledTasksCollection.All(t => t.IsSelected);
 
-            // 비주얼 트리를 따라 올라가며 행과 셀 찾기
-            while (hit != null)
+            // 모두 선택되어 있으면 전체 해제, 아니면 전체 선택
+            foreach (var task in _autoScheduledTasksCollection)
             {
-                if (hit is System.Windows.Controls.DataGridCell)
-                    cell = hit as System.Windows.Controls.DataGridCell;
-                if (hit is System.Windows.Controls.DataGridRow)
-                {
-                    row = hit as System.Windows.Controls.DataGridRow;
-                    break;
-                }
-                hit = System.Windows.Media.VisualTreeHelper.GetParent(hit);
-            }
-
-            // 체크박스 컬럼을 클릭한 경우는 기본 동작 허용 (자동 처리됨)
-            if (cell != null && cell.Column is DataGridCheckBoxColumn)
-                return;
-
-            // 다른 셀을 클릭한 경우 체크박스 토글
-            if (row != null && row.Item is ScheduleTaskInfo task)
-            {
-                task.IsSelected = !task.IsSelected;
-                e.Handled = true; // 이벤트 전파 중지하여 DataGrid 기본 선택 동작 방지
+                task.IsSelected = !allSelected;
             }
         }
 
@@ -1294,15 +1280,30 @@ namespace ytDownloader
         /// </summary>
         private void btnEditAutoSchedule_Click(object sender, RoutedEventArgs e)
         {
-            // 선택된 첫 번째 항목 편집
-            var selectedTask = lstAutoScheduledTasks.SelectedItem as ScheduleTaskInfo;
+            ScheduleTaskInfo? selectedTask = null;
 
+            // 컨텍스트 메뉴에서 호출된 경우, PlacementTarget을 통해 DataGrid 찾기
+            if (sender is MenuItem menuItem && menuItem.Parent is ContextMenu contextMenu)
+            {
+                if (contextMenu.PlacementTarget is DataGrid grid && grid.SelectedItem is ScheduleTaskInfo task)
+                {
+                    selectedTask = task;
+                }
+            }
+
+            // 컨텍스트 메뉴에서 찾지 못한 경우 일반 선택 항목 확인
             if (selectedTask == null)
             {
-                // 체크박스로 선택된 항목 찾기
+                selectedTask = lstAutoScheduledTasks.SelectedItem as ScheduleTaskInfo;
+            }
+
+            // 그래도 없으면 체크박스로 선택된 항목 찾기
+            if (selectedTask == null)
+            {
                 selectedTask = _autoScheduledTasksCollection.FirstOrDefault(t => t.IsSelected);
             }
 
+            // 여전히 없으면 안내 메시지 표시
             if (selectedTask == null)
             {
                 string message = _currentSettings.Language == "ko"

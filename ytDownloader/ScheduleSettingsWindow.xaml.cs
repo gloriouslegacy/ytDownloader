@@ -111,13 +111,13 @@ namespace ytDownloader
             txtSchedulerChannelUrl.Text = "";
             txtSchedulerSavePath.Text = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), "Downloads");
             cmbSchedulerFormat.SelectedIndex = 0; // 최고화질
-            chkSchedulerSubtitle.IsChecked = false;
+            chkSchedulerSubtitle.IsChecked = true;
             SetComboBoxValue(cmbSchedulerSubtitleFormat, "srt");
             SetComboBoxValue(cmbSchedulerSubtitleLang, "ko");
             chkSchedulerNotification.IsChecked = true;
             txtSchedulerMaxDownloads.Text = "5";
             chkSchedulerStructuredFolders.IsChecked = true;
-            chkSchedulerThumbnail.IsChecked = false;
+            chkSchedulerThumbnail.IsChecked = true;
             chkSchedulerSingleVideo.IsChecked = false;
         }
 
@@ -224,11 +224,11 @@ namespace ytDownloader
                 cmbHour.Items.Add(new ComboBoxItem { Content = $"{i:D2}시", Tag = i });
             }
 
-            // 분 (0, 15, 30, 45)
-            cmbMinute.Items.Add(new ComboBoxItem { Content = "00분", Tag = 0 });
-            cmbMinute.Items.Add(new ComboBoxItem { Content = "15분", Tag = 15 });
-            cmbMinute.Items.Add(new ComboBoxItem { Content = "30분", Tag = 30 });
-            cmbMinute.Items.Add(new ComboBoxItem { Content = "45분", Tag = 45 });
+            // 분 (0-59)
+            for (int i = 0; i < 60; i++)
+            {
+                cmbMinute.Items.Add(new ComboBoxItem { Content = $"{i:D2}분", Tag = i });
+            }
         }
 
         /// <summary>

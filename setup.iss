@@ -22,6 +22,7 @@ SolidCompression=yes
 WizardStyle=modern
 PrivilegesRequired=lowest
 ArchitecturesInstallIn64BitMode=x64
+UninstallDisplayIcon={app}\{#MyAppExeName}
 
 [Languages]
 Name: "korean"; MessagesFile: "compiler:Languages\Korean.isl"
