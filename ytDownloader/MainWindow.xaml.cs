@@ -1149,14 +1149,26 @@ namespace ytDownloader
         /// </summary>
         private void btnDeleteSelectedAutoSchedule_Click(object sender, RoutedEventArgs e)
         {
-            // IsSelected=true인 항목들 찾기
-            var selectedTasks = _autoScheduledTasksCollection.Where(t => t.IsSelected).ToList();
+            // IsSelected=true인 항목들과 DataGrid에서 선택된 항목들을 모두 수집
+            var selectedTasks = new List<ScheduleTaskInfo>();
+
+            // 1. 체크박스로 선택된 항목들
+            selectedTasks.AddRange(_autoScheduledTasksCollection.Where(t => t.IsSelected));
+
+            // 2. DataGrid에서 선택된 항목들 (우클릭으로 선택된 항목 포함)
+            foreach (var item in lstAutoScheduledTasks.SelectedItems)
+            {
+                if (item is ScheduleTaskInfo task && !selectedTasks.Contains(task))
+                {
+                    selectedTasks.Add(task);
+                }
+            }
 
             if (selectedTasks.Count == 0)
             {
                 string message = _currentSettings.Language == "ko"
-                    ? "삭제할 스케줄을 체크박스로 선택해주세요."
-                    : "Please check schedules to delete.";
+                    ? "삭제할 스케줄을 선택해주세요."
+                    : "Please select schedules to delete.";
                 string title = _currentSettings.Language == "ko"
                     ? "알림"
                     : "Notice";
