@@ -480,18 +480,15 @@
             <Setter Property="Background" Value="Transparent" />
             <Setter Property="Foreground" Value="{DynamicResource PrimaryTextBrush}" />
             <Style.Triggers>
+                <!--  마우스 오버 시 배경색 변경 (IsSelected가 False일 때만)  -->
+                <Trigger Property="IsMouseOver" Value="True">
+                    <Setter Property="Background" Value="{DynamicResource HoverBackgroundBrush}" />
+                </Trigger>
                 <!--  데이터 모델의 IsSelected 속성을 사용하여 포커스와 무관하게 선택 상태 유지  -->
                 <DataTrigger Binding="{Binding IsSelected}" Value="True">
                     <Setter Property="Background" Value="#87CEEB" />
                     <Setter Property="Foreground" Value="#000000" />
                 </DataTrigger>
-                <MultiTrigger>
-                    <MultiTrigger.Conditions>
-                        <Condition Property="IsMouseOver" Value="True" />
-                        <Condition Binding="{Binding IsSelected}" Value="False" />
-                    </MultiTrigger.Conditions>
-                    <Setter Property="Background" Value="{DynamicResource HoverBackgroundBrush}" />
-                </MultiTrigger>
             </Style.Triggers>
         </Style>
 
