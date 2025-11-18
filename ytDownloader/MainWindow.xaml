@@ -55,6 +55,25 @@
             <Setter Property="BorderBrush" Value="{DynamicResource BorderBrush}" />
             <Setter Property="BorderThickness" Value="1" />
             <Setter Property="Foreground" Value="{DynamicResource PrimaryTextBrush}" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="TextBox">
+                        <Border
+                            Name="Border"
+                            Padding="{TemplateBinding Padding}"
+                            Background="{TemplateBinding Background}"
+                            BorderBrush="{TemplateBinding BorderBrush}"
+                            BorderThickness="{TemplateBinding BorderThickness}">
+                            <ScrollViewer x:Name="PART_ContentHost" />
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="Border" Property="Background" Value="{DynamicResource InputHoverBackgroundBrush}" />
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
         </Style>
 
         <!--  ComboBox  -->
@@ -156,8 +175,8 @@
                             </Trigger>
                             <!--  Hover 효과  -->
                             <Trigger Property="IsMouseOver" Value="True">
-                                <Setter TargetName="ToggleButton" Property="Background" Value="{DynamicResource HoverBackgroundBrush}" />
-                                <Setter TargetName="PART_EditableTextBox" Property="Background" Value="{DynamicResource HoverBackgroundBrush}" />
+                                <Setter TargetName="ToggleButton" Property="Background" Value="{DynamicResource InputHoverBackgroundBrush}" />
+                                <Setter TargetName="PART_EditableTextBox" Property="Background" Value="{DynamicResource InputHoverBackgroundBrush}" />
                             </Trigger>
                         </ControlTemplate.Triggers>
                     </ControlTemplate>
@@ -182,7 +201,7 @@
                         </Border>
                         <ControlTemplate.Triggers>
                             <Trigger Property="IsHighlighted" Value="True">
-                                <Setter TargetName="Border" Property="Background" Value="{DynamicResource HoverBackgroundBrush}" />
+                                <Setter TargetName="Border" Property="Background" Value="{DynamicResource InputHoverBackgroundBrush}" />
                             </Trigger>
                             <Trigger Property="IsEnabled" Value="False">
                                 <Setter Property="Foreground" Value="{DynamicResource SecondaryTextBrush}" />
@@ -883,7 +902,8 @@
                                             PreviewMouseLeftButtonDown="lstAutoScheduledTasks_PreviewMouseLeftButtonDown"
                                             MouseDoubleClick="lstAutoScheduledTasks_MouseDoubleClick"
                                             SelectionMode="Extended"
-                                            SelectionUnit="FullRow">
+                                            SelectionUnit="FullRow"
+                                            IsSynchronizedWithCurrentItem="False">
                                         <DataGrid.ContextMenu>
                                             <ContextMenu>
                                                 <MenuItem
@@ -905,7 +925,7 @@
                                         <DataGrid.Columns>
                                             <DataGridCheckBoxColumn
                                                 Width="50"
-                                                Binding="{Binding IsSelected, UpdateSourceTrigger=PropertyChanged}"
+                                                Binding="{Binding IsSelected, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                                                 Header="{DynamicResource Header_Select}"
                                                 IsReadOnly="False">
                                                 <DataGridCheckBoxColumn.ElementStyle>
@@ -913,6 +933,8 @@
                                                         <Setter Property="HorizontalAlignment" Value="Center" />
                                                         <Setter Property="VerticalAlignment" Value="Center" />
                                                         <Setter Property="IsHitTestVisible" Value="True" />
+                                                        <Setter Property="Focusable" Value="True" />
+                                                        <Setter Property="ClickMode" Value="Press" />
                                                     </Style>
                                                 </DataGridCheckBoxColumn.ElementStyle>
                                             </DataGridCheckBoxColumn>
