@@ -884,10 +884,10 @@
                                             Background="Transparent"
                                             PreviewMouseLeftButtonDown="lstAutoScheduledTasks_PreviewMouseLeftButtonDown"
                                             MouseDoubleClick="lstAutoScheduledTasks_MouseDoubleClick"
-                                            SelectionMode="Extended"
-                                            SelectionUnit="FullRow"
-                                            IsSynchronizedWithCurrentItem="False">
-                                        <DataGrid.ContextMenu>
+                                            IsSynchronizedWithCurrentItem="True"
+                                            SelectionMode="Single"
+                                            SelectionUnit="FullRow">
+                                            <DataGrid.ContextMenu>
                                             <ContextMenu>
                                                 <MenuItem
                                                     Click="btnEditAutoSchedule_Click"
