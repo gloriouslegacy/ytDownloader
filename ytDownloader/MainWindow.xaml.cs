@@ -1131,11 +1131,12 @@ namespace ytDownloader
             // 체크박스 클릭인지 확인
             if (e.OriginalSource is System.Windows.FrameworkElement element)
             {
-                // CheckBox 또는 그 자식 요소를 클릭한 경우 이벤트 전파 허용
+                // CheckBox 또는 그 자식 요소를 클릭한 경우
                 var checkBox = FindParent<System.Windows.Controls.CheckBox>(element);
                 if (checkBox != null)
                 {
-                    // 체크박스 직접 클릭은 기본 동작 유지
+                    // 체크박스 클릭 시 기본 동작 허용 (바인딩이 정상 작동하도록)
+                    // DataGrid row 선택은 방지하지 않음
                     return;
                 }
             }
