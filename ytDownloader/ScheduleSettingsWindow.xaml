@@ -213,13 +213,9 @@
                                 <Setter TargetName="Border" Property="Background" Value="{DynamicResource HoverBackgroundBrush}" />
                                 <Setter Property="Foreground" Value="White" />
                             </Trigger>
-                            <MultiTrigger>
-                                <MultiTrigger.Conditions>
-                                    <Condition Property="IsMouseOver" Value="True" />
-                                    <Condition Property="IsSelected" Value="False" />
-                                </MultiTrigger.Conditions>
-                                <Setter TargetName="Border" Property="Background" Value="{DynamicResource SecondaryBackgroundBrush}" />
-                            </MultiTrigger>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="Border" Property="Background" Value="{DynamicResource HoverBackgroundBrush}" />
+                            </Trigger>
                         </ControlTemplate.Triggers>
                     </ControlTemplate>
                 </Setter.Value>
