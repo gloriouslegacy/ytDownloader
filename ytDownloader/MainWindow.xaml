@@ -891,66 +891,58 @@
                                             Name="lstAutoScheduledTasks"
                                             MinHeight="300"
                                             Background="Transparent"
-                                            PreviewMouseLeftButtonDown="lstAutoScheduledTasks_PreviewMouseLeftButtonDown"
-                                            MouseDoubleClick="lstAutoScheduledTasks_MouseDoubleClick"
                                             IsSynchronizedWithCurrentItem="True"
+                                            MouseDoubleClick="lstAutoScheduledTasks_MouseDoubleClick"
+                                            PreviewMouseLeftButtonDown="lstAutoScheduledTasks_PreviewMouseLeftButtonDown"
                                             SelectionMode="Single"
                                             SelectionUnit="FullRow">
                                             <DataGrid.ContextMenu>
-                                            <ContextMenu>
-                                                <MenuItem
-                                                    Click="btnEditAutoSchedule_Click"
-                                                    Header="{DynamicResource Button_EditSchedule}" />
-                                                <Separator />
-                                                <MenuItem
-                                                    Click="btnOpenTaskScheduler_Click"
-                                                    Header="{DynamicResource Button_OpenTaskScheduler}" />
-                                                <Separator />
-                                                <MenuItem
-                                                    Click="btnDeleteSelectedAutoSchedule_Click"
-                                                    Header="{DynamicResource Button_RemoveSelectedAutoSchedule}" />
-                                                <MenuItem
-                                                    Click="btnDeleteAllAutoSchedules_Click"
-                                                    Header="{DynamicResource Button_RemoveAllAutoSchedules}" />
-                                            </ContextMenu>
-                                        </DataGrid.ContextMenu>
-                                        <DataGrid.Columns>
-                                            <DataGridCheckBoxColumn
-                                                Width="50"
-                                                Binding="{Binding IsSelected, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                                                Header="{DynamicResource Header_Select}"
-                                                IsReadOnly="False">
-                                                <DataGridCheckBoxColumn.ElementStyle>
-                                                    <Style TargetType="CheckBox">
-                                                        <Setter Property="HorizontalAlignment" Value="Center" />
-                                                        <Setter Property="VerticalAlignment" Value="Center" />
-                                                        <Setter Property="IsHitTestVisible" Value="True" />
-                                                        <Setter Property="Focusable" Value="True" />
-                                                        <Setter Property="ClickMode" Value="Press" />
-                                                    </Style>
-                                                </DataGridCheckBoxColumn.ElementStyle>
-                                            </DataGridCheckBoxColumn>
-                                            <DataGridTextColumn
-                                                Width="250"
-                                                Binding="{Binding TaskName}"
-                                                Header="{DynamicResource Header_TaskName}"
-                                                IsReadOnly="True" />
-                                            <DataGridTextColumn
-                                                Width="100"
-                                                Binding="{Binding FrequencyDays}"
-                                                Header="{DynamicResource Header_Frequency}"
-                                                IsReadOnly="True" />
-                                            <DataGridTextColumn
-                                                Width="100"
-                                                Binding="{Binding ExecutionTime}"
-                                                Header="{DynamicResource Header_ExecutionTime}"
-                                                IsReadOnly="True" />
-                                            <DataGridTextColumn
-                                                Width="*"
-                                                Binding="{Binding NextRunTime, StringFormat='{}{0:yyyy-MM-dd HH:mm}'}"
-                                                Header="{DynamicResource Header_NextRun}"
-                                                IsReadOnly="True" />
-                                        </DataGrid.Columns>
+                                                <ContextMenu>
+                                                    <MenuItem Click="btnEditAutoSchedule_Click" Header="{DynamicResource Button_EditSchedule}" />
+                                                    <Separator />
+                                                    <MenuItem Click="btnOpenTaskScheduler_Click" Header="{DynamicResource Button_OpenTaskScheduler}" />
+                                                    <Separator />
+                                                    <MenuItem Click="btnDeleteSelectedAutoSchedule_Click" Header="{DynamicResource Button_RemoveSelectedAutoSchedule}" />
+                                                    <MenuItem Click="btnDeleteAllAutoSchedules_Click" Header="{DynamicResource Button_RemoveAllAutoSchedules}" />
+                                                </ContextMenu>
+                                            </DataGrid.ContextMenu>
+                                            <DataGrid.Columns>
+                                                <DataGridCheckBoxColumn
+                                                    Width="50"
+                                                    Binding="{Binding IsSelected, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                                    Header="{DynamicResource Header_Select}"
+                                                    IsReadOnly="False">
+                                                    <DataGridCheckBoxColumn.ElementStyle>
+                                                        <Style TargetType="CheckBox">
+                                                            <Setter Property="HorizontalAlignment" Value="Center" />
+                                                            <Setter Property="VerticalAlignment" Value="Center" />
+                                                            <Setter Property="IsHitTestVisible" Value="True" />
+                                                            <Setter Property="Focusable" Value="False" />
+                                                            <Setter Property="ClickMode" Value="Press" />
+                                                        </Style>
+                                                    </DataGridCheckBoxColumn.ElementStyle>
+                                                </DataGridCheckBoxColumn>
+                                                <DataGridTextColumn
+                                                    Width="250"
+                                                    Binding="{Binding TaskName}"
+                                                    Header="{DynamicResource Header_TaskName}"
+                                                    IsReadOnly="True" />
+                                                <DataGridTextColumn
+                                                    Width="100"
+                                                    Binding="{Binding FrequencyDays}"
+                                                    Header="{DynamicResource Header_Frequency}"
+                                                    IsReadOnly="True" />
+                                                <DataGridTextColumn
+                                                    Width="100"
+                                                    Binding="{Binding ExecutionTime}"
+                                                    Header="{DynamicResource Header_ExecutionTime}"
+                                                    IsReadOnly="True" />
+                                                <DataGridTextColumn
+                                                    Width="*"
+                                                    Binding="{Binding NextRunTime, StringFormat='{}{0:yyyy-MM-dd HH:mm}'}"
+                                                    Header="{DynamicResource Header_NextRun}"
+                                                    IsReadOnly="True" />
+                                            </DataGrid.Columns>
                                         </DataGrid>
 
                                         <!--  로딩 인디케이터  -->
@@ -958,15 +950,13 @@
                                             Name="scheduleLoadingOverlay"
                                             Background="#80000000"
                                             Visibility="Collapsed">
-                                            <StackPanel
-                                                HorizontalAlignment="Center"
-                                                VerticalAlignment="Center">
+                                            <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
                                                 <TextBlock
+                                                    HorizontalAlignment="Center"
                                                     FontSize="16"
                                                     FontWeight="Bold"
                                                     Foreground="White"
-                                                    Text="{DynamicResource Label_Loading}"
-                                                    HorizontalAlignment="Center" />
+                                                    Text="{DynamicResource Label_Loading}" />
                                             </StackPanel>
                                         </Border>
                                     </Grid>
