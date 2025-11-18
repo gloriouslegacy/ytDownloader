@@ -688,6 +688,8 @@
                                     <TextBox
                                         Name="txtSavePath"
                                         Width="254"
+                                        Height="28"
+                                        VerticalContentAlignment="Center"
                                         IsReadOnly="True"
                                         ToolTip="{DynamicResource ToolTip_SavePath}" />
                                     <Button
@@ -707,7 +709,10 @@
                                     FontWeight="Bold"
                                     Foreground="{DynamicResource PrimaryTextBrush}"
                                     Text="{DynamicResource Label_Format}" />
-                                <ComboBox Name="comboFormat" ToolTip="{DynamicResource ToolTip_Format}">
+                                <ComboBox
+                                    Name="comboFormat"
+                                    Height="28"
+                                    ToolTip="{DynamicResource ToolTip_Format}">
                                     <ComboBoxItem Content="{DynamicResource Format_BestVideo}" />
                                     <ComboBoxItem Content="{DynamicResource Format_Video1080p}" />
                                     <ComboBoxItem Content="{DynamicResource Format_Video720p}" />
@@ -753,6 +758,7 @@
                                     <ComboBox
                                         Name="SubtitleFormatComboBox"
                                         Width="120"
+                                        Height="28"
                                         ToolTip="{DynamicResource ToolTip_SubtitleFormat}">
                                         <ComboBoxItem Content="srt" />
                                         <ComboBoxItem Content="vtt" />
@@ -761,6 +767,7 @@
                                     <ComboBox
                                         Name="SubtitleLangComboBox"
                                         Width="120"
+                                        Height="28"
                                         ToolTip="{DynamicResource ToolTip_SubtitleLang}">
                                         <ComboBoxItem Content="ko" />
                                         <ComboBoxItem Content="en" />
@@ -797,6 +804,8 @@
                                         Name="txtMaxDownloads"
                                         Grid.Column="1"
                                         Width="80"
+                                        Height="28"
+                                        VerticalContentAlignment="Center"
                                         ToolTip="{DynamicResource ToolTip_MaxDownloads}" />
                                 </Grid>
 
