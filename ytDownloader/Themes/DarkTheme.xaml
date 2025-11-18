@@ -4,7 +4,8 @@
     <Color x:Key="WindowBackgroundColor">#1E1E2E</Color>
     <Color x:Key="PrimaryBackgroundColor">#2A2F45</Color>
     <Color x:Key="SecondaryBackgroundColor">#3A3F58</Color>
-    <Color x:Key="HoverBackgroundColor">#1E40AF</Color>
+    <Color x:Key="HoverBackgroundColor">#4A4A5A</Color>
+    <Color x:Key="InputHoverBackgroundColor">#1E40AF</Color>
     <Color x:Key="PressedBackgroundColor">#1E3A8A</Color>
     <Color x:Key="LogBackgroundColor">#12121C</Color>
     <Color x:Key="BorderColor">#3A3F58</Color>
@@ -17,6 +18,7 @@
     <SolidColorBrush x:Key="PrimaryBackgroundBrush" Color="{StaticResource PrimaryBackgroundColor}" />
     <SolidColorBrush x:Key="SecondaryBackgroundBrush" Color="{StaticResource SecondaryBackgroundColor}" />
     <SolidColorBrush x:Key="HoverBackgroundBrush" Color="{StaticResource HoverBackgroundColor}" />
+    <SolidColorBrush x:Key="InputHoverBackgroundBrush" Color="{StaticResource InputHoverBackgroundColor}" />
     <SolidColorBrush x:Key="PressedBackgroundBrush" Color="{StaticResource PressedBackgroundColor}" />
     <SolidColorBrush x:Key="LogBackgroundBrush" Color="{StaticResource LogBackgroundColor}" />
     <SolidColorBrush x:Key="BorderBrush" Color="{StaticResource BorderColor}" />
