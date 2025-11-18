@@ -7,7 +7,7 @@
     <Color x:Key="SecondaryBackgroundColor">#E8E8E8</Color>
     <Color x:Key="HoverBackgroundColor">#EBEBEB</Color>
     <Color x:Key="InputHoverBackgroundColor">#1E40AF</Color>
-    <Color x:Key="PressedBackgroundColor">#1E3A8A</Color>
+    <Color x:Key="PressedBackgroundColor">#D0D0D0</Color>
     <Color x:Key="LogBackgroundColor">#FAFAFA</Color>
     <Color x:Key="BorderColor">#CCCCCC</Color>
 

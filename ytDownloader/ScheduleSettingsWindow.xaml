@@ -355,7 +355,7 @@
                         ToolTip="{DynamicResource ToolTip_PasteChannelUrl}" />
                     <TextBox
                         Name="txtSchedulerChannelUrl"
-                        Height="26"
+                        Height="32"
                         VerticalContentAlignment="Center"
                         ToolTip="{DynamicResource ToolTip_SchedulerChannelUrl}" />
                 </DockPanel>
@@ -375,7 +375,7 @@
                         ToolTip="{DynamicResource ToolTip_Browse}" />
                     <TextBox
                         Name="txtSchedulerSavePath"
-                        Height="26"
+                        Height="32"
                         VerticalContentAlignment="Center"
                         IsReadOnly="True"
                         ToolTip="{DynamicResource ToolTip_SchedulerSavePath}" />
