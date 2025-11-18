@@ -688,7 +688,7 @@
                                     <TextBox
                                         Name="txtSavePath"
                                         Width="254"
-                                        Height="28"
+                                        Height="32"
                                         VerticalContentAlignment="Center"
                                         IsReadOnly="True"
                                         ToolTip="{DynamicResource ToolTip_SavePath}" />
@@ -804,7 +804,7 @@
                                         Name="txtMaxDownloads"
                                         Grid.Column="1"
                                         Width="80"
-                                        Height="28"
+                                        Height="32"
                                         VerticalContentAlignment="Center"
                                         ToolTip="{DynamicResource ToolTip_MaxDownloads}" />
                                 </Grid>
