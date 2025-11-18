@@ -463,7 +463,8 @@
                 BorderThickness="0"
                 Foreground="{DynamicResource PrimaryTextBrush}"
                 SelectionMode="Single"
-                MinHeight="80" />
+                MinHeight="80" 
+                IsSynchronizedWithCurrentItem="True" />
         </Border>
 
         <!--  버튼  -->
