@@ -186,6 +186,7 @@
     <system:String x:Key="Dialog_DefenderWarning">Windows Defender Warning</system:String>
     <system:String x:Key="Label_DefenderWarningMessage">Downloads may fail due to Windows Defender blocking when scheduled tasks run.&#x0a;For more reliable downloads, please add file exclusions using ytDownloaderDefenderFileExclusion.zip before running.</system:String>
     <system:String x:Key="Button_DownloadExclusion">Download ytDownloaderDefenderFileExclusion.zip</system:String>
+    <system:String x:Key="CheckBox_DontShowDefenderWarning">Don't show this message again</system:String>
     <system:String x:Key="Button_Continue">Continue</system:String>
     <system:String x:Key="Button_Cancel">Cancel</system:String>
 </ResourceDictionary>
