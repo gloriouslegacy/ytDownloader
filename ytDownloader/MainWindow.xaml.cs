@@ -938,6 +938,17 @@ namespace ytDownloader
         /// </summary>
         private void btnAutoScheduleSettings_Click(object sender, RoutedEventArgs e)
         {
+            // Show Defender warning dialog first
+            var warningWindow = new DefenderWarningWindow();
+            warningWindow.Owner = this;
+            bool? warningResult = warningWindow.ShowDialog();
+
+            // If user cancels, don't open the schedule settings
+            if (warningResult != true)
+            {
+                return;
+            }
+
             var scheduleWindow = new ScheduleSettingsWindow();
             scheduleWindow.Owner = this;
             scheduleWindow.ShowDialog();
@@ -1323,6 +1334,17 @@ namespace ytDownloader
         /// </summary>
         private void EditAutoSchedule(ScheduleTaskInfo task)
         {
+            // Show Defender warning dialog first
+            var warningWindow = new DefenderWarningWindow();
+            warningWindow.Owner = this;
+            bool? warningResult = warningWindow.ShowDialog();
+
+            // If user cancels, don't open the schedule settings
+            if (warningResult != true)
+            {
+                return;
+            }
+
             var scheduleWindow = new ScheduleSettingsWindow();
             scheduleWindow.Owner = this;
 

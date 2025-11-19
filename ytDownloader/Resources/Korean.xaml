@@ -178,4 +178,11 @@
     <system:String x:Key="Frequency_Every3Weeks">3주마다 (21일)</system:String>
     <system:String x:Key="Frequency_Monthly">매월 (30일)</system:String>
     <system:String x:Key="Frequency_Every31Days">31일마다</system:String>
+
+    <!--  Defender Warning Dialog  -->
+    <system:String x:Key="Dialog_DefenderWarning">윈도우 디펜더 경고</system:String>
+    <system:String x:Key="Label_DefenderWarningMessage">예약 실행시 윈도우 디펜더 차단으로 다운로드 실패할 수 있습니다.&#x0a;ytDownloaderDefenderFileExclusion.zip 으로 파일 제외 추가 후 실행해야 보다 안정적으로 다운로드 할 수 있습니다.</system:String>
+    <system:String x:Key="Button_DownloadExclusion">ytDownloaderDefenderFileExclusion.zip 다운로드</system:String>
+    <system:String x:Key="Button_Continue">계속</system:String>
+    <system:String x:Key="Button_Cancel">취소</system:String>
 </ResourceDictionary>
