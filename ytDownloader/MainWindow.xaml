@@ -480,15 +480,17 @@
             <Setter Property="Background" Value="Transparent" />
             <Setter Property="Foreground" Value="{DynamicResource PrimaryTextBrush}" />
             <Style.Triggers>
-                <!--  마우스 오버 시 배경색 변경 (IsSelected가 False일 때만)  -->
-                <Trigger Property="IsMouseOver" Value="True">
-                    <Setter Property="Background" Value="{DynamicResource HoverBackgroundBrush}" />
-                </Trigger>
-                <!--  데이터 모델의 IsSelected 속성을 사용하여 포커스와 무관하게 선택 상태 유지  -->
-                <DataTrigger Binding="{Binding IsSelected}" Value="True">
+                <Trigger Property="IsSelected" Value="True">
                     <Setter Property="Background" Value="#87CEEB" />
                     <Setter Property="Foreground" Value="#000000" />
-                </DataTrigger>
+                </Trigger>
+                <MultiTrigger>
+                    <MultiTrigger.Conditions>
+                        <Condition Property="IsMouseOver" Value="True" />
+                        <Condition Property="IsSelected" Value="False" />
+                    </MultiTrigger.Conditions>
+                    <Setter Property="Background" Value="{DynamicResource HoverBackgroundBrush}" />
+                </MultiTrigger>
             </Style.Triggers>
         </Style>
 
@@ -513,11 +515,10 @@
                 </Setter.Value>
             </Setter>
             <Style.Triggers>
-                <!--  데이터 모델의 IsSelected 속성을 사용하여 포커스와 무관하게 선택 상태 유지  -->
-                <DataTrigger Binding="{Binding IsSelected}" Value="True">
+                <Trigger Property="IsSelected" Value="True">
                     <Setter Property="Background" Value="#87CEEB" />
                     <Setter Property="Foreground" Value="#000000" />
-                </DataTrigger>
+                </Trigger>
             </Style.Triggers>
         </Style>
     </Window.Resources>
@@ -866,14 +867,12 @@
                                         MinHeight="300"
                                         Background="Transparent"
                                         PreviewMouseLeftButtonDown="lstAutoScheduledTasks_PreviewMouseLeftButtonDown"
-                                        PreviewMouseRightButtonDown="lstAutoScheduledTasks_PreviewMouseRightButtonDown"
                                         MouseDoubleClick="lstAutoScheduledTasks_MouseDoubleClick"
                                         SelectionMode="Extended"
                                         SelectionUnit="FullRow">
                                         <DataGrid.ContextMenu>
-                                            <ContextMenu Opened="AutoScheduleContextMenu_Opened">
+                                            <ContextMenu>
                                                 <MenuItem
-                                                    Name="menuEditAutoSchedule"
                                                     Click="btnEditAutoSchedule_Click"
                                                     Header="{DynamicResource Button_EditSchedule}" />
                                                 <Separator />

@@ -1145,114 +1145,18 @@ namespace ytDownloader
         }
 
         /// <summary>
-        /// 자동 예약 DataGrid 우클릭 시 선택 유지
-        /// </summary>
-        private void lstAutoScheduledTasks_PreviewMouseRightButtonDown(object sender, MouseButtonEventArgs e)
-        {
-            var grid = sender as System.Windows.Controls.DataGrid;
-            if (grid == null) return;
-
-            // 클릭된 요소 추적
-            var hit = e.OriginalSource as System.Windows.DependencyObject;
-            System.Windows.Controls.DataGridRow? row = null;
-
-            // 비주얼 트리를 따라 올라가며 행 찾기
-            while (hit != null)
-            {
-                if (hit is System.Windows.Controls.DataGridRow)
-                {
-                    row = hit as System.Windows.Controls.DataGridRow;
-                    break;
-                }
-                hit = System.Windows.Media.VisualTreeHelper.GetParent(hit);
-            }
-
-            // 우클릭한 행이 있고, 해당 행의 아이템이 있는 경우
-            if (row != null && row.Item is ScheduleTaskInfo task)
-            {
-                // 이미 선택된 항목(체크박스 또는 DataGrid 선택)이 있는지 확인
-                bool hasSelection = lstAutoScheduledTasks.SelectedItems.Count > 0 ||
-                                    _autoScheduledTasksCollection.Any(t => t.IsSelected);
-
-                if (hasSelection)
-                {
-                    // 선택된 항목이 있으면, 우클릭한 행이 선택되지 않은 경우에만 선택
-                    if (!lstAutoScheduledTasks.SelectedItems.Contains(task) && !task.IsSelected)
-                    {
-                        // 기존 선택 유지하고 추가 선택
-                        lstAutoScheduledTasks.SelectedItems.Add(task);
-                    }
-                    // 이미 선택된 항목을 우클릭한 경우 선택 유지
-                    e.Handled = true;
-                }
-                else
-                {
-                    // 선택된 항목이 없으면 우클릭한 행을 선택
-                    lstAutoScheduledTasks.SelectedItem = task;
-                    e.Handled = true;
-                }
-            }
-        }
-
-        /// <summary>
-        /// 자동 예약 컨텍스트 메뉴 열릴 때 - 스케줄 편집 메뉴 활성화/비활성화
-        /// </summary>
-        private void AutoScheduleContextMenu_Opened(object sender, RoutedEventArgs e)
-        {
-            var contextMenu = sender as System.Windows.Controls.ContextMenu;
-            if (contextMenu == null) return;
-
-            // 선택된 항목 개수 확인 (체크박스 + DataGrid 선택)
-            var selectedTasks = new List<ScheduleTaskInfo>();
-
-            // 1. 체크박스로 선택된 항목들
-            selectedTasks.AddRange(_autoScheduledTasksCollection.Where(t => t.IsSelected));
-
-            // 2. DataGrid에서 선택된 항목들 (우클릭으로 선택된 항목 포함)
-            foreach (var item in lstAutoScheduledTasks.SelectedItems)
-            {
-                if (item is ScheduleTaskInfo task && !selectedTasks.Contains(task))
-                {
-                    selectedTasks.Add(task);
-                }
-            }
-
-            // 스케줄 편집 메뉴 아이템 찾기
-            var editMenuItem = contextMenu.Items.OfType<MenuItem>()
-                .FirstOrDefault(m => m.Name == "menuEditAutoSchedule");
-
-            if (editMenuItem != null)
-            {
-                // 2개 이상 선택된 경우 스케줄 편집 비활성화
-                editMenuItem.IsEnabled = selectedTasks.Count == 1;
-            }
-        }
-
-        /// <summary>
         /// 자동 예약 선택 삭제 버튼 클릭 (체크박스 선택된 항목들 삭제)
         /// </summary>
         private void btnDeleteSelectedAutoSchedule_Click(object sender, RoutedEventArgs e)
         {
-            // IsSelected=true인 항목들과 DataGrid에서 선택된 항목들을 모두 수집
-            var selectedTasks = new List<ScheduleTaskInfo>();
-
-            // 1. 체크박스로 선택된 항목들
-            selectedTasks.AddRange(_autoScheduledTasksCollection.Where(t => t.IsSelected));
-
-            // 2. DataGrid에서 선택된 항목들 (우클릭으로 선택된 항목 포함)
-            foreach (var item in lstAutoScheduledTasks.SelectedItems)
-            {
-                if (item is ScheduleTaskInfo task && !selectedTasks.Contains(task))
-                {
-                    selectedTasks.Add(task);
-                }
-            }
+            // IsSelected=true인 항목들 찾기
+            var selectedTasks = _autoScheduledTasksCollection.Where(t => t.IsSelected).ToList();
 
             if (selectedTasks.Count == 0)
             {
                 string message = _currentSettings.Language == "ko"
-                    ? "삭제할 스케줄을 선택해주세요."
-                    : "Please select schedules to delete.";
+                    ? "삭제할 스케줄을 체크박스로 선택해주세요."
+                    : "Please check schedules to delete.";
                 string title = _currentSettings.Language == "ko"
                     ? "알림"
                     : "Notice";
