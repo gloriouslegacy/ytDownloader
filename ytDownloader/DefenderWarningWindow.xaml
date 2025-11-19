@@ -4,7 +4,7 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     Title="{DynamicResource Dialog_DefenderWarning}"
     Width="500"
-    Height="300"
+    Height="350"
     WindowStartupLocation="CenterOwner"
     Background="{DynamicResource WindowBackgroundBrush}"
     Foreground="{DynamicResource PrimaryTextBrush}"
