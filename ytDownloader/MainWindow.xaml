@@ -866,7 +866,6 @@
                                         MinHeight="300"
                                         Background="Transparent"
                                         PreviewMouseLeftButtonDown="lstAutoScheduledTasks_PreviewMouseLeftButtonDown"
-                                        PreviewMouseRightButtonDown="lstAutoScheduledTasks_PreviewMouseRightButtonDown"
                                         MouseDoubleClick="lstAutoScheduledTasks_MouseDoubleClick"
                                         SelectionMode="Extended"
                                         SelectionUnit="FullRow">
