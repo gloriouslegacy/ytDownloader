@@ -1358,6 +1358,66 @@ namespace ytDownloader
         }
 
         /// <summary>
+        /// 스케줄 편집 버튼 클릭 (메인)
+        /// </summary>
+        private void btnEditScheduleMain_Click(object sender, RoutedEventArgs e)
+        {
+            // 선택된 스케줄 확인 (DataGrid 선택 + 체크박스 선택)
+            var selectedTasks = new List<ScheduleTaskInfo>();
+
+            // DataGrid에서 선택된 항목 추가
+            if (lstAutoScheduledTasks.SelectedItems.Count > 0)
+            {
+                foreach (var item in lstAutoScheduledTasks.SelectedItems)
+                {
+                    if (item is ScheduleTaskInfo task && !selectedTasks.Contains(task))
+                    {
+                        selectedTasks.Add(task);
+                    }
+                }
+            }
+
+            // 체크박스로 선택된 항목 추가
+            foreach (var task in _autoScheduledTasksCollection.Where(t => t.IsSelected))
+            {
+                if (!selectedTasks.Contains(task))
+                {
+                    selectedTasks.Add(task);
+                }
+            }
+
+            // 선택된 스케줄이 없는 경우
+            if (selectedTasks.Count == 0)
+            {
+                string message = _currentSettings.Language == "ko"
+                    ? "편집할 스케줄을 선택하세요."
+                    : "Please select a schedule to edit.";
+                string title = _currentSettings.Language == "ko"
+                    ? "알림"
+                    : "Notice";
+                MessageBox.Show(message, title, MessageBoxButton.OK, MessageBoxImage.Information);
+                return;
+            }
+
+            // 여러 스케줄이 선택된 경우
+            if (selectedTasks.Count > 1)
+            {
+                string message = Application.Current.TryFindResource("Message_EditScheduleMultipleSelected") as string
+                    ?? (_currentSettings.Language == "ko"
+                        ? "스케줄 편집을 위해서는 하나의 스케줄만 선택해야 합니다"
+                        : "Only one schedule must be selected for schedule editing");
+                string title = _currentSettings.Language == "ko"
+                    ? "알림"
+                    : "Notice";
+                MessageBox.Show(message, title, MessageBoxButton.OK, MessageBoxImage.Information);
+                return;
+            }
+
+            // 정확히 하나의 스케줄이 선택된 경우 편집 실행
+            EditAutoSchedule(selectedTasks[0]);
+        }
+
+        /// <summary>
         /// 작업 스케줄러 열기 버튼 클릭
         /// </summary>
         private void btnOpenTaskScheduler_Click(object sender, RoutedEventArgs e)

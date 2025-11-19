@@ -139,6 +139,9 @@
     <system:String x:Key="ToolTip_SelectAll">Select/deselect all schedule items</system:String>
     <system:String x:Key="Button_OpenTaskScheduler">Task Scheduler</system:String>
     <system:String x:Key="ToolTip_OpenTaskScheduler">Open Windows Task Scheduler</system:String>
+    <system:String x:Key="Button_EditSchedule_Main">Edit Schedule</system:String>
+    <system:String x:Key="ToolTip_EditSchedule_Main">Edit the selected schedule</system:String>
+    <system:String x:Key="Message_EditScheduleMultipleSelected">Only one schedule must be selected for schedule editing</system:String>
 
     <!--  Progress  -->
     <system:String x:Key="Label_Speed">Speed:</system:String>

@@ -924,6 +924,11 @@
                                         Content="{DynamicResource Button_OpenTaskScheduler}"
                                         ToolTip="{DynamicResource ToolTip_OpenTaskScheduler}" />
                                     <Button
+                                        Width="100"
+                                        Click="btnEditScheduleMain_Click"
+                                        Content="{DynamicResource Button_EditSchedule_Main}"
+                                        ToolTip="{DynamicResource ToolTip_EditSchedule_Main}" />
+                                    <Button
                                         Width="170"
                                         Click="btnDeleteSelectedAutoSchedule_Click"
                                         Content="{DynamicResource Button_RemoveSelectedAutoSchedule}"
