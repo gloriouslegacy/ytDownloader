@@ -7,6 +7,11 @@ namespace ytDownloader
     {
         private const string GITHUB_RELEASES_URL = "https://github.com/gloriouslegacy/ytDownloader/releases";
 
+        /// <summary>
+        /// 사용자가 '다시 보지 않기'를 선택했는지 여부
+        /// </summary>
+        public bool DontShowAgain { get; private set; }
+
         public DefenderWarningWindow()
         {
             InitializeComponent();
@@ -31,6 +36,7 @@ namespace ytDownloader
 
         private void btnContinue_Click(object sender, RoutedEventArgs e)
         {
+            DontShowAgain = chkDontShowAgain.IsChecked == true;
             DialogResult = true;
             Close();
         }

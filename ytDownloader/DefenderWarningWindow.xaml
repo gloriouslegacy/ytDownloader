@@ -81,16 +81,23 @@
             Text="{DynamicResource Label_DefenderWarningMessage}"
             TextWrapping="Wrap" />
 
-        <!--  Download Link Button  -->
-        <Button
-            x:Name="btnDownloadExclusion"
-            Grid.Row="2"
-            Height="40"
-            Margin="0,0,0,20"
-            VerticalAlignment="Top"
-            Click="btnDownloadExclusion_Click"
-            Content="{DynamicResource Button_DownloadExclusion}"
-            FontSize="13" />
+        <!--  Download Link Button and Checkbox  -->
+        <StackPanel Grid.Row="2" VerticalAlignment="Top">
+            <Button
+                x:Name="btnDownloadExclusion"
+                Height="40"
+                Margin="0,0,0,15"
+                Click="btnDownloadExclusion_Click"
+                Content="{DynamicResource Button_DownloadExclusion}"
+                FontSize="13" />
+
+            <CheckBox
+                x:Name="chkDontShowAgain"
+                HorizontalAlignment="Center"
+                Content="{DynamicResource CheckBox_DontShowDefenderWarning}"
+                FontSize="12"
+                Foreground="{DynamicResource PrimaryTextBrush}" />
+        </StackPanel>
 
         <!--  Action Buttons  -->
         <StackPanel

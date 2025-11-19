@@ -61,7 +61,8 @@ namespace ytDownloader.Services
                         MaxDownloads = settings["MaxDownloads"]?.ToObject<int>() ?? 5,
                         Theme = settings["Theme"]?.ToString() ?? "Dark",
                         Language = settings["Language"]?.ToString() ?? "ko",
-                        EnableNotification = settings["EnableNotification"]?.ToObject<bool>() ?? true
+                        EnableNotification = settings["EnableNotification"]?.ToObject<bool>() ?? true,
+                        DontShowDefenderWarning = settings["DontShowDefenderWarning"]?.ToObject<bool>() ?? false
                     };
 
                     // ScheduledChannels 로드
@@ -126,6 +127,7 @@ namespace ytDownloader.Services
                     ["Theme"] = settings.Theme,
                     ["Language"] = settings.Language,
                     ["EnableNotification"] = settings.EnableNotification,
+                    ["DontShowDefenderWarning"] = settings.DontShowDefenderWarning,
                     ["ScheduledChannels"] = JToken.FromObject(settings.ScheduledChannels)
                 };
 

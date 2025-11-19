@@ -938,15 +938,25 @@ namespace ytDownloader
         /// </summary>
         private void btnAutoScheduleSettings_Click(object sender, RoutedEventArgs e)
         {
-            // Show Defender warning dialog first
-            var warningWindow = new DefenderWarningWindow();
-            warningWindow.Owner = this;
-            bool? warningResult = warningWindow.ShowDialog();
-
-            // If user cancels, don't open the schedule settings
-            if (warningResult != true)
+            // Show Defender warning dialog first (if not disabled)
+            if (!_currentSettings.DontShowDefenderWarning)
             {
-                return;
+                var warningWindow = new DefenderWarningWindow();
+                warningWindow.Owner = this;
+                bool? warningResult = warningWindow.ShowDialog();
+
+                // If user cancels, don't open the schedule settings
+                if (warningResult != true)
+                {
+                    return;
+                }
+
+                // Save user's "don't show again" preference
+                if (warningWindow.DontShowAgain)
+                {
+                    _currentSettings.DontShowDefenderWarning = true;
+                    _settingsService.SaveSettings(_currentSettings);
+                }
             }
 
             var scheduleWindow = new ScheduleSettingsWindow();
@@ -1334,15 +1344,25 @@ namespace ytDownloader
         /// </summary>
         private void EditAutoSchedule(ScheduleTaskInfo task)
         {
-            // Show Defender warning dialog first
-            var warningWindow = new DefenderWarningWindow();
-            warningWindow.Owner = this;
-            bool? warningResult = warningWindow.ShowDialog();
-
-            // If user cancels, don't open the schedule settings
-            if (warningResult != true)
+            // Show Defender warning dialog first (if not disabled)
+            if (!_currentSettings.DontShowDefenderWarning)
             {
-                return;
+                var warningWindow = new DefenderWarningWindow();
+                warningWindow.Owner = this;
+                bool? warningResult = warningWindow.ShowDialog();
+
+                // If user cancels, don't open the schedule settings
+                if (warningResult != true)
+                {
+                    return;
+                }
+
+                // Save user's "don't show again" preference
+                if (warningWindow.DontShowAgain)
+                {
+                    _currentSettings.DontShowDefenderWarning = true;
+                    _settingsService.SaveSettings(_currentSettings);
+                }
             }
 
             var scheduleWindow = new ScheduleSettingsWindow();
