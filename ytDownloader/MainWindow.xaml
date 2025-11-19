@@ -866,12 +866,14 @@
                                         MinHeight="300"
                                         Background="Transparent"
                                         PreviewMouseLeftButtonDown="lstAutoScheduledTasks_PreviewMouseLeftButtonDown"
+                                        PreviewMouseRightButtonDown="lstAutoScheduledTasks_PreviewMouseRightButtonDown"
                                         MouseDoubleClick="lstAutoScheduledTasks_MouseDoubleClick"
                                         SelectionMode="Extended"
                                         SelectionUnit="FullRow">
                                         <DataGrid.ContextMenu>
-                                            <ContextMenu>
+                                            <ContextMenu Opened="AutoScheduleContextMenu_Opened">
                                                 <MenuItem
+                                                    Name="menuEditAutoSchedule"
                                                     Click="btnEditAutoSchedule_Click"
                                                     Header="{DynamicResource Button_EditSchedule}" />
                                                 <Separator />
