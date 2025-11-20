@@ -115,6 +115,7 @@ jobs:
           AppSupportURL={#MyAppURL}
           AppUpdatesURL={#MyAppURL}
           DefaultDirName={userappdata}\{#MyAppName}\app
+          DisableDirPage=yes
           DefaultGroupName={#MyAppName}
           DisableProgramGroupPage=yes
           OutputDir=.
@@ -122,7 +123,7 @@ jobs:
           Compression=lzma
           SolidCompression=yes
           WizardStyle=modern
-          PrivilegesRequired=admin
+          PrivilegesRequired=lowest
           ArchitecturesInstallIn64BitMode=x64
           UninstallDisplayIcon={app}\{#MyAppExeName}
 
@@ -144,7 +145,7 @@ jobs:
           Name: "{userappdata}\Microsoft\Internet Explorer\Quick Launch\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"; Tasks: quicklaunchicon
 
           [Run]
-          Filename: "{app}\{#MyAppExeName}"; Flags: nowait postinstall
+          Filename: "{app}\{#MyAppExeName}"; Description: "{cm:LaunchProgram,{#StringChange(MyAppName, '&', '&&')}}"; Flags: nowait postinstall skipifsilent shellexec
 
           [UninstallDelete]
           Type: filesandordirs; Name: "{userappdata}\{#MyAppName}\app"
