@@ -1128,7 +1128,7 @@ namespace ytDownloader
         }
 
         /// <summary>
-        /// 자동 예약 DataGrid 행 클릭 시 체크박스 토글
+        /// 자동 예약 DataGrid 클릭 처리 - 체크박스와 행 선택 분리
         /// </summary>
         private void lstAutoScheduledTasks_PreviewMouseLeftButtonDown(object sender, MouseButtonEventArgs e)
         {
@@ -1137,32 +1137,25 @@ namespace ytDownloader
 
             // 클릭된 요소 추적
             var hit = e.OriginalSource as System.Windows.DependencyObject;
-            System.Windows.Controls.DataGridRow? row = null;
             System.Windows.Controls.DataGridCell? cell = null;
 
-            // 비주얼 트리를 따라 올라가며 행과 셀 찾기
+            // 비주얼 트리를 따라 올라가며 셀 찾기
             while (hit != null)
             {
                 if (hit is System.Windows.Controls.DataGridCell)
-                    cell = hit as System.Windows.Controls.DataGridCell;
-                if (hit is System.Windows.Controls.DataGridRow)
                 {
-                    row = hit as System.Windows.Controls.DataGridRow;
+                    cell = hit as System.Windows.Controls.DataGridCell;
                     break;
                 }
                 hit = System.Windows.Media.VisualTreeHelper.GetParent(hit);
             }
 
-            // 체크박스 컬럼을 클릭한 경우는 기본 동작 허용 (자동 처리됨)
+            // 체크박스 컬럼을 클릭한 경우 행 선택 방지 (체크박스만 토글됨)
             if (cell != null && cell.Column is DataGridCheckBoxColumn)
-                return;
-
-            // 다른 셀을 클릭한 경우 체크박스 토글
-            if (row != null && row.Item is ScheduleTaskInfo task)
             {
-                task.IsSelected = !task.IsSelected;
                 e.Handled = true;
             }
+            // 다른 셀을 클릭한 경우 기본 행 선택 동작 허용 (체크박스는 토글 안 됨)
         }
 
         /// <summary>
