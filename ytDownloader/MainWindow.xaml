@@ -866,22 +866,16 @@
                                         Name="lstAutoScheduledTasks"
                                         MinHeight="300"
                                         Background="Transparent"
-                                        PreviewMouseLeftButtonDown="lstAutoScheduledTasks_PreviewMouseLeftButtonDown"
                                         MouseDoubleClick="lstAutoScheduledTasks_MouseDoubleClick"
+                                        PreviewMouseLeftButtonDown="lstAutoScheduledTasks_PreviewMouseLeftButtonDown"
                                         SelectionMode="Extended"
                                         SelectionUnit="FullRow">
                                         <DataGrid.ContextMenu>
                                             <ContextMenu>
-                                                <MenuItem
-                                                    Click="btnEditAutoSchedule_Click"
-                                                    Header="{DynamicResource Button_EditSchedule}" />
+                                                <MenuItem Click="btnEditAutoSchedule_Click" Header="{DynamicResource Button_EditSchedule}" />
                                                 <Separator />
-                                                <MenuItem
-                                                    Click="btnDeleteSelectedAutoSchedule_Click"
-                                                    Header="{DynamicResource Button_RemoveSelectedAutoSchedule}" />
-                                                <MenuItem
-                                                    Click="btnDeleteAllAutoSchedules_Click"
-                                                    Header="{DynamicResource Button_RemoveAllAutoSchedules}" />
+                                                <MenuItem Click="btnDeleteSelectedAutoSchedule_Click" Header="{DynamicResource Button_RemoveSelectedAutoSchedule}" />
+                                                <MenuItem Click="btnDeleteAllAutoSchedules_Click" Header="{DynamicResource Button_RemoveAllAutoSchedules}" />
                                             </ContextMenu>
                                         </DataGrid.ContextMenu>
                                         <DataGrid.Columns>

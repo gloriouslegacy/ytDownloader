@@ -179,6 +179,15 @@ namespace ytDownloader.Services
                     }
             }
 
+            // 영상 병합 시 컨테이너를 mp4로 고정 (재인코딩 없이 remux만 수행)
+            if (options.Format == VideoFormat.BestVideo
+                || options.Format == VideoFormat.Video1080p
+                || options.Format == VideoFormat.Video720p
+                || options.Format == VideoFormat.Video480p)
+            {
+                args.Append("--merge-output-format mp4 ");
+            }
+
             if (options.SingleVideoOnly)
                 args.Append("--no-playlist ");
 
